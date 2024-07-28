@@ -1,10 +1,21 @@
 FUNCTION_NAME='tjener-lambda'
 
-build_lambda:
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bootstrap main.go
+.PHONY: dev-build dev-start clean build-lambda push-lambda
+
+dev-build:
+	docker-compose -f docker-compose.yaml build
+
+dev-start:
+	docker-compose -f docker-compose.yaml up
+
+dev-down:
+	docker-compose -f docker-compose.yaml down
+
+build-lambda:
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bootstrap cmd/lambda/main.go
 	zip lambda-handler.zip bootstrap
 
-push_lambda: build_lambda
+push-lambda: build_lambda
 	aws lambda update-function-code --function-name $(FUNCTION_NAME) --zip-file fileb://lambda-handler.zip > /dev/null
 	rm lambda-handler.zip
 	rm bootstrap

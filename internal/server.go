@@ -1,14 +1,11 @@
-package main
+package tjener
 
 import (
 	"fmt"
 	"net/http"
-
-	lambda "github.com/aws/aws-lambda-go/lambda"
-	httpadapter "github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
 )
 
-func newServer() http.Handler {
+func NewServer() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /hello", http.HandlerFunc(handlerGetHello))
@@ -29,9 +26,3 @@ func handlerPostHello(w http.ResponseWriter, r *http.Request) {
 func notFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 }
-
-func main() {
-	adapter := httpadapter.New(newServer())
-	lambda.Start(adapter.ProxyWithContext)
-}
-
