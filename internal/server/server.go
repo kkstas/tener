@@ -1,18 +1,32 @@
-package tjener
+package server
 
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/kkstas/tjener/internal/database"
 )
 
-func NewServer() http.Handler {
+type Application struct {
+	ddb *dynamodb.Client
+	http.Handler
+}
+
+func NewApplication() *Application {
+	app := new(Application)
+	app.ddb = database.CreateDynamoDBClient()
+
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /hello", http.HandlerFunc(handlerGetHello))
 	mux.Handle("POST /hello", http.HandlerFunc(handlerPostHello))
 	mux.Handle("/", http.HandlerFunc(notFound))
 
-	return mux
+	app.Handler = mux
+
+	return app
+
 }
 
 func handlerGetHello(w http.ResponseWriter, r *http.Request) {
