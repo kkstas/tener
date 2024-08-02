@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/a-h/templ"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/database"
 )
 
@@ -16,11 +18,11 @@ type Application struct {
 func NewApplication() *Application {
 	app := new(Application)
 	app.ddb = database.CreateDynamoDBClient()
-
 	mux := http.NewServeMux()
 
 	mux.Handle("GET /hello", http.HandlerFunc(handlerGetHello))
 	mux.Handle("POST /hello", http.HandlerFunc(handlerPostHello))
+	mux.Handle("GET /app", templ.Handler(components.Page()))
 	mux.Handle("/", http.HandlerFunc(notFound))
 
 	app.Handler = mux

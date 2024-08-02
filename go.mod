@@ -5,6 +5,7 @@ go 1.22.5
 require github.com/awslabs/aws-lambda-go-api-proxy v0.16.2
 
 require (
+	github.com/a-h/templ v0.2.747 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.27 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.11 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.15 // indirect

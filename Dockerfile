@@ -1,12 +1,7 @@
-FROM golang:1.22 AS builder
-
+FROM golang:1.22
 WORKDIR /app
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
+RUN go install github.com/a-h/templ/cmd/templ@latest
 RUN go install github.com/air-verse/air@latest
-
+COPY . ./
+RUN go mod download && go mod verify
 EXPOSE 8080
-
-CMD ["air"]
