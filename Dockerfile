@@ -1,4 +1,4 @@
-FROM golang:1.22
+FROM golang:1.22-alpine
 WORKDIR /app
 RUN go install github.com/a-h/templ/cmd/templ@latest
 RUN go install github.com/air-verse/air@latest
