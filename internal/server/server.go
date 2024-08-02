@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/database"
+	"github.com/kkstas/tjener/static"
 )
 
 type Application struct {
@@ -25,10 +26,11 @@ func NewApplication() *Application {
 	mux.Handle("GET /app", templ.Handler(components.Page()))
 	mux.Handle("/", http.HandlerFunc(notFound))
 
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Static))))
+
 	app.Handler = mux
 
 	return app
-
 }
 
 func handlerGetHello(w http.ResponseWriter, r *http.Request) {

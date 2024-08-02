@@ -1,14 +1,13 @@
-version: '3.8'
-
 services:
   app:
     build:
       context: .
+      dockerfile: ./build/Dockerfile
     volumes:
       - .:/app
     ports:
       - "8080:8080"
-    command: ["air"]
+    command: ["air", "-c", "build/.air.toml"]
     environment:
      AWS_REGION: 'localhost'
      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
@@ -26,7 +25,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - "./docker/dynamodb:/home/dynamodblocal/data"
+      - "./build/docker/dynamodb:/home/dynamodblocal/data"
     working_dir: /home/dynamodblocal
     healthcheck:
       test:
