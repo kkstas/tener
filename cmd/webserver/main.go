@@ -4,11 +4,13 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/kkstas/tjener/internal/database"
 	"github.com/kkstas/tjener/internal/server"
 )
 
 func main() {
-	if err := http.ListenAndServe(":8081", server.NewApplication()); err != nil {
+	app := server.NewApplication(database.CreateDynamoDBClient())
+	if err := http.ListenAndServe(":8081", app); err != nil {
 		log.Fatal(err)
 	}
 }

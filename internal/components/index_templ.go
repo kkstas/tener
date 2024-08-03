@@ -136,7 +136,7 @@ func Page() templ.Component {
 			templ_7745c5c3_Var8 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"/static/css/out\"><title>Asdf</title></head><body class=\"bg-gray-100\"><header class=\"hero is-primary\"><div class=\"hero-body\"><div class=\"container\"><h1 class=\"title\">Counts</h1></div></div></header><section class=\"section\"><div class=\"container\"><div class=\"columns is-centered\"><div class=\"column is-half\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"/static/css/out\"><title>Home</title></head><body class=\"bg-gray-100\"><header class=\"hero is-primary\"><div class=\"hero-body\"><div class=\"container\"><h1 class=\"title\">Counts</h1></div></div></header><section class=\"section\"><div class=\"container\"><div class=\"columns is-centered\"><div class=\"column is-half\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
