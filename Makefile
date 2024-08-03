@@ -15,7 +15,7 @@ build-lambda:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bootstrap cmd/lambda/main.go
 	zip lambda-handler.zip bootstrap
 
-push-lambda: build_lambda
+push-lambda: build-lambda
 	aws lambda update-function-code --function-name $(FUNCTION_NAME) --zip-file fileb://lambda-handler.zip > /dev/null
 	rm lambda-handler.zip
 	rm bootstrap
