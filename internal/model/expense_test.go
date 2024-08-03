@@ -6,6 +6,18 @@ import (
 	"time"
 )
 
+func BenchmarkRFC3339(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = time.Now().Format(time.RFC3339)
+	}
+}
+
+func BenchmarkRFC3339Nano(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = time.Now().Format(time.RFC3339Nano)
+	}
+}
+
 func TestGetDateAgo(t *testing.T) {
 
 	t.Run("returns datetime string with time at midnight", func(t *testing.T) {
