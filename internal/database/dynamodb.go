@@ -23,8 +23,7 @@ func CreateDynamoDBClient() *dynamodb.Client {
 	return client
 }
 
-func CreateLocalTable() (*types.TableDescription, error) {
-	client := CreateDynamoDBClient()
+func CreateLocalTable(ctx context.Context, client *dynamodb.Client) (*types.TableDescription, error) {
 	tableName := os.Getenv("DDB_TABLE_NAME")
 
 	var tableDesc *types.TableDescription
@@ -57,7 +56,7 @@ func CreateLocalTable() (*types.TableDescription, error) {
 		},
 	}
 
-	table, err := client.CreateTable(context.TODO(), tableInput)
+	table, err := client.CreateTable(ctx, tableInput)
 	if err != nil {
 		log.Printf("Couldn't create table %v: %v\n", tableName, err)
 		return nil, err
