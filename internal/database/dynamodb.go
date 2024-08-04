@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -13,15 +12,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-func CreateDynamoDBClient(ctx context.Context) *dynamodb.Client {
+func CreateDynamoDBClient(ctx context.Context) (*dynamodb.Client, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 
 	if err != nil {
-		log.Fatalf("unable to load SDK config, %v", err)
+		return nil, fmt.Errorf("unable to load SDK config, %w", err)
 	}
 
 	client := dynamodb.NewFromConfig(cfg)
-	return client
+	return client, nil
 }
 
 func DDBTableExists(ctx context.Context, client *dynamodb.Client, tableName string) (bool, error) {

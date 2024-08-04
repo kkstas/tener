@@ -14,7 +14,11 @@ func initApplication() *server.Application {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	client := database.CreateDynamoDBClient(ctx)
+	client, err := database.CreateDynamoDBClient(ctx)
+	if err != nil {
+		log.Fatalf("creating DDB client failed: %v", err)
+	}
+
 	tableName := os.Getenv("DDB_TABLE_NAME")
 
 	exists, err := database.DDBTableExists(ctx, client, tableName)
