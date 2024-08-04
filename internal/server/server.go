@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/a-h/templ"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/kkstas/tjener/internal/components"
-	"github.com/kkstas/tjener/internal/database"
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/static"
 )
@@ -20,11 +18,11 @@ type Application struct {
 	http.Handler
 }
 
-func NewApplication(ddb *dynamodb.Client) *Application {
+func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 	app := new(Application)
 	app.ddb = ddb
 
-	app.expenseStore = model.NewExpenseStore(os.Getenv("DDB_TABLE_NAME"))
+	app.expenseStore = model.NewExpenseStore(tableName, app.ddb)
 
 	mux := http.NewServeMux()
 
@@ -34,7 +32,6 @@ func NewApplication(ddb *dynamodb.Client) *Application {
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Static))))
 
-	mux.Handle("POST /create-table", http.HandlerFunc(app.createTable))
 	mux.Handle("POST /put-item", http.HandlerFunc(app.putItem))
 	mux.Handle("GET /query", http.HandlerFunc(app.queryItems))
 
@@ -49,15 +46,6 @@ func (app *Application) healthCheck(w http.ResponseWriter, r *http.Request) {
 
 func (app *Application) notFound(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
-}
-
-func (app *Application) createTable(w http.ResponseWriter, r *http.Request) {
-	tableDesc, err := database.CreateLocalTable(r.Context(), app.ddb)
-	if err != nil {
-		fmt.Printf("error while creating table %#v\n", err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-	}
-	fmt.Fprintf(w, "%#v", tableDesc)
 }
 
 func (app *Application) putItem(w http.ResponseWriter, r *http.Request) {

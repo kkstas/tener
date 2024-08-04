@@ -2,8 +2,9 @@ package database
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log"
-	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -12,21 +13,39 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-func CreateDynamoDBClient() *dynamodb.Client {
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+func CreateDynamoDBClient(ctx context.Context) *dynamodb.Client {
+	cfg, err := config.LoadDefaultConfig(ctx)
 
 	if err != nil {
-		log.Fatalf("Unable to load SDK config, %v", err)
+		log.Fatalf("unable to load SDK config, %v", err)
 	}
 
 	client := dynamodb.NewFromConfig(cfg)
 	return client
 }
 
-func CreateLocalTable(ctx context.Context, client *dynamodb.Client) (*types.TableDescription, error) {
-	tableName := os.Getenv("DDB_TABLE_NAME")
+func DDBTableExists(client *dynamodb.Client, tableName string) bool {
+	_, err := client.DescribeTable(context.Background(), &dynamodb.DescribeTableInput{
+		TableName: &tableName,
+	})
 
-	var tableDesc *types.TableDescription
+	if err != nil {
+		var notFoundErr *types.ResourceNotFoundException
+		if ok := errors.As(err, &notFoundErr); !ok {
+			log.Fatalf("failed to describe table %s: %v\n", tableName, err)
+		}
+		return false
+	}
+
+	return true
+}
+
+func CreateDDBTableIfNotExists(ctx context.Context, client *dynamodb.Client, tableName string) {
+	if DDBTableExists(client, tableName) {
+		fmt.Printf("DynamoDB table %q exists.\n", tableName)
+		return
+	}
+	fmt.Printf("DynamoDB table %q does not exist. Creating...\n", tableName)
 
 	tableInput := &dynamodb.CreateTableInput{
 		AttributeDefinitions: []types.AttributeDefinition{
@@ -56,21 +75,19 @@ func CreateLocalTable(ctx context.Context, client *dynamodb.Client) (*types.Tabl
 		},
 	}
 
-	table, err := client.CreateTable(ctx, tableInput)
+	_, err := client.CreateTable(ctx, tableInput)
 	if err != nil {
-		log.Printf("Couldn't create table %v: %v\n", tableName, err)
-		return nil, err
+		fmt.Printf("Couldn't create table %v: %v\n", tableName, err)
+		return
 	}
 
 	waiter := dynamodb.NewTableExistsWaiter(client)
-	err = waiter.Wait(context.TODO(), &dynamodb.DescribeTableInput{
+	err = waiter.Wait(context.Background(), &dynamodb.DescribeTableInput{
 		TableName: aws.String(tableName),
 	}, 5*time.Minute)
 	if err != nil {
-		log.Printf("Wait for table exists failed: %v\n", err)
-		return nil, err
+		log.Fatalf("wait for table exists failed: %v\n", err)
 	}
 
-	tableDesc = table.TableDescription
-	return tableDesc, nil
+	fmt.Printf("Table %q created successfully.\n", tableName)
 }

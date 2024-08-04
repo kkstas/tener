@@ -14,7 +14,7 @@ func TestHome(t *testing.T) {
 	t.Run("responds with html", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/home", nil)
-		server.NewApplication(nil).ServeHTTP(response, request)
+		server.NewApplication(nil, "").ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 
@@ -31,7 +31,7 @@ func TestHealthCheck(t *testing.T) {
 	t.Run("returns status 200", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/health-check", nil)
-		server.NewApplication(nil).ServeHTTP(response, request)
+		server.NewApplication(nil, "").ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 	})
@@ -41,7 +41,7 @@ func TestStaticCss(t *testing.T) {
 	t.Run("returns css file content with status 200", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/static/css/out", nil)
-		server.NewApplication(nil).ServeHTTP(response, request)
+		server.NewApplication(nil, "").ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 
@@ -52,7 +52,7 @@ func TestStaticCss(t *testing.T) {
 }
 
 func TestNotFound(t *testing.T) {
-	s := server.NewApplication(nil)
+	s := server.NewApplication(nil, "")
 
 	cases := []struct {
 		method string

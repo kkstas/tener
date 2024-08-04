@@ -12,7 +12,7 @@ dev-down:
 	docker-compose -f docker-compose.yaml down
 
 build-lambda:
-	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bootstrap cmd/lambda/main.go
+	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bootstrap ./cmd/lambda
 	zip lambda-handler.zip bootstrap
 
 push-lambda: build-lambda

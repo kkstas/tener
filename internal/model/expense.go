@@ -8,8 +8,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-
-	"github.com/kkstas/tjener/internal/database"
 )
 
 type Expense struct {
@@ -27,10 +25,10 @@ type ExpenseStore struct {
 	tableName string
 }
 
-func NewExpenseStore(tableName string) *ExpenseStore {
+func NewExpenseStore(tableName string, client *dynamodb.Client) *ExpenseStore {
 	return &ExpenseStore{
 		tableName: tableName,
-		client:    database.CreateDynamoDBClient(),
+		client:    client,
 	}
 }
 
