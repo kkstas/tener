@@ -24,29 +24,23 @@ func CreateDynamoDBClient(ctx context.Context) *dynamodb.Client {
 	return client
 }
 
-func DDBTableExists(client *dynamodb.Client, tableName string) bool {
-	_, err := client.DescribeTable(context.Background(), &dynamodb.DescribeTableInput{
+func DDBTableExists(ctx context.Context, client *dynamodb.Client, tableName string) (bool, error) {
+	_, err := client.DescribeTable(ctx, &dynamodb.DescribeTableInput{
 		TableName: &tableName,
 	})
 
 	if err != nil {
 		var notFoundErr *types.ResourceNotFoundException
 		if ok := errors.As(err, &notFoundErr); !ok {
-			log.Fatalf("failed to describe table %s: %v\n", tableName, err)
+			return false, fmt.Errorf("failed to describe table %s: %v\n", tableName, err)
 		}
-		return false
+		return false, nil
 	}
 
-	return true
+	return true, nil
 }
 
-func CreateDDBTableIfNotExists(ctx context.Context, client *dynamodb.Client, tableName string) {
-	if DDBTableExists(client, tableName) {
-		fmt.Printf("DynamoDB table %q exists.\n", tableName)
-		return
-	}
-	fmt.Printf("DynamoDB table %q does not exist. Creating...\n", tableName)
-
+func CreateDDBTable(ctx context.Context, client *dynamodb.Client, tableName string) error {
 	tableInput := &dynamodb.CreateTableInput{
 		AttributeDefinitions: []types.AttributeDefinition{
 			{
@@ -77,17 +71,15 @@ func CreateDDBTableIfNotExists(ctx context.Context, client *dynamodb.Client, tab
 
 	_, err := client.CreateTable(ctx, tableInput)
 	if err != nil {
-		fmt.Printf("Couldn't create table %v: %v\n", tableName, err)
-		return
+		return fmt.Errorf("could not create table %v: %w", tableName, err)
 	}
 
 	waiter := dynamodb.NewTableExistsWaiter(client)
-	err = waiter.Wait(context.Background(), &dynamodb.DescribeTableInput{
+	err = waiter.Wait(ctx, &dynamodb.DescribeTableInput{
 		TableName: aws.String(tableName),
 	}, 5*time.Minute)
 	if err != nil {
-		log.Fatalf("wait for table exists failed: %v\n", err)
+		return fmt.Errorf("wait for table exists failed: %w", err)
 	}
-
-	fmt.Printf("Table %q created successfully.\n", tableName)
+	return nil
 }
