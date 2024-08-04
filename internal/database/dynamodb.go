@@ -31,7 +31,7 @@ func DDBTableExists(ctx context.Context, client *dynamodb.Client, tableName stri
 	if err != nil {
 		var notFoundErr *types.ResourceNotFoundException
 		if ok := errors.As(err, &notFoundErr); !ok {
-			return false, fmt.Errorf("failed to describe table %s: %v\n", tableName, err)
+			return false, fmt.Errorf("failed to describe table %s: %v", tableName, err)
 		}
 		return false, nil
 	}

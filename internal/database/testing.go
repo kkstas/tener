@@ -13,15 +13,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-func CreateLocalTestDDBTable(ctx context.Context) (string, func(), error) {
+func CreateLocalTestDDBTable(ctx context.Context) (string, *dynamodb.Client, func(), error) {
 	client, err := CreateLocalDynamoDBClient(ctx)
 	if err != nil {
-		return "", nil, err
+		return "", nil, nil, err
 	}
 
 	tableName := randomString(16)
 	if err := CreateDDBTable(ctx, client, tableName); err != nil {
-		return tableName, nil, fmt.Errorf("error while creating DDB table: %w", err)
+		return tableName, nil, nil, fmt.Errorf("error while creating DDB table: %w", err)
 	}
 
 	removeDDB := func() {
@@ -31,7 +31,7 @@ func CreateLocalTestDDBTable(ctx context.Context) (string, func(), error) {
 		}
 	}
 
-	return tableName, removeDDB, nil
+	return tableName, client, removeDDB, nil
 }
 
 func deleteDDBTable(ctx context.Context, client *dynamodb.Client, tableName string) error {
@@ -42,10 +42,9 @@ func deleteDDBTable(ctx context.Context, client *dynamodb.Client, tableName stri
 	}
 
 	if !exists {
-		return fmt.Errorf("DynamoDB table %q does not exist. Nothing to delete.\n", tableName)
+		return fmt.Errorf("DynamoDB table %q does not exist, nothing to delete", tableName)
 	}
 
-	fmt.Printf("Deleting DynamoDB table %q...\n", tableName)
 	_, err = client.DeleteTable(ctx, &dynamodb.DeleteTableInput{
 		TableName: aws.String(tableName),
 	})
@@ -60,8 +59,6 @@ func deleteDDBTable(ctx context.Context, client *dynamodb.Client, tableName stri
 	if err != nil {
 		return fmt.Errorf("wait for table deletion failed: %w", err)
 	}
-
-	fmt.Printf("Table %q deleted successfully.\n", tableName)
 	return nil
 }
 

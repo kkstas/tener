@@ -5,8 +5,6 @@ go 1.22.5
 require github.com/awslabs/aws-lambda-go-api-proxy v0.16.2
 
 require (
-	github.com/a-h/templ v0.2.747 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.27 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.11 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.15 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.15 // indirect
@@ -20,12 +18,15 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.30.3 // indirect
 	github.com/aws/smithy-go v1.20.3 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	golang.org/x/sys v0.23.0 // indirect
 )
 
 require (
+	github.com/a-h/templ v0.2.747
 	github.com/aws/aws-lambda-go v1.41.0
 	github.com/aws/aws-sdk-go-v2 v1.30.3
 	github.com/aws/aws-sdk-go-v2/config v1.27.27
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.27
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue v1.14.10
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.7.32
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.34.4
