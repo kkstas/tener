@@ -7,6 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/static"
@@ -67,11 +68,13 @@ func (app *Application) queryItems(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Printf("error while query items %v\n", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+	w.Header().Add("content-type", "application/json")
 	err = json.NewEncoder(w).Encode(expenses)
 	if err != nil {
 		fmt.Printf("error while encoding %v\n", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-
 }
