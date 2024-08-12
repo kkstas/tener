@@ -89,7 +89,7 @@ func TestCreateExpense(t *testing.T) {
 		if err == nil {
 			t.Error("expected an error when category is empty string")
 		}
-		var nameErr *ExpenseNameIsTooShortError
+		var nameErr *ExpenseCategoryIsTooShortError
 		if !errors.As(err, &nameErr) {
 			t.Errorf("expected %T, got %#v", nameErr, err)
 		}

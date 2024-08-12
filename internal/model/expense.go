@@ -12,12 +12,12 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-type ExpenseNameIsTooShortError struct {
+type ExpenseCategoryIsTooShortError struct {
 	Name string
 }
 
-func (e *ExpenseNameIsTooShortError) Error() string {
-	return fmt.Sprintf("expense name '%s' is too short", e.Name)
+func (e *ExpenseCategoryIsTooShortError) Error() string {
+	return fmt.Sprintf("expense category '%s' is too short", e.Name)
 }
 
 type ExpenseAmountIsZeroError struct{}
@@ -57,19 +57,13 @@ type ExpenseStore struct {
 }
 
 func CreateExpense(name, category string, amount float64, currency string) (Expense, error) {
-	if len(category) <= 1 {
-		return Expense{}, &ExpenseNameIsTooShortError{name}
+	if err := validateCategory(category); err != nil {
+		return Expense{}, err
 	}
-
-	if amount == 0 {
-		return Expense{}, &ExpenseAmountIsZeroError{}
+	if err := validateAmount(amount); err != nil {
+		return Expense{}, err
 	}
-
-	if amount != toFixed(amount, 2) {
-		return Expense{}, &InvalidAmountPrecisionError{amount}
-	}
-
-	if !isCurrencyValid(currency) {
+	if err := validateCurrency(currency); err != nil {
 		return Expense{}, &InvalidCurrencyError{currency}
 	}
 
@@ -219,8 +213,28 @@ func resetToMidnight(t time.Time, loc *time.Location) time.Time {
 
 var validCurrencies = []string{"PLN", "USD", "EUR", "GBP", "CHF", "NOK", "SEK", "DKK", "HUF", "CZK", "CAD", "AUD", "JPY", "CNY", "TRY"}
 
-func isCurrencyValid(curr string) bool {
-	return slices.Contains(validCurrencies, curr)
+func validateCurrency(curr string) error {
+	if !slices.Contains(validCurrencies, curr) {
+		return &InvalidCurrencyError{curr}
+	}
+	return nil
+}
+
+func validateCategory(category string) error {
+	if len(category) <= 1 {
+		return &ExpenseCategoryIsTooShortError{category}
+	}
+	return nil
+}
+
+func validateAmount(amount float64) error {
+	if amount == 0 {
+		return &ExpenseAmountIsZeroError{}
+	}
+	if amount != toFixed(amount, 2) {
+		return &InvalidAmountPrecisionError{amount}
+	}
+	return nil
 }
 
 func toFixed(num float64, precision int) float64 {
