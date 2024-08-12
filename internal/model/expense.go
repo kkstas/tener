@@ -10,19 +10,52 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
+type ExpenseNameIsTooShortError struct {
+	Name string
+}
+
+func (e *ExpenseNameIsTooShortError) Error() string {
+	return fmt.Sprintf("expense name %q is too short", e.Name)
+}
+
+type ExpenseAmountIsZeroError struct{}
+
+func (e *ExpenseAmountIsZeroError) Error() string {
+	return "expense amount cannot be zero"
+}
+
 type Expense struct {
-	PK        string            `dynamodbav:"PK"`
-	SK        string            `dynamodbav:"SK"`
-	Name      string            `dynamodbav:"name"`
-	Amount    float64           `dynamodbav:"amount"`
-	Category  string            `dynamodbav:"category"`
-	Something []string          `dynamodbav:"something"`
-	SomeMap   map[string]string `dynamodbav:"somemap"`
+	PK       string  `dynamodbav:"PK"`
+	SK       string  `dynamodbav:"SK"`
+	Name     string  `dynamodbav:"name"`
+	Category string  `dynamodbav:"category"`
+	Amount   float64 `dynamodbav:"amount"`
+	Currency string  `dynamodbav:"currency"`
 }
 
 type ExpenseStore struct {
 	client    *dynamodb.Client
 	tableName string
+}
+
+func CreateExpense(name, category string, amount float64, currency string) (Expense, error) {
+	if len(category) <= 1 {
+		return Expense{}, &ExpenseNameIsTooShortError{name}
+	}
+
+	if amount == 0 {
+		return Expense{}, &ExpenseAmountIsZeroError{}
+
+	}
+
+	return Expense{
+		PK:       "expense",
+		SK:       timestampNow(),
+		Name:     name,
+		Category: category,
+		Amount:   amount,
+		Currency: currency,
+	}, nil
 }
 
 func NewExpenseStore(tableName string, client *dynamodb.Client) *ExpenseStore {
@@ -39,6 +72,7 @@ func (m *ExpenseStore) PutItem(ctx context.Context, expenseFC Expense) error {
 			SK:       timestampNow(),
 			Name:     expenseFC.Name,
 			Amount:   expenseFC.Amount,
+			Currency: expenseFC.Currency,
 			Category: expenseFC.Category,
 		},
 	)
@@ -127,7 +161,7 @@ func (m *ExpenseStore) queryItems(ctx context.Context, expr expression.Expressio
 		err = attributevalue.UnmarshalListOfMaps(response.Items, &resExpenses)
 
 		if err != nil {
-			return expenses, fmt.Errorf("couldn't unmarshal query response %w\n", err)
+			return expenses, fmt.Errorf("couldn't unmarshal query response %w", err)
 		}
 
 		expenses = append(expenses, resExpenses...)

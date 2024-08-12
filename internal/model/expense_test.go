@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"errors"
 	"strings"
 	"testing"
 	"time"
@@ -69,6 +70,51 @@ func TestGetDateAgo(t *testing.T) {
 		got := getDateDaysAgo(0)
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)
+		}
+	})
+
+}
+
+func TestCreateExpense(t *testing.T) {
+	t.Run("creates valid expense", func(t *testing.T) {
+		_, err := CreateExpense("", "food", 24.99, "PLN")
+		if err != nil {
+			t.Errorf("didn't expect an error but got one: %v", err)
+		}
+
+	})
+
+	t.Run("returns an error when category is too short", func(t *testing.T) {
+		_, err := CreateExpense("", "", 24.99, "PLN")
+
+		if err == nil {
+			t.Error("expected an error when category is empty string")
+		}
+		var nameErr *ExpenseNameIsTooShortError
+		if !errors.As(err, &nameErr) {
+			t.Errorf("expected %T, got %#v", nameErr, err)
+		}
+
+		_, err = CreateExpense("", "a", 24.99, "PLN")
+		if err == nil {
+			t.Error("expected an error when category's length is 1")
+		}
+
+		nameErr = nil
+		if !errors.As(err, &nameErr) {
+			t.Errorf("expected %T, got %#v", nameErr, err)
+		}
+	})
+
+	t.Run("returns an error when amount is zero", func(t *testing.T) {
+		_, err := CreateExpense("", "food", 0, "PLN")
+		var zeroAmountErr *ExpenseAmountIsZeroError
+		if err == nil {
+			t.Error("expected an error but didn't get one")
+		}
+
+		if !errors.As(err, &zeroAmountErr) {
+			t.Errorf("expected %T, got %#v", zeroAmountErr, err)
 		}
 	})
 
