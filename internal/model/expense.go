@@ -16,7 +16,7 @@ type ExpenseNameIsTooShortError struct {
 }
 
 func (e *ExpenseNameIsTooShortError) Error() string {
-	return fmt.Sprintf("expense name %q is too short", e.Name)
+	return fmt.Sprintf("expense name '%s' is too short", e.Name)
 }
 
 type ExpenseAmountIsZeroError struct{}
@@ -30,7 +30,7 @@ type InvalidCurrencyError struct {
 }
 
 func (e *InvalidCurrencyError) Error() string {
-	return fmt.Sprintf("currency %q is invalid", e.Currency)
+	return fmt.Sprintf("currency '%s' is invalid", e.Currency)
 }
 
 type Expense struct {

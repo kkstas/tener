@@ -1,10 +1,12 @@
 package server_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 	"time"
@@ -93,11 +95,60 @@ func TestQuery(t *testing.T) {
 
 	t.Run("responds with 200 and correct content-type when no items were found", func(t *testing.T) {
 		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodGet, "/query", nil)
+		request := httptest.NewRequest(http.MethodGet, "/expense/query", nil)
 		server.NewApplication(client, tableName).ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 		assertHeaderValue(t, response, "content-type", "application/json")
+	})
+}
+
+func TestPutItem(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
+	if err != nil {
+		t.Fatalf("could not create local test ddb table, %v", err)
+	}
+	defer removeDDB()
+
+	t.Run("returns 400 if there's no form params", func(t *testing.T) {
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/expense/create", nil)
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		server.NewApplication(client, tableName).ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusBadRequest)
+	})
+
+	t.Run("returns 400 if amount is not valid float64", func(t *testing.T) {
+		var param = url.Values{}
+		param.Set("currency", "PLN")
+		param.Set("amount", "1.9d9")
+		param.Set("category", "food")
+		var payload = bytes.NewBufferString(param.Encode())
+
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		server.NewApplication(client, tableName).ServeHTTP(response, request)
+
+		assertStatus(t, response.Code, http.StatusBadRequest)
+	})
+
+	t.Run("returns 201 for correct request", func(t *testing.T) {
+		var param = url.Values{}
+		param.Set("currency", "PLN")
+		param.Set("amount", "1.99")
+		param.Set("category", "food")
+		param.Set("name", "some name")
+		var payload = bytes.NewBufferString(param.Encode())
+
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		server.NewApplication(client, tableName).ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusCreated)
 	})
 }
 
