@@ -81,7 +81,6 @@ func TestCreateExpense(t *testing.T) {
 		if err != nil {
 			t.Errorf("didn't expect an error but got one: %v", err)
 		}
-
 	})
 
 	t.Run("returns an error when category is too short", func(t *testing.T) {
@@ -115,6 +114,18 @@ func TestCreateExpense(t *testing.T) {
 
 		if !errors.As(err, &zeroAmountErr) {
 			t.Errorf("expected %T, got %#v", zeroAmountErr, err)
+		}
+	})
+
+	t.Run("returns an error when amount is float with precision larger than two", func(t *testing.T) {
+		_, err := CreateExpense("", "food", 24.4234, "PLN")
+		var invalidAmountPrecisionError *InvalidAmountPrecisionError
+		if err == nil {
+			t.Error("expected an error but didn't get one")
+		}
+
+		if !errors.As(err, &invalidAmountPrecisionError) {
+			t.Errorf("expected %T, got %#v", invalidAmountPrecisionError, err)
 		}
 	})
 

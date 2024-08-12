@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"math"
 	"slices"
 	"time"
 
@@ -33,6 +34,14 @@ func (e *InvalidCurrencyError) Error() string {
 	return fmt.Sprintf("currency '%s' is invalid", e.Currency)
 }
 
+type InvalidAmountPrecisionError struct {
+	Amount float64
+}
+
+func (e *InvalidAmountPrecisionError) Error() string {
+	return fmt.Sprintf("amount '%f' has too large precision", e.Amount)
+}
+
 type Expense struct {
 	PK       string  `dynamodbav:"PK"       json:"PK"`
 	SK       string  `dynamodbav:"SK"       json:"SK"`
@@ -54,7 +63,10 @@ func CreateExpense(name, category string, amount float64, currency string) (Expe
 
 	if amount == 0 {
 		return Expense{}, &ExpenseAmountIsZeroError{}
+	}
 
+	if amount != toFixed(amount, 2) {
+		return Expense{}, &InvalidAmountPrecisionError{amount}
 	}
 
 	if !isCurrencyValid(currency) {
@@ -209,4 +221,9 @@ var validCurrencies = []string{"PLN", "USD", "EUR", "GBP", "CHF", "NOK", "SEK", 
 
 func isCurrencyValid(curr string) bool {
 	return slices.Contains(validCurrencies, curr)
+}
+
+func toFixed(num float64, precision int) float64 {
+	output := math.Pow(10, float64(precision))
+	return float64(int(num*output)) / output
 }
