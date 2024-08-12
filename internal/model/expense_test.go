@@ -118,4 +118,11 @@ func TestCreateExpense(t *testing.T) {
 		}
 	})
 
+	t.Run("returns an error if currency is invalid", func(t *testing.T) {
+		_, err := CreateExpense("", "food", 24.99, "memecoin")
+		var invalidCurrencyErr *InvalidCurrencyError
+		if !errors.As(err, &invalidCurrencyErr) {
+			t.Errorf("expected %T, got %#v", invalidCurrencyErr, err)
+		}
+	})
 }

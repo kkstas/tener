@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -22,6 +23,14 @@ type ExpenseAmountIsZeroError struct{}
 
 func (e *ExpenseAmountIsZeroError) Error() string {
 	return "expense amount cannot be zero"
+}
+
+type InvalidCurrencyError struct {
+	Currency string
+}
+
+func (e *InvalidCurrencyError) Error() string {
+	return fmt.Sprintf("currency %q is invalid", e.Currency)
 }
 
 type Expense struct {
@@ -46,6 +55,10 @@ func CreateExpense(name, category string, amount float64, currency string) (Expe
 	if amount == 0 {
 		return Expense{}, &ExpenseAmountIsZeroError{}
 
+	}
+
+	if !isCurrencyValid(currency) {
+		return Expense{}, &InvalidCurrencyError{currency}
 	}
 
 	return Expense{
@@ -190,4 +203,10 @@ func resetToMidnight(t time.Time, loc *time.Location) time.Time {
 		0, 0, 0, 0,
 		loc,
 	)
+}
+
+var validCurrencies = []string{"PLN", "USD", "EUR", "GBP", "CHF", "NOK", "SEK", "DKK", "HUF", "CZK", "CAD", "AUD", "JPY", "CNY", "TRY"}
+
+func isCurrencyValid(curr string) bool {
+	return slices.Contains(validCurrencies, curr)
 }
