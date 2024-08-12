@@ -3,6 +3,7 @@ package server_test
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -135,7 +136,17 @@ func TestPutItem(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
-	t.Run("returns 201 for correct request", func(t *testing.T) {
+	t.Run("returns 201 with expenses array for correct request", func(t *testing.T) {
+		queryRes := httptest.NewRecorder()
+		queryReq := httptest.NewRequest(http.MethodGet, "/expense/query", nil)
+		server.NewApplication(client, tableName).ServeHTTP(queryRes, queryReq)
+
+		var queryBefore []interface{}
+		err := json.Unmarshal(queryRes.Body.Bytes(), &queryBefore)
+		if err != nil {
+			t.Fatalf("failed to parse response body as JSON array: %v", err)
+		}
+
 		var param = url.Values{}
 		param.Set("currency", "PLN")
 		param.Set("amount", "1.99")
@@ -149,6 +160,16 @@ func TestPutItem(t *testing.T) {
 
 		server.NewApplication(client, tableName).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusCreated)
+		assertHeaderValue(t, response, "content-type", "application/json")
+
+		var queryAfter []interface{}
+		err = json.Unmarshal(response.Body.Bytes(), &queryAfter)
+		if err != nil {
+			t.Fatalf("failed to parse response body as JSON array: %v", err)
+		}
+		if len(queryAfter)-1 != len(queryBefore) {
+			t.Errorf("putting item into database did not result in one more item in query, before: %v, after: %v", queryBefore, queryAfter)
+		}
 	})
 }
 

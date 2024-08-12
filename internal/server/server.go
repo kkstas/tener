@@ -74,13 +74,15 @@ func (app *Application) putItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	app.queryItems(w, r)
 }
 
 func (app *Application) queryItems(w http.ResponseWriter, r *http.Request) {
 	expenses, err := app.expenseStore.Query(r.Context())
 	if err != nil {
-		writeErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("error while query items %v\n", err.Error()))
+		writeErrorResponse(w, http.StatusInternalServerError, fmt.Sprintf("error while querying for items %v\n", err.Error()))
 		return
 	}
 
