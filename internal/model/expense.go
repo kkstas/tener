@@ -40,10 +40,10 @@ func (e Expense) GetKey() map[string]types.AttributeValue {
 }
 
 func NewExpense(name, category string, amount float64, currency string) (Expense, error) {
-	return createExpenseInternal("expense", generateCurrentTimestamp(), name, category, amount, currency)
+	return newExpenseInternal("expense", generateCurrentTimestamp(), name, category, amount, currency)
 }
 
-func createExpenseInternal(PK, SK, name, category string, amount float64, currency string) (Expense, error) {
+func newExpenseInternal(PK, SK, name, category string, amount float64, currency string) (Expense, error) {
 	if err := validateCategory(category); err != nil {
 		return Expense{}, err
 	}
@@ -200,7 +200,7 @@ func (es *ExpenseStore) UpdateExpense(ctx context.Context, PK, SK, name, categor
 	var err error
 	var response *dynamodb.UpdateItemOutput
 
-	expense, err := createExpenseInternal(PK, SK, name, category, amount, currency)
+	expense, err := newExpenseInternal(PK, SK, name, category, amount, currency)
 	if err != nil {
 		return Expense{}, err
 	}

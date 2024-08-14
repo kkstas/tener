@@ -15,7 +15,7 @@ import (
 	"github.com/kkstas/tjener/internal/server"
 )
 
-func TestHome(t *testing.T) {
+func TestHomeHandler(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -32,7 +32,6 @@ func TestHome(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusOK)
 
 		contentType := response.Header().Get("content-type")
-
 		if !strings.HasPrefix(contentType, "text/html") {
 			t.Errorf("invalid content type %q", contentType)
 		}
@@ -63,7 +62,7 @@ func TestStaticCss(t *testing.T) {
 	})
 }
 
-func TestNotFound(t *testing.T) {
+func TestNotFoundHandler(t *testing.T) {
 	s := server.NewApplication(nil, "")
 
 	cases := []struct {
@@ -92,26 +91,7 @@ func TestNotFound(t *testing.T) {
 	}
 }
 
-func TestQuery(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
-	if err != nil {
-		t.Fatalf("could not create local test ddb table, %v", err)
-	}
-	defer removeDDB()
-
-	t.Run("responds with 200 and correct content-type when no items were found", func(t *testing.T) {
-		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodGet, "/expense/query", nil)
-		server.NewApplication(client, tableName).ServeHTTP(response, request)
-
-		assertStatus(t, response.Code, http.StatusOK)
-		assertHeaderValue(t, response, "content-type", "application/json")
-	})
-}
-
-func TestPostCreateExpense(t *testing.T) {
+func TestCreateExpense(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -165,17 +145,27 @@ func TestPostCreateExpense(t *testing.T) {
 	})
 }
 
+func TestShowExpense(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
+	if err != nil {
+		t.Fatalf("could not create local test ddb table, %v", err)
+	}
+	defer removeDDB()
+
+	t.Run("returns 404 if there's no found expense", func(t *testing.T) {
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet, "/expense/x/y", nil)
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		server.NewApplication(client, tableName).ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusNotFound)
+	})
+}
+
 func assertStatus(t testing.TB, got, want int) {
 	t.Helper()
 	if got != want {
 		t.Errorf("did not get correct status: got %d, want %d", got, want)
-	}
-}
-
-func assertHeaderValue(t testing.TB, response *httptest.ResponseRecorder, headerKey, want string) {
-	t.Helper()
-	got := response.Header().Get(headerKey)
-	if got != want {
-		t.Errorf("did not get correct header value: got %q, want %q", got, want)
 	}
 }
