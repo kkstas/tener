@@ -156,7 +156,7 @@ func TestShowExpense(t *testing.T) {
 
 	t.Run("returns 404 if there's no found expense", func(t *testing.T) {
 		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodGet, "/expense/x/y", nil)
+		request := httptest.NewRequest(http.MethodGet, "/expense/x", nil)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		server.NewApplication(client, tableName).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)

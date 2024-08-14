@@ -22,14 +22,14 @@ templ SingleExpense(expense model.Expense) {
 		<div><label>Category</label>: { expense.Category }</div>
 		<div><label>Amount</label>: { fmt.Sprint(expense.Amount) }</div>
 		<div><label>Currency</label>: { expense.Currency }</div>
-		<button hx-get={ "/expense/edit/" + expense.PK + "/" + expense.SK } class="btn primary">
+		<button hx-get={ "/expense/edit/" + expense.SK } class="btn primary">
 			Click To Edit
 		</button>
 	</div>
 }
 
 templ EditSingleExpense(expense model.Expense) {
-	<form hx-put={ "/expense/edit/" + expense.PK + "/" + expense.SK } hx-target="this" hx-swap="outerHTML">
+	<form hx-put={ "/expense/edit/" + expense.SK } hx-target="this" hx-swap="outerHTML">
 		<div>
 			<label>Name</label>
 			<input type="text" name="name" value={ expense.Name }/>
@@ -47,7 +47,7 @@ templ EditSingleExpense(expense model.Expense) {
 			<input type="text" name="currency" value={ expense.Currency }/>
 		</div>
 		<button class="btn">Submit</button>
-		<button class="btn" hx-get={ "/expense/" + expense.PK + "/" + expense.SK }>Cancel</button>
+		<button class="btn" hx-get={ "/expense/" + expense.SK }>Cancel</button>
 	</form>
 }
 
@@ -84,15 +84,15 @@ templ Page(expenses []model.Expense) {
 				</div>
 				<div>
 					<label>currency</label>
-					<input type="text" class="form-control" name="currency"/>
+					<input type="text" class="form-control" name="currency" value="PLN"/>
 				</div>
 				<div class="form-group">
 					<label>amount</label>
-					<input type="text" class="form-control" name="amount"/>
+					<input type="text" class="form-control" name="amount" value="1"/>
 				</div>
 				<div class="form-group">
 					<label>category</label>
-					<input type="text" class="form-control" name="category"/>
+					<input type="text" class="form-control" name="category" value="food"/>
 				</div>
 				<button class="btn">Submit</button>
 				@ExpensesContainer(expenses)

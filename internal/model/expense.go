@@ -13,6 +13,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
+const expensePK = "expense"
+
 type Expense struct {
 	PK       string  `dynamodbav:"PK"       json:"PK"`
 	SK       string  `dynamodbav:"SK"       json:"SK"`
@@ -40,7 +42,7 @@ func (e Expense) GetKey() map[string]types.AttributeValue {
 }
 
 func NewExpense(name, category string, amount float64, currency string) (Expense, error) {
-	return newExpenseInternal("expense", generateCurrentTimestamp(), name, category, amount, currency)
+	return newExpenseInternal(expensePK, generateCurrentTimestamp(), name, category, amount, currency)
 }
 
 func newExpenseInternal(PK, SK, name, category string, amount float64, currency string) (Expense, error) {
@@ -74,7 +76,7 @@ func NewExpenseStore(tableName string, client *dynamodb.Client) *ExpenseStore {
 func (es *ExpenseStore) PutItem(ctx context.Context, expenseFC Expense) error {
 	item, err := attributevalue.MarshalMap(
 		Expense{
-			PK:       "expense",
+			PK:       expensePK,
 			SK:       generateCurrentTimestamp(),
 			Name:     expenseFC.Name,
 			Amount:   expenseFC.Amount,
@@ -101,7 +103,7 @@ func (es *ExpenseStore) PutItem(ctx context.Context, expenseFC Expense) error {
 
 func (es *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
 	keyCond := expression.
-		Key("PK").Equal(expression.Value("expense")).
+		Key("PK").Equal(expression.Value(expensePK)).
 		And(expression.Key("SK").GreaterThanEqual(expression.Value(getTimestampDaysAgo(7))))
 
 	exprBuilder := expression.NewBuilder()
@@ -120,7 +122,7 @@ func (es *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
 
 func (es *ExpenseStore) QueryByCategory(ctx context.Context, category string) ([]Expense, error) {
 	keyCond := expression.
-		Key("PK").Equal(expression.Value("expense")).
+		Key("PK").Equal(expression.Value(expensePK)).
 		And(expression.Key("SK").GreaterThanEqual(expression.Value(getTimestampDaysAgo(7))))
 
 	filterCond := expression.Name("category").Equal(expression.Value(category))
@@ -173,15 +175,15 @@ func (es *ExpenseStore) queryExpenses(ctx context.Context, expr expression.Expre
 	return expenses, nil
 }
 
-func (es *ExpenseStore) GetExpense(ctx context.Context, PK, SK string) (Expense, bool, error) {
-	expense := Expense{PK: PK, SK: SK}
+func (es *ExpenseStore) GetExpense(ctx context.Context, SK string) (Expense, bool, error) {
+	expense := Expense{PK: expensePK, SK: SK}
 	response, err := es.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &es.tableName,
 		Key:       expense.GetKey(),
 	})
 
 	if err != nil {
-		return Expense{}, false, fmt.Errorf("GetItem DynamoDB operation failed for PK='%s' SK='%s': %w", PK, SK, err)
+		return Expense{}, false, fmt.Errorf("GetItem DynamoDB operation failed for SK='%s': %w", SK, err)
 	}
 
 	if response.Item == nil || len(response.Item) == 0 {
@@ -196,11 +198,11 @@ func (es *ExpenseStore) GetExpense(ctx context.Context, PK, SK string) (Expense,
 	return expense, true, nil
 }
 
-func (es *ExpenseStore) UpdateExpense(ctx context.Context, PK, SK, name, category string, amount float64, currency string) (Expense, error) {
+func (es *ExpenseStore) UpdateExpense(ctx context.Context, SK, name, category string, amount float64, currency string) (Expense, error) {
 	var err error
 	var response *dynamodb.UpdateItemOutput
 
-	expense, err := newExpenseInternal(PK, SK, name, category, amount, currency)
+	expense, err := newExpenseInternal(expensePK, SK, name, category, amount, currency)
 	if err != nil {
 		return Expense{}, err
 	}
@@ -233,7 +235,7 @@ func (es *ExpenseStore) UpdateExpense(ctx context.Context, PK, SK, name, categor
 	if err != nil {
 		return Expense{}, fmt.Errorf("couldn't unmarshall update response. Here's why: %v", err)
 	}
-	updatedExpense.PK = PK
+	updatedExpense.PK = expensePK
 	updatedExpense.SK = SK
 
 	return updatedExpense, nil

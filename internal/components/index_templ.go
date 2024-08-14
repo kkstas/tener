@@ -105,9 +105,9 @@ func SingleExpense(expense model.Expense) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/expense/edit/" + expense.PK + "/" + expense.SK)
+		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("/expense/edit/" + expense.SK)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/index.templ`, Line: 25, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/index.templ`, Line: 25, Col: 48}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -144,9 +144,9 @@ func EditSingleExpense(expense model.Expense) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs("/expense/edit/" + expense.PK + "/" + expense.SK)
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs("/expense/edit/" + expense.SK)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/index.templ`, Line: 32, Col: 64}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/index.templ`, Line: 32, Col: 45}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -209,9 +209,9 @@ func EditSingleExpense(expense model.Expense) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var13 string
-		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/expense/" + expense.PK + "/" + expense.SK)
+		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs("/expense/" + expense.SK)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/index.templ`, Line: 50, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/components/index.templ`, Line: 50, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -279,7 +279,7 @@ func Page(expenses []model.Expense) templ.Component {
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"/static/css/out\"><script src=\"https://unpkg.com/htmx.org@2.0.2\"></script><title>Home</title></head><body class=\"bg-gray-100\"><header class=\"hero is-primary\"><div class=\"hero-body\"><div class=\"container\"><h1 class=\"title\">Counts</h1></div></div></header><form hx-post=\"/expense/create\" hx-target=\"#expenses-container\"><div><label>name</label> <input type=\"text\" class=\"form-control\" name=\"name\"></div><div><label>currency</label> <input type=\"text\" class=\"form-control\" name=\"currency\"></div><div class=\"form-group\"><label>amount</label> <input type=\"text\" class=\"form-control\" name=\"amount\"></div><div class=\"form-group\"><label>category</label> <input type=\"text\" class=\"form-control\" name=\"category\"></div><button class=\"btn\">Submit</button>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"/static/css/out\"><script src=\"https://unpkg.com/htmx.org@2.0.2\"></script><title>Home</title></head><body class=\"bg-gray-100\"><header class=\"hero is-primary\"><div class=\"hero-body\"><div class=\"container\"><h1 class=\"title\">Counts</h1></div></div></header><form hx-post=\"/expense/create\" hx-target=\"#expenses-container\"><div><label>name</label> <input type=\"text\" class=\"form-control\" name=\"name\"></div><div><label>currency</label> <input type=\"text\" class=\"form-control\" name=\"currency\" value=\"PLN\"></div><div class=\"form-group\"><label>amount</label> <input type=\"text\" class=\"form-control\" name=\"amount\" value=\"1\"></div><div class=\"form-group\"><label>category</label> <input type=\"text\" class=\"form-control\" name=\"category\" value=\"food\"></div><button class=\"btn\">Submit</button>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

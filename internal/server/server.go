@@ -35,9 +35,9 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 
 	mux.Handle("POST /expense/create", http.HandlerFunc(app.createExpense))
 
-	mux.Handle("GET /expense/{PK}/{SK}", http.HandlerFunc(app.showExpense))
-	mux.Handle("GET /expense/edit/{PK}/{SK}", http.HandlerFunc(app.showEditableExpense))
-	mux.Handle("PUT /expense/edit/{PK}/{SK}", http.HandlerFunc(app.updateExpense))
+	mux.Handle("GET /expense/{SK}", http.HandlerFunc(app.showExpense))
+	mux.Handle("GET /expense/edit/{SK}", http.HandlerFunc(app.showEditableExpense))
+	mux.Handle("PUT /expense/edit/{SK}", http.HandlerFunc(app.updateExpense))
 
 	app.Handler = mux
 
@@ -45,13 +45,8 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 }
 
 func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
-	pk := r.PathValue("PK")
 	sk := r.PathValue("SK")
 
-	if pk == "" || sk == "" {
-		sendErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid PK '%s' or SK '%s'", pk, sk))
-		return
-	}
 	category := r.FormValue("category")
 	currency := r.FormValue("currency")
 	name := r.FormValue("name")
@@ -62,7 +57,7 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value")
 		return
 	}
-	expense, err := app.expenseStore.UpdateExpense(r.Context(), pk, sk, name, category, amount, currency)
+	expense, err := app.expenseStore.UpdateExpense(r.Context(), sk, name, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item:"+err.Error())
 		return
@@ -72,21 +67,15 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Request) {
-	pk := r.PathValue("PK")
 	sk := r.PathValue("SK")
 
-	if pk == "" || sk == "" {
-		sendErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid PK '%s' or SK '%s'", pk, sk))
-		return
-	}
-
-	expense, found, err := app.expenseStore.GetExpense(r.Context(), pk, sk)
+	expense, found, err := app.expenseStore.GetExpense(r.Context(), sk)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense:"+err.Error())
 		return
 	}
 	if !found {
-		sendErrorResponse(w, http.StatusBadRequest, "no expense found for PK:"+pk+"SK:"+sk)
+		sendErrorResponse(w, http.StatusBadRequest, "no expense found for SK:"+sk)
 		return
 	}
 
@@ -94,21 +83,15 @@ func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {
-	pk := r.PathValue("PK")
 	sk := r.PathValue("SK")
 
-	if pk == "" || sk == "" {
-		sendErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid PK '%s' or SK '%s'", pk, sk))
-		return
-	}
-
-	expense, found, err := app.expenseStore.GetExpense(r.Context(), pk, sk)
+	expense, found, err := app.expenseStore.GetExpense(r.Context(), sk)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense:"+err.Error())
 		return
 	}
 	if !found {
-		sendErrorResponse(w, http.StatusNotFound, fmt.Sprintf("no expense found for PK: %s & SK: %s", pk, sk))
+		sendErrorResponse(w, http.StatusNotFound, "no expense found for SK:"+sk)
 		return
 	}
 
