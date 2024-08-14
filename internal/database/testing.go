@@ -25,13 +25,25 @@ func CreateLocalTestDDBTable(ctx context.Context) (string, *dynamodb.Client, fun
 	}
 
 	removeDDB := func() {
-		err := deleteDDBTable(ctx, client, tableName)
+		cleanupCtx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+		defer cancel()
+
+		err := deleteDDBTable(cleanupCtx, client, tableName)
 		if err != nil {
 			log.Fatalf("failed to delete table %q: %v", tableName, err)
 		}
 	}
 
 	return tableName, client, removeDDB, nil
+}
+
+func randomString(length int) string {
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, length)
+	for i := range b {
+		b[i] = charset[rand.Intn(len(charset))]
+	}
+	return string(b)
 }
 
 func deleteDDBTable(ctx context.Context, client *dynamodb.Client, tableName string) error {
@@ -82,13 +94,4 @@ func CreateLocalDynamoDBClient(ctx context.Context) (*dynamodb.Client, error) {
 
 	client := dynamodb.New(options)
 	return client, nil
-}
-
-func randomString(length int) string {
-	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, length)
-	for i := range b {
-		b[i] = charset[rand.Intn(len(charset))]
-	}
-	return string(b)
 }

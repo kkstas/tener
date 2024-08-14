@@ -16,7 +16,7 @@ func CreateDynamoDBClient(ctx context.Context) (*dynamodb.Client, error) {
 	cfg, err := config.LoadDefaultConfig(ctx)
 
 	if err != nil {
-		return nil, fmt.Errorf("unable to load SDK config, %w", err)
+		return nil, fmt.Errorf("failed to load SDK config: %w", err)
 	}
 
 	client := dynamodb.NewFromConfig(cfg)
@@ -70,7 +70,7 @@ func CreateDDBTable(ctx context.Context, client *dynamodb.Client, tableName stri
 
 	_, err := client.CreateTable(ctx, tableInput)
 	if err != nil {
-		return fmt.Errorf("could not create table %v: %w", tableName, err)
+		return fmt.Errorf("failed to create table %v: %w", tableName, err)
 	}
 
 	waiter := dynamodb.NewTableExistsWaiter(client)
@@ -78,7 +78,7 @@ func CreateDDBTable(ctx context.Context, client *dynamodb.Client, tableName stri
 		TableName: aws.String(tableName),
 	}, 5*time.Minute)
 	if err != nil {
-		return fmt.Errorf("wait for table exists failed: %w", err)
+		return fmt.Errorf("failed to wait for table %s to exist: %w", tableName, err)
 	}
 	return nil
 }
