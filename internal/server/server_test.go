@@ -3,7 +3,6 @@ package server_test
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -17,10 +16,18 @@ import (
 )
 
 func TestHome(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
+	if err != nil {
+		t.Fatalf("could not create local test ddb table, %v", err)
+	}
+	defer removeDDB()
+
 	t.Run("responds with html", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/home", nil)
-		server.NewApplication(nil, "").ServeHTTP(response, request)
+		server.NewApplication(client, tableName).ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 
@@ -104,7 +111,7 @@ func TestQuery(t *testing.T) {
 	})
 }
 
-func TestPutItem(t *testing.T) {
+func TestPostCreateExpense(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -136,17 +143,7 @@ func TestPutItem(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
-	t.Run("returns 201 with expenses array for correct request", func(t *testing.T) {
-		queryRes := httptest.NewRecorder()
-		queryReq := httptest.NewRequest(http.MethodGet, "/expense/query", nil)
-		server.NewApplication(client, tableName).ServeHTTP(queryRes, queryReq)
-
-		var queryBefore []interface{}
-		err := json.Unmarshal(queryRes.Body.Bytes(), &queryBefore)
-		if err != nil {
-			t.Fatalf("failed to parse response body as JSON array: %v", err)
-		}
-
+	t.Run("returns 201 with html", func(t *testing.T) {
 		var param = url.Values{}
 		param.Set("currency", "PLN")
 		param.Set("amount", "1.99")
@@ -160,15 +157,10 @@ func TestPutItem(t *testing.T) {
 
 		server.NewApplication(client, tableName).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusCreated)
-		assertHeaderValue(t, response, "content-type", "application/json")
 
-		var queryAfter []interface{}
-		err = json.Unmarshal(response.Body.Bytes(), &queryAfter)
-		if err != nil {
-			t.Fatalf("failed to parse response body as JSON array: %v", err)
-		}
-		if len(queryAfter)-1 != len(queryBefore) {
-			t.Errorf("putting item into database did not result in one more item in query, before: %v, after: %v", queryBefore, queryAfter)
+		contentType := response.Header().Get("content-type")
+		if !strings.HasPrefix(contentType, "text/html") {
+			t.Errorf("invalid content type %q", contentType)
 		}
 	})
 }

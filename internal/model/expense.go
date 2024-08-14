@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"log"
 	"math"
 	"slices"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
 type ExpenseCategoryIsTooShortError struct {
@@ -42,6 +44,15 @@ func (e *InvalidAmountPrecisionError) Error() string {
 	return fmt.Sprintf("amount '%f' has too large precision", e.Amount)
 }
 
+type ExpenseNotFoundError struct {
+	PK string
+	SK string
+}
+
+func (e *ExpenseNotFoundError) Error() string {
+	return fmt.Sprintf("no item found with PK: %v, SK: %v", e.PK, e.SK)
+}
+
 type Expense struct {
 	PK       string  `dynamodbav:"PK"       json:"PK"`
 	SK       string  `dynamodbav:"SK"       json:"SK"`
@@ -56,7 +67,23 @@ type ExpenseStore struct {
 	tableName string
 }
 
+func (e Expense) GetKey() map[string]types.AttributeValue {
+	PK, err := attributevalue.Marshal(e.PK)
+	if err != nil {
+		panic(err)
+	}
+	SK, err := attributevalue.Marshal(e.SK)
+	if err != nil {
+		panic(err)
+	}
+	return map[string]types.AttributeValue{"PK": PK, "SK": SK}
+}
+
 func CreateExpense(name, category string, amount float64, currency string) (Expense, error) {
+	return newExpense("expense", timestampNow(), name, category, amount, currency)
+}
+
+func newExpense(PK, SK, name, category string, amount float64, currency string) (Expense, error) {
 	if err := validateCategory(category); err != nil {
 		return Expense{}, err
 	}
@@ -68,8 +95,8 @@ func CreateExpense(name, category string, amount float64, currency string) (Expe
 	}
 
 	return Expense{
-		PK:       "expense",
-		SK:       timestampNow(),
+		PK:       PK,
+		SK:       SK,
 		Name:     name,
 		Category: category,
 		Amount:   amount,
@@ -129,7 +156,6 @@ func (m *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
 	}
 
 	return m.queryItems(ctx, expr)
-
 }
 
 func (m *ExpenseStore) QueryByCategory(ctx context.Context, category string) ([]Expense, error) {
@@ -187,6 +213,74 @@ func (m *ExpenseStore) queryItems(ctx context.Context, expr expression.Expressio
 	}
 
 	return expenses, err
+}
+
+func (m *ExpenseStore) GetExpense(ctx context.Context, PK, SK string) (Expense, bool, error) {
+	expense := Expense{PK: PK, SK: SK}
+	response, err := m.client.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: &m.tableName,
+		Key:       expense.GetKey(),
+	})
+
+	if err != nil {
+		log.Printf("Couldn't get info about %v. Here's why: %v\n", PK, err)
+		return Expense{}, false, err
+	}
+
+	if response.Item == nil || len(response.Item) == 0 {
+		return Expense{}, false, nil
+	}
+
+	err = attributevalue.UnmarshalMap(response.Item, &expense)
+	if err != nil {
+		log.Printf("Couldn't unmarshal response. Here's why: %v\n", err)
+		return Expense{}, true, err
+	}
+
+	return expense, true, nil
+}
+
+func (m *ExpenseStore) UpdateExpense(ctx context.Context, PK, SK, name, category string, amount float64, currency string) (Expense, error) {
+	var err error
+	var response *dynamodb.UpdateItemOutput
+
+	expense, err := newExpense(PK, SK, name, category, amount, currency)
+	if err != nil {
+		return Expense{}, err
+	}
+
+	update := expression.
+		Set(expression.Name("name"), expression.Value(expense.Name)).
+		Set(expression.Name("category"), expression.Value(expense.Category)).
+		Set(expression.Name("amount"), expression.Value(expense.Amount)).
+		Set(expression.Name("currency"), expression.Value(expense.Currency))
+
+	expr, err := expression.NewBuilder().WithUpdate(update).Build()
+
+	if err != nil {
+		return Expense{}, fmt.Errorf("couldn't build expression for update. Here's why: %v", err)
+	}
+	response, err = m.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName:                 &m.tableName,
+		Key:                       expense.GetKey(),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		UpdateExpression:          expr.Update(),
+		ReturnValues:              types.ReturnValueUpdatedNew,
+	})
+	if err != nil {
+		return Expense{}, fmt.Errorf("couldn't update expense %v. Here's why: %v", expense, err)
+	}
+
+	var updatedExpense Expense
+	err = attributevalue.UnmarshalMap(response.Attributes, &updatedExpense)
+	if err != nil {
+		return Expense{}, fmt.Errorf("couldn't unmarshall update response. Here's why: %v", err)
+	}
+	updatedExpense.PK = PK
+	updatedExpense.SK = SK
+
+	return updatedExpense, nil
 }
 
 func timestampNow() string {

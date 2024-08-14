@@ -1,37 +1,72 @@
 package components
 
+import (
+	"fmt"
+
+	"github.com/kkstas/tjener/internal/model"
+)
+
 css border() {
 	border: 1px solid #0f0e0e;
 	border-radius: 4px;
 	margin: 10px;
 	padding-top: 20px;
 	padding-bottom: 30px;
+	padding-left: 10px;
+	padding-right: 10px;
 }
 
-templ counts() {
-	<form id="countsForm" action="/" method="POST" hx-post="/" hx-select="#countsForm" hx-swap="outerHTML">
-		<div class="columns">
-			<div class={ "column", "has-text-centered", "is-primary", border }>
-				<h1 class="title is-size-1 has-text-centered">{ "asdf" }</h1>
-				<p class="subtitle has-text-centered">Global</p>
-				<div><button class="button is-primary" type="submit" name="global" value="global">+1</button></div>
-			</div>
-			<div class={ "column", "has-text-centered", border }>
-				<h1 class="title is-size-1 has-text-centered">{ "asdf" }</h1>
-				<p class="subtitle has-text-centered">Session</p>
-				<div><button class="button is-secondary" type="submit" name="session" value="session">+1</button></div>
-			</div>
+templ SingleExpense(expense model.Expense) {
+	<div hx-target="this" hx-swap="outerHTML">
+		<div><label>Name</label>: { expense.Name }</div>
+		<div><label>Category</label>: { expense.Category }</div>
+		<div><label>Amount</label>: { fmt.Sprint(expense.Amount) }</div>
+		<div><label>Currency</label>: { expense.Currency }</div>
+		<button hx-get={ "/expense/edit/" + expense.PK + "/" + expense.SK } class="btn primary">
+			Click To Edit
+		</button>
+	</div>
+}
+
+templ EditSingleExpense(expense model.Expense) {
+	<form hx-put={ "/expense/edit/" + expense.PK + "/" + expense.SK } hx-target="this" hx-swap="outerHTML">
+		<div>
+			<label>Name</label>
+			<input type="text" name="name" value={ expense.Name }/>
 		</div>
+		<div class="form-group">
+			<label>Category</label>
+			<input type="text" name="category" value={ expense.Category }/>
+		</div>
+		<div class="form-group">
+			<label>Amount</label>
+			<input type="text" name="amount" value={ fmt.Sprint(expense.Amount) }/>
+		</div>
+		<div class="form-group">
+			<label>Currency</label>
+			<input type="text" name="currency" value={ expense.Currency }/>
+		</div>
+		<button class="btn">Submit</button>
+		<button class="btn" hx-get={ "/expense/" + expense.PK + "/" + expense.SK }>Cancel</button>
 	</form>
 }
 
-templ Page() {
+templ ExpensesContainer(expenses []model.Expense) {
+	<div id="expenses-container">
+		for _, el := range expenses {
+			@SingleExpense(el)
+		}
+	</div>
+}
+
+templ Page(expenses []model.Expense) {
 	<!DOCTYPE html>
 	<html>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link rel="stylesheet" href="/static/css/out"/>
+			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
 			<title>Home</title>
 		</head>
 		<body class="bg-gray-100">
@@ -42,15 +77,26 @@ templ Page() {
 					</div>
 				</div>
 			</header>
-			<section class="section">
-				<div class="container">
-					<div class="columns is-centered">
-						<div class="column is-half">
-							@counts()
-						</div>
-					</div>
+			<form hx-post="/expense/create" hx-target="#expenses-container">
+				<div>
+					<label>name</label>
+					<input type="text" class="form-control" name="name"/>
 				</div>
-			</section>
+				<div>
+					<label>currency</label>
+					<input type="text" class="form-control" name="currency"/>
+				</div>
+				<div class="form-group">
+					<label>amount</label>
+					<input type="text" class="form-control" name="amount"/>
+				</div>
+				<div class="form-group">
+					<label>category</label>
+					<input type="text" class="form-control" name="category"/>
+				</div>
+				<button class="btn">Submit</button>
+				@ExpensesContainer(expenses)
+			</form>
 		</body>
 	</html>
 }
