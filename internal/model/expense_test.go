@@ -40,7 +40,7 @@ func TestPutItem(t *testing.T) {
 
 	err = store.PutItem(ctx, Expense{
 		PK: "asdf",
-		SK: timestampNow(),
+		SK: generateCurrentTimestamp(),
 	})
 	if err != nil {
 		t.Fatalf("could not put item into ddb, %v", err)
@@ -56,7 +56,7 @@ func TestPutItem(t *testing.T) {
 
 func TestGetDateAgo(t *testing.T) {
 	t.Run("returns datetime string with time at midnight", func(t *testing.T) {
-		got := getDateDaysAgo(0)
+		got := getTimestampDaysAgo(0)
 		if !strings.HasPrefix(got[11:], "00:00:00") {
 			t.Errorf("received string that is not valid RFC3339Nano from midnight - %q", got)
 		}
@@ -67,7 +67,7 @@ func TestGetDateAgo(t *testing.T) {
 		loc, _ := time.LoadLocation("Europe/Warsaw")
 		want := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).Format(time.RFC3339Nano)
 
-		got := getDateDaysAgo(0)
+		got := getTimestampDaysAgo(0)
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)
 		}
@@ -77,14 +77,14 @@ func TestGetDateAgo(t *testing.T) {
 
 func TestCreateExpense(t *testing.T) {
 	t.Run("creates valid expense", func(t *testing.T) {
-		_, err := CreateExpense("", "food", 24.99, "PLN")
+		_, err := NewExpense("", "food", 24.99, "PLN")
 		if err != nil {
 			t.Errorf("didn't expect an error but got one: %v", err)
 		}
 	})
 
 	t.Run("returns an error when category is too short", func(t *testing.T) {
-		_, err := CreateExpense("", "", 24.99, "PLN")
+		_, err := NewExpense("", "", 24.99, "PLN")
 
 		if err == nil {
 			t.Error("expected an error when category is empty string")
@@ -94,7 +94,7 @@ func TestCreateExpense(t *testing.T) {
 			t.Errorf("expected %T, got %#v", nameErr, err)
 		}
 
-		_, err = CreateExpense("", "a", 24.99, "PLN")
+		_, err = NewExpense("", "a", 24.99, "PLN")
 		if err == nil {
 			t.Error("expected an error when category's length is 1")
 		}
@@ -106,7 +106,7 @@ func TestCreateExpense(t *testing.T) {
 	})
 
 	t.Run("returns an error when amount is zero", func(t *testing.T) {
-		_, err := CreateExpense("", "food", 0, "PLN")
+		_, err := NewExpense("", "food", 0, "PLN")
 		var zeroAmountErr *ExpenseAmountIsZeroError
 		if err == nil {
 			t.Error("expected an error but didn't get one")
@@ -118,7 +118,7 @@ func TestCreateExpense(t *testing.T) {
 	})
 
 	t.Run("returns an error when amount is float with precision larger than two", func(t *testing.T) {
-		_, err := CreateExpense("", "food", 24.4234, "PLN")
+		_, err := NewExpense("", "food", 24.4234, "PLN")
 		var invalidAmountPrecisionError *InvalidAmountPrecisionError
 		if err == nil {
 			t.Error("expected an error but didn't get one")
@@ -130,7 +130,7 @@ func TestCreateExpense(t *testing.T) {
 	})
 
 	t.Run("returns an error if currency is invalid", func(t *testing.T) {
-		_, err := CreateExpense("", "food", 24.99, "memecoin")
+		_, err := NewExpense("", "food", 24.99, "memecoin")
 		var invalidCurrencyErr *InvalidCurrencyError
 		if !errors.As(err, &invalidCurrencyErr) {
 			t.Errorf("expected %T, got %#v", invalidCurrencyErr, err)

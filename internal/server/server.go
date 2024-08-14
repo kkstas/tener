@@ -159,7 +159,7 @@ func (app *Application) postCreateExpense(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	expense, err := model.CreateExpense(name, category, amount, currency)
+	expense, err := model.NewExpense(name, category, amount, currency)
 	if err != nil {
 		writeErrorResponse(w, http.StatusBadRequest, err.Error())
 		return

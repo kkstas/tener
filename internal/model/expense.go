@@ -3,7 +3,6 @@ package model
 import (
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"slices"
 	"time"
@@ -13,45 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
-
-type ExpenseCategoryIsTooShortError struct {
-	Name string
-}
-
-func (e *ExpenseCategoryIsTooShortError) Error() string {
-	return fmt.Sprintf("expense category '%s' is too short", e.Name)
-}
-
-type ExpenseAmountIsZeroError struct{}
-
-func (e *ExpenseAmountIsZeroError) Error() string {
-	return "expense amount cannot be zero"
-}
-
-type InvalidCurrencyError struct {
-	Currency string
-}
-
-func (e *InvalidCurrencyError) Error() string {
-	return fmt.Sprintf("currency '%s' is invalid", e.Currency)
-}
-
-type InvalidAmountPrecisionError struct {
-	Amount float64
-}
-
-func (e *InvalidAmountPrecisionError) Error() string {
-	return fmt.Sprintf("amount '%f' has too large precision", e.Amount)
-}
-
-type ExpenseNotFoundError struct {
-	PK string
-	SK string
-}
-
-func (e *ExpenseNotFoundError) Error() string {
-	return fmt.Sprintf("no item found with PK: %v, SK: %v", e.PK, e.SK)
-}
 
 type Expense struct {
 	PK       string  `dynamodbav:"PK"       json:"PK"`
@@ -79,11 +39,11 @@ func (e Expense) GetKey() map[string]types.AttributeValue {
 	return map[string]types.AttributeValue{"PK": PK, "SK": SK}
 }
 
-func CreateExpense(name, category string, amount float64, currency string) (Expense, error) {
-	return newExpense("expense", timestampNow(), name, category, amount, currency)
+func NewExpense(name, category string, amount float64, currency string) (Expense, error) {
+	return createExpenseInternal("expense", generateCurrentTimestamp(), name, category, amount, currency)
 }
 
-func newExpense(PK, SK, name, category string, amount float64, currency string) (Expense, error) {
+func createExpenseInternal(PK, SK, name, category string, amount float64, currency string) (Expense, error) {
 	if err := validateCategory(category); err != nil {
 		return Expense{}, err
 	}
@@ -111,11 +71,11 @@ func NewExpenseStore(tableName string, client *dynamodb.Client) *ExpenseStore {
 	}
 }
 
-func (m *ExpenseStore) PutItem(ctx context.Context, expenseFC Expense) error {
+func (es *ExpenseStore) PutItem(ctx context.Context, expenseFC Expense) error {
 	item, err := attributevalue.MarshalMap(
 		Expense{
 			PK:       "expense",
-			SK:       timestampNow(),
+			SK:       generateCurrentTimestamp(),
 			Name:     expenseFC.Name,
 			Amount:   expenseFC.Amount,
 			Currency: expenseFC.Currency,
@@ -124,25 +84,25 @@ func (m *ExpenseStore) PutItem(ctx context.Context, expenseFC Expense) error {
 	)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal expense: %w", err)
 	}
 
-	_, err = m.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: &m.tableName,
+	_, err = es.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: &es.tableName,
 		Item:      item,
 	})
 
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to put item into DynamoDB: %w", err)
 	}
 
 	return nil
 }
 
-func (m *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
+func (es *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
 	keyCond := expression.
 		Key("PK").Equal(expression.Value("expense")).
-		And(expression.Key("SK").GreaterThanEqual(expression.Value(getDateDaysAgo(7))))
+		And(expression.Key("SK").GreaterThanEqual(expression.Value(getTimestampDaysAgo(7))))
 
 	exprBuilder := expression.NewBuilder()
 	exprBuilder.WithKeyCondition(keyCond)
@@ -155,13 +115,13 @@ func (m *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
 		return nil, fmt.Errorf("couldn't build expression for query %w", err)
 	}
 
-	return m.queryItems(ctx, expr)
+	return es.queryExpenses(ctx, expr)
 }
 
-func (m *ExpenseStore) QueryByCategory(ctx context.Context, category string) ([]Expense, error) {
+func (es *ExpenseStore) QueryByCategory(ctx context.Context, category string) ([]Expense, error) {
 	keyCond := expression.
 		Key("PK").Equal(expression.Value("expense")).
-		And(expression.Key("SK").GreaterThanEqual(expression.Value(getDateDaysAgo(7))))
+		And(expression.Key("SK").GreaterThanEqual(expression.Value(getTimestampDaysAgo(7))))
 
 	filterCond := expression.Name("category").Equal(expression.Value(category))
 
@@ -177,26 +137,24 @@ func (m *ExpenseStore) QueryByCategory(ctx context.Context, category string) ([]
 		return nil, fmt.Errorf("couldn't build expression for query %w", err)
 	}
 
-	return m.queryItems(ctx, expr)
+	return es.queryExpenses(ctx, expr)
 }
 
-func (m *ExpenseStore) queryItems(ctx context.Context, expr expression.Expression) ([]Expense, error) {
+func (es *ExpenseStore) queryExpenses(ctx context.Context, expr expression.Expression) ([]Expense, error) {
 	var expenses []Expense
-	var response *dynamodb.QueryOutput
-	var err error
 
 	queryInput := dynamodb.QueryInput{
-		TableName:                 &m.tableName,
+		TableName:                 &es.tableName,
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		KeyConditionExpression:    expr.KeyCondition(),
 		FilterExpression:          expr.Filter(),
 	}
 
-	queryPaginator := dynamodb.NewQueryPaginator(m.client, &queryInput)
+	queryPaginator := dynamodb.NewQueryPaginator(es.client, &queryInput)
 
 	for queryPaginator.HasMorePages() {
-		response, err = queryPaginator.NextPage(ctx)
+		response, err := queryPaginator.NextPage(ctx)
 
 		if err != nil {
 			return nil, fmt.Errorf("couldn't query for expenses %w", err)
@@ -212,19 +170,18 @@ func (m *ExpenseStore) queryItems(ctx context.Context, expr expression.Expressio
 		expenses = append(expenses, resExpenses...)
 	}
 
-	return expenses, err
+	return expenses, nil
 }
 
-func (m *ExpenseStore) GetExpense(ctx context.Context, PK, SK string) (Expense, bool, error) {
+func (es *ExpenseStore) GetExpense(ctx context.Context, PK, SK string) (Expense, bool, error) {
 	expense := Expense{PK: PK, SK: SK}
-	response, err := m.client.GetItem(ctx, &dynamodb.GetItemInput{
-		TableName: &m.tableName,
+	response, err := es.client.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: &es.tableName,
 		Key:       expense.GetKey(),
 	})
 
 	if err != nil {
-		log.Printf("Couldn't get info about %v. Here's why: %v\n", PK, err)
-		return Expense{}, false, err
+		return Expense{}, false, fmt.Errorf("GetItem DynamoDB operation failed for PK='%s' SK='%s': %w", PK, SK, err)
 	}
 
 	if response.Item == nil || len(response.Item) == 0 {
@@ -233,18 +190,17 @@ func (m *ExpenseStore) GetExpense(ctx context.Context, PK, SK string) (Expense, 
 
 	err = attributevalue.UnmarshalMap(response.Item, &expense)
 	if err != nil {
-		log.Printf("Couldn't unmarshal response. Here's why: %v\n", err)
-		return Expense{}, true, err
+		return Expense{}, true, fmt.Errorf("couldn't unmarshal response: %w", err)
 	}
 
 	return expense, true, nil
 }
 
-func (m *ExpenseStore) UpdateExpense(ctx context.Context, PK, SK, name, category string, amount float64, currency string) (Expense, error) {
+func (es *ExpenseStore) UpdateExpense(ctx context.Context, PK, SK, name, category string, amount float64, currency string) (Expense, error) {
 	var err error
 	var response *dynamodb.UpdateItemOutput
 
-	expense, err := newExpense(PK, SK, name, category, amount, currency)
+	expense, err := createExpenseInternal(PK, SK, name, category, amount, currency)
 	if err != nil {
 		return Expense{}, err
 	}
@@ -260,8 +216,8 @@ func (m *ExpenseStore) UpdateExpense(ctx context.Context, PK, SK, name, category
 	if err != nil {
 		return Expense{}, fmt.Errorf("couldn't build expression for update. Here's why: %v", err)
 	}
-	response, err = m.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName:                 &m.tableName,
+	response, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName:                 &es.tableName,
 		Key:                       expense.GetKey(),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
@@ -283,19 +239,19 @@ func (m *ExpenseStore) UpdateExpense(ctx context.Context, PK, SK, name, category
 	return updatedExpense, nil
 }
 
-func timestampNow() string {
+func generateCurrentTimestamp() string {
 	loc, _ := time.LoadLocation("Europe/Warsaw")
 	return time.Now().In(loc).Format(time.RFC3339Nano)
 }
 
-func getDateDaysAgo(days int) string {
+func getTimestampDaysAgo(days int) string {
 	loc, _ := time.LoadLocation("Europe/Warsaw")
-	now := resetToMidnight(time.Now(), loc)
+	now := setTimeToMidnight(time.Now(), loc)
 	pastDate := now.Add(-(time.Duration(days) * 24 * time.Hour))
 	return pastDate.Format(time.RFC3339Nano)
 }
 
-func resetToMidnight(t time.Time, loc *time.Location) time.Time {
+func setTimeToMidnight(t time.Time, loc *time.Location) time.Time {
 	return time.Date(
 		t.Year(),
 		t.Month(),
@@ -325,13 +281,13 @@ func validateAmount(amount float64) error {
 	if amount == 0 {
 		return &ExpenseAmountIsZeroError{}
 	}
-	if amount != toFixed(amount, 2) {
+	if amount != roundToDecimalPlaces(amount, 2) {
 		return &InvalidAmountPrecisionError{amount}
 	}
 	return nil
 }
 
-func toFixed(num float64, precision int) float64 {
+func roundToDecimalPlaces(num float64, precision int) float64 {
 	output := math.Pow(10, float64(precision))
 	return float64(int(num*output)) / output
 }
