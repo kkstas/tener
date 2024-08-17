@@ -1,0 +1,39 @@
+package components
+
+import (
+	"context"
+
+	"github.com/kkstas/tjener/internal/url"
+)
+
+templ createExpenseForm(ctx context.Context) {
+	<form
+		action={ templ.SafeURL(url.Create(ctx, "expense", "create")) }
+		method="post"
+	>
+		<div>
+			<label>name</label>
+			<input class={ inputStyles } type="text" name="name"/>
+		</div>
+		<div>
+			<label>currency</label>
+			<input class={ inputStyles } type="text" name="currency" value="PLN"/>
+		</div>
+		<div>
+			<label>amount</label>
+			<input class={ inputStyles } type="text" name="amount" value="1"/>
+		</div>
+		<div>
+			<label>category</label>
+			<input class={ inputStyles } type="text" name="category" value="food"/>
+		</div>
+		<button class={ buttonStyles, "mx-1" }>Submit</button>
+		<a class={ buttonStyles, "mx-1" } href={ templ.SafeURL(url.Create(ctx, "home")) }>Cancel</a>
+	</form>
+}
+
+templ CreateExpensePage(ctx context.Context) {
+	@baseHTML(ctx) {
+		@createExpenseForm(ctx)
+	}
+}

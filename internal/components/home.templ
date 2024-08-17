@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	blueButtonStyles                   = "bg-white hover:bg-gray-100 text-gray-800 font-medium py-1 px-3 border border-gray-400 rounded shadow"
+	buttonStyles                       = "bg-white hover:bg-gray-100 text-gray-800 font-medium py-1 px-3 border border-gray-400 rounded shadow"
 	inputStyles                        = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
 	singleExpenseContainerStyles       = "border border-gray-300 px-1 py-2 rounded mt-2"
 	insideSingleExpenseContainerStyles = "flex flex-row place-items-center overflow-hidden break-words"
@@ -62,13 +62,13 @@ templ EditSingleExpense(ctx context.Context, expense model.Expense) {
 			</div>
 		</div>
 		<div class={ " w-full flex justify-center" }>
-			<button class={ blueButtonStyles, "mx-1" }>Submit</button>
-			<button class={ blueButtonStyles, "mx-1" } hx-get={ url.Create(ctx, "expense", expense.SK) }>Cancel</button>
+			<button class={ buttonStyles, "mx-1" }>Submit</button>
+			<button class={ buttonStyles, "mx-1" } hx-get={ url.Create(ctx, "expense", expense.SK) }>Cancel</button>
 		</div>
 	</form>
 }
 
-templ ExpensesContainer(ctx context.Context, expenses []model.Expense) {
+templ expensesContainer(ctx context.Context, expenses []model.Expense) {
 	<div id="expenses-container">
 		for _, el := range expenses {
 			@SingleExpense(ctx, el)
@@ -77,42 +77,12 @@ templ ExpensesContainer(ctx context.Context, expenses []model.Expense) {
 }
 
 templ Page(ctx context.Context, expenses []model.Expense) {
-	<html>
-		<head>
-			<meta charset="UTF-8"/>
-			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
-			<link rel="stylesheet" href={ url.Create(ctx, "static", "css", "out") }/>
-			<title>Home</title>
-		</head>
-		<body class="bg-gray-50 mx-5 my-3">
-			<header>
-				<div>
-					<div>
-						<h1>Counts</h1>
-					</div>
-				</div>
-			</header>
-			<form hx-post={ url.Create(ctx, "expense", "create") } hx-target="#expenses-container">
-				<div>
-					<label>name</label>
-					<input class={ inputStyles } type="text" name="name"/>
-				</div>
-				<div>
-					<label>currency</label>
-					<input class={ inputStyles } type="text" name="currency" value="PLN"/>
-				</div>
-				<div>
-					<label>amount</label>
-					<input class={ inputStyles } type="text" name="amount" value="1"/>
-				</div>
-				<div>
-					<label>category</label>
-					<input class={ inputStyles } type="text" name="category" value="food"/>
-				</div>
-				<button class={ blueButtonStyles }>Submit</button>
-			</form>
-			@ExpensesContainer(ctx, expenses)
-		</body>
-	</html>
+	@baseHTML(ctx) {
+		<div class="w-full flex justify-center">
+			<a class={ buttonStyles } href={ templ.URL(url.Create(ctx, "expense", "create")) }>
+				<p>Create new expense</p>
+			</a>
+		</div>
+		@expensesContainer(ctx, expenses)
+	}
 }

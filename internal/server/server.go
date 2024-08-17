@@ -10,6 +10,7 @@ import (
 
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/url"
 	"github.com/kkstas/tjener/static"
 )
 
@@ -33,6 +34,7 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 
 	mux.HandleFunc("GET /home", app.homeHandler)
 
+	mux.HandleFunc("GET /expense/create", app.createExpensePage)
 	mux.HandleFunc("POST /expense/create", app.createExpense)
 
 	mux.HandleFunc("GET /expense/{SK}", app.showExpense)
@@ -106,6 +108,10 @@ func (app *Application) notFoundHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNotFound)
 }
 
+func (app *Application) createExpensePage(w http.ResponseWriter, r *http.Request) {
+	app.renderTempl(w, r, components.CreateExpensePage(r.Context()))
+}
+
 func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 	category := r.FormValue("category")
 	currency := r.FormValue("currency")
@@ -130,15 +136,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-
-	expenses, err := app.expenseStore.Query(r.Context())
-	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to while query for items:"+err.Error())
-		return
-	}
-
-	app.renderTempl(w, r, components.ExpensesContainer(r.Context(), expenses))
+	http.Redirect(w, r, url.Create(r.Context(), "home"), http.StatusSeeOther)
 }
 
 func (app *Application) homeHandler(w http.ResponseWriter, r *http.Request) {
