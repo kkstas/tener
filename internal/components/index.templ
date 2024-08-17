@@ -6,48 +6,66 @@ import (
 	"github.com/kkstas/tjener/internal/model"
 )
 
-css border() {
-	border: 1px solid #0f0e0e;
-	border-radius: 4px;
-	margin: 10px;
-	padding-top: 20px;
-	padding-bottom: 30px;
-	padding-left: 10px;
-	padding-right: 10px;
+const (
+	blueButtonStyles                   = "bg-white hover:bg-gray-100 text-gray-800 font-medium py-1 px-3 border border-gray-400 rounded shadow"
+	inputStyles                        = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+	singleExpenseContainerStyles       = "border border-gray-300 px-1 py-2 rounded mt-2"
+	insideSingleExpenseContainerStyles = "flex flex-row place-items-center overflow-hidden break-words"
+)
+
+func formatExpenseName(name string) string {
+	if name == "" {
+		return "-"
+	}
+	return name
 }
 
 templ SingleExpense(expense model.Expense) {
-	<div hx-target="this" hx-swap="outerHTML">
-		<div><label>Name</label>: { expense.Name }</div>
-		<div><label>Category</label>: { expense.Category }</div>
-		<div><label>Amount</label>: { fmt.Sprint(expense.Amount) }</div>
-		<div><label>Currency</label>: { expense.Currency }</div>
-		<button hx-get={ "/expense/edit/" + expense.SK } class="btn primary">
-			Click To Edit
-		</button>
+	<div hx-target="this" hx-swap="outerHTML" class={ singleExpenseContainerStyles }>
+		<div class={ insideSingleExpenseContainerStyles }>
+			<div class={ "flex-1 p-2" }>
+				<div>Name</div>
+				<div>{ formatExpenseName(expense.Name) }</div>
+			</div>
+			<div class={ "flex-1 p-2" }>
+				<label>Category</label>
+				<div>{ expense.Category }</div>
+			</div>
+			<div class={ "flex-1 p-2" }>
+				<label>Amount</label>
+				<div>{ fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }</div>
+			</div>
+			<button class="p-2" hx-get={ "/expense/edit/" + expense.SK }>
+				<svg class="w-4 h-4 p-0 m-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path></svg>
+			</button>
+		</div>
 	</div>
 }
 
 templ EditSingleExpense(expense model.Expense) {
-	<form hx-put={ "/expense/edit/" + expense.SK } hx-target="this" hx-swap="outerHTML">
-		<div>
-			<label>Name</label>
-			<input type="text" name="name" value={ expense.Name }/>
+	<form hx-put={ "/expense/edit/" + expense.SK } hx-target="this" hx-swap="outerHTML" class={ singleExpenseContainerStyles }>
+		<div class={ insideSingleExpenseContainerStyles }>
+			<div class={ "flex-1 min-w-5 p-2" }>
+				<label>Name</label>
+				<input class={ inputStyles } type="text" name="name" value={ expense.Name }/>
+			</div>
+			<div class={ "flex-1 min-w-5 p-2" }>
+				<label>Category</label>
+				<input class={ inputStyles } type="text" name="category" value={ expense.Category }/>
+			</div>
+			<div class={ "flex-1 min-w-5 p-2" }>
+				<label>Amount</label>
+				<input class={ inputStyles } type="text" name="amount" value={ fmt.Sprint(expense.Amount) }/>
+			</div>
+			<div class={ "flex-1 min-w-5 p-2" }>
+				<label>Currency</label>
+				<input class={ inputStyles } type="text" name="currency" value={ expense.Currency }/>
+			</div>
 		</div>
-		<div class="form-group">
-			<label>Category</label>
-			<input type="text" name="category" value={ expense.Category }/>
+		<div class={ " w-full flex justify-center" }>
+			<button class={ blueButtonStyles, "mx-1" }>Submit</button>
+			<button class={ blueButtonStyles, "mx-1" } hx-get={ "/expense/" + expense.SK }>Cancel</button>
 		</div>
-		<div class="form-group">
-			<label>Amount</label>
-			<input type="text" name="amount" value={ fmt.Sprint(expense.Amount) }/>
-		</div>
-		<div class="form-group">
-			<label>Currency</label>
-			<input type="text" name="currency" value={ expense.Currency }/>
-		</div>
-		<button class="btn">Submit</button>
-		<button class="btn" hx-get={ "/expense/" + expense.SK }>Cancel</button>
 	</form>
 }
 
@@ -60,43 +78,42 @@ templ ExpensesContainer(expenses []model.Expense) {
 }
 
 templ Page(expenses []model.Expense) {
-	<!DOCTYPE html>
 	<html>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<link rel="stylesheet" href="/static/css/out"/>
 			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
+			<link rel="stylesheet" href="/static/css/out"/>
 			<title>Home</title>
 		</head>
-		<body class="bg-gray-100">
-			<header class="hero is-primary">
-				<div class="hero-body">
-					<div class="container">
-						<h1 class="title">Counts</h1>
+		<body class="bg-gray-50 mx-5 my-3">
+			<header>
+				<div>
+					<div>
+						<h1>Counts</h1>
 					</div>
 				</div>
 			</header>
 			<form hx-post="/expense/create" hx-target="#expenses-container">
 				<div>
 					<label>name</label>
-					<input type="text" class="form-control" name="name"/>
+					<input class={ inputStyles } type="text" name="name"/>
 				</div>
 				<div>
 					<label>currency</label>
-					<input type="text" class="form-control" name="currency" value="PLN"/>
+					<input class={ inputStyles } type="text" name="currency" value="PLN"/>
 				</div>
-				<div class="form-group">
+				<div>
 					<label>amount</label>
-					<input type="text" class="form-control" name="amount" value="1"/>
+					<input class={ inputStyles } type="text" name="amount" value="1"/>
 				</div>
-				<div class="form-group">
+				<div>
 					<label>category</label>
-					<input type="text" class="form-control" name="category" value="food"/>
+					<input class={ inputStyles } type="text" name="category" value="food"/>
 				</div>
-				<button class="btn">Submit</button>
-				@ExpensesContainer(expenses)
+				<button class={ blueButtonStyles }>Submit</button>
 			</form>
+			@ExpensesContainer(expenses)
 		</body>
 	</html>
 }
