@@ -29,12 +29,12 @@ type ExpenseStore struct {
 	tableName string
 }
 
-func (e Expense) GetKey() map[string]types.AttributeValue {
-	PK, err := attributevalue.Marshal(e.PK)
+func GetExpenseKey(sk string) map[string]types.AttributeValue {
+	PK, err := attributevalue.Marshal(expensePK)
 	if err != nil {
 		panic(err)
 	}
-	SK, err := attributevalue.Marshal(e.SK)
+	SK, err := attributevalue.Marshal(sk)
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +114,7 @@ func (es *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
 		Build()
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't build expression for query %w", err)
+		return nil, fmt.Errorf("failed to build expression for query %w", err)
 	}
 
 	return es.queryExpenses(ctx, expr)
@@ -136,7 +136,7 @@ func (es *ExpenseStore) QueryByCategory(ctx context.Context, category string) ([
 		Build()
 
 	if err != nil {
-		return nil, fmt.Errorf("couldn't build expression for query %w", err)
+		return nil, fmt.Errorf("failed to build expression for query %w", err)
 	}
 
 	return es.queryExpenses(ctx, expr)
@@ -159,14 +159,14 @@ func (es *ExpenseStore) queryExpenses(ctx context.Context, expr expression.Expre
 		response, err := queryPaginator.NextPage(ctx)
 
 		if err != nil {
-			return nil, fmt.Errorf("couldn't query for expenses %w", err)
+			return nil, fmt.Errorf("failed to query for expenses: %w", err)
 		}
 
 		var resExpenses []Expense
 		err = attributevalue.UnmarshalListOfMaps(response.Items, &resExpenses)
 
 		if err != nil {
-			return expenses, fmt.Errorf("couldn't unmarshal query response %w", err)
+			return expenses, fmt.Errorf("failed to unmarshal query response %w", err)
 		}
 
 		expenses = append(expenses, resExpenses...)
@@ -175,15 +175,15 @@ func (es *ExpenseStore) queryExpenses(ctx context.Context, expr expression.Expre
 	return expenses, nil
 }
 
-func (es *ExpenseStore) GetExpense(ctx context.Context, SK string) (Expense, bool, error) {
-	expense := Expense{PK: expensePK, SK: SK}
+func (es *ExpenseStore) GetExpense(ctx context.Context, sk string) (Expense, bool, error) {
+	expense := Expense{PK: expensePK, SK: sk}
 	response, err := es.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &es.tableName,
-		Key:       expense.GetKey(),
+		Key:       GetExpenseKey(sk),
 	})
 
 	if err != nil {
-		return Expense{}, false, fmt.Errorf("GetItem DynamoDB operation failed for SK='%s': %w", SK, err)
+		return Expense{}, false, fmt.Errorf("GetItem DynamoDB operation failed for SK='%s': %w", sk, err)
 	}
 
 	if response.Item == nil || len(response.Item) == 0 {
@@ -192,7 +192,7 @@ func (es *ExpenseStore) GetExpense(ctx context.Context, SK string) (Expense, boo
 
 	err = attributevalue.UnmarshalMap(response.Item, &expense)
 	if err != nil {
-		return Expense{}, true, fmt.Errorf("couldn't unmarshal response: %w", err)
+		return Expense{}, true, fmt.Errorf("failed to unmarshal expense: %w", err)
 	}
 
 	return expense, true, nil
@@ -216,12 +216,12 @@ func (es *ExpenseStore) UpdateExpense(ctx context.Context, SK, name, category st
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 
 	if err != nil {
-		return Expense{}, fmt.Errorf("couldn't build expression for update: %w", err)
+		return Expense{}, fmt.Errorf("failed to build expression for update: %w", err)
 	}
 
 	response, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName:                 &es.tableName,
-		Key:                       expense.GetKey(),
+		Key:                       GetExpenseKey(expense.SK),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		UpdateExpression:          expr.Update(),
@@ -229,19 +229,31 @@ func (es *ExpenseStore) UpdateExpense(ctx context.Context, SK, name, category st
 	})
 
 	if err != nil {
-		return Expense{}, fmt.Errorf("couldn't update expense: %w", err)
+		return Expense{}, fmt.Errorf("failed to update expense: %w", err)
 	}
 
 	var updatedExpense Expense
 	err = attributevalue.UnmarshalMap(response.Attributes, &updatedExpense)
 	if err != nil {
-		return Expense{}, fmt.Errorf("couldn't unmarshall update response: %w", err)
+		return Expense{}, fmt.Errorf("failed to unmarshall updated response: %w", err)
 	}
 
 	updatedExpense.PK = expensePK
 	updatedExpense.SK = SK
 
 	return updatedExpense, nil
+}
+
+func (es *ExpenseStore) DeleteExpense(ctx context.Context, sk string) error {
+	_, err := es.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: &es.tableName,
+		Key:       GetExpenseKey(sk),
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to delete expense with SK=%q from the table: %w", sk, err)
+	}
+	return nil
 }
 
 func generateCurrentTimestamp() string {
