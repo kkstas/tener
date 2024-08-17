@@ -216,8 +216,9 @@ func (es *ExpenseStore) UpdateExpense(ctx context.Context, SK, name, category st
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 
 	if err != nil {
-		return Expense{}, fmt.Errorf("couldn't build expression for update. Here's why: %v", err)
+		return Expense{}, fmt.Errorf("couldn't build expression for update: %w", err)
 	}
+
 	response, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName:                 &es.tableName,
 		Key:                       expense.GetKey(),
@@ -226,15 +227,17 @@ func (es *ExpenseStore) UpdateExpense(ctx context.Context, SK, name, category st
 		UpdateExpression:          expr.Update(),
 		ReturnValues:              types.ReturnValueUpdatedNew,
 	})
+
 	if err != nil {
-		return Expense{}, fmt.Errorf("couldn't update expense %v. Here's why: %v", expense, err)
+		return Expense{}, fmt.Errorf("couldn't update expense: %w", err)
 	}
 
 	var updatedExpense Expense
 	err = attributevalue.UnmarshalMap(response.Attributes, &updatedExpense)
 	if err != nil {
-		return Expense{}, fmt.Errorf("couldn't unmarshall update response. Here's why: %v", err)
+		return Expense{}, fmt.Errorf("couldn't unmarshall update response: %w", err)
 	}
+
 	updatedExpense.PK = expensePK
 	updatedExpense.SK = SK
 
