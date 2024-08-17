@@ -27,17 +27,17 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /health-check", http.HandlerFunc(app.healthCheck))
+	mux.HandleFunc("GET /health-check", app.healthCheck)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Static))))
-	mux.Handle("/", http.HandlerFunc(app.notFoundHandler))
+	mux.HandleFunc("/", app.notFoundHandler)
 
-	mux.Handle("GET /home", http.HandlerFunc(app.homeHandler))
+	mux.HandleFunc("GET /home", app.homeHandler)
 
-	mux.Handle("POST /expense/create", http.HandlerFunc(app.createExpense))
+	mux.HandleFunc("POST /expense/create", app.createExpense)
 
-	mux.Handle("GET /expense/{SK}", http.HandlerFunc(app.showExpense))
-	mux.Handle("GET /expense/edit/{SK}", http.HandlerFunc(app.showEditableExpense))
-	mux.Handle("PUT /expense/edit/{SK}", http.HandlerFunc(app.updateExpense))
+	mux.HandleFunc("GET /expense/{SK}", app.showExpense)
+	mux.HandleFunc("GET /expense/edit/{SK}", app.showEditableExpense)
+	mux.HandleFunc("PUT /expense/edit/{SK}", app.updateExpense)
 
 	app.Handler = mux
 
@@ -63,7 +63,7 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderTempl(w, r, components.SingleExpense(expense))
+	app.renderTempl(w, r, components.SingleExpense(r.Context(), expense))
 }
 
 func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +79,7 @@ func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	renderTempl(w, r, components.EditSingleExpense(expense))
+	app.renderTempl(w, r, components.EditSingleExpense(r.Context(), expense))
 }
 
 func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {
@@ -95,7 +95,7 @@ func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderTempl(w, r, components.SingleExpense(expense))
+	app.renderTempl(w, r, components.SingleExpense(r.Context(), expense))
 }
 
 func (app *Application) healthCheck(w http.ResponseWriter, r *http.Request) {
@@ -138,7 +138,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderTempl(w, r, components.ExpensesContainer(expenses))
+	app.renderTempl(w, r, components.ExpensesContainer(r.Context(), expenses))
 }
 
 func (app *Application) homeHandler(w http.ResponseWriter, r *http.Request) {
@@ -148,11 +148,12 @@ func (app *Application) homeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	renderTempl(w, r, components.Page(expenses))
+	app.renderTempl(w, r, components.Page(r.Context(), expenses))
 }
 
-func renderTempl(w http.ResponseWriter, r *http.Request, component templ.Component) {
+func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, component templ.Component) {
 	w.Header().Set("Content-Type", "text/html")
+
 	if err := component.Render(r.Context(), w); err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "error while generating template:"+err.Error())
 		return
