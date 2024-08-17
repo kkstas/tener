@@ -136,12 +136,7 @@ func TestCreateExpense(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		server.NewApplication(client, tableName).ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusCreated)
-
-		contentType := response.Header().Get("content-type")
-		if !strings.HasPrefix(contentType, "text/html") {
-			t.Errorf("invalid content type %q", contentType)
-		}
+		assertStatus(t, response.Code, http.StatusSeeOther)
 	})
 }
 
