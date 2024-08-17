@@ -6,7 +6,6 @@ tmp_dir = "build/tmp"
   args_bin = []
   bin = "./build/tmp/main"
   cmd = "tailwindcss -c ./build/tailwind.config.cjs -i ./static/css/in -o ./static/css/out --minify && templ generate && go build -o ./build/tmp/main ./cmd/webserver"
-  delay = 1
   exclude_dir = ["assets", "build", "tmp", "vendor", "testdata", "docker"]
   exclude_file = []
   exclude_regex = ["_test.go", ".*_templ.go"]
