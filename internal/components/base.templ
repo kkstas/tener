@@ -7,7 +7,7 @@ import (
 )
 
 templ noScroll() {
-			<style type="text/css">
+	<style type="text/css">
 				div.no-scroll {
 				  -ms-overflow-style: none; /* for Internet Explorer, Edge */
 				  scrollbar-width: none; /* for Firefox */
@@ -29,7 +29,7 @@ templ BaseHTML(ctx context.Context) {
 			@noScroll()
 			<title>Home</title>
 		</head>
-		<body class="bg-gray-50 mx-5 my-3">
+		<body class="bg-gray-50 mx-5 my-3 text-gray-800">
 			{ children... }
 		</body>
 	</html>
