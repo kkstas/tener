@@ -6,13 +6,27 @@ import (
 	"github.com/kkstas/tjener/internal/url"
 )
 
-templ baseHTML(ctx context.Context) {
+templ noScroll() {
+			<style type="text/css">
+				div.no-scroll {
+				  -ms-overflow-style: none; /* for Internet Explorer, Edge */
+				  scrollbar-width: none; /* for Firefox */
+				  overflow-y: scroll; 
+				}
+				div.no-scroll::-webkit-scrollbar {
+				  display: none; /* for Chrome, Safari, and Opera */
+				}
+			</style>
+}
+
+templ BaseHTML(ctx context.Context) {
 	<html>
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
 			<link rel="stylesheet" href={ url.Create(ctx, "static", "css", "out") }/>
+			@noScroll()
 			<title>Home</title>
 		</head>
 		<body class="bg-gray-50 mx-5 my-3">

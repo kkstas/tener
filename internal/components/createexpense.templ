@@ -6,7 +6,7 @@ import (
 	"github.com/kkstas/tjener/internal/url"
 )
 
-templ createExpenseForm(ctx context.Context) {
+templ CreateExpenseForm(ctx context.Context) {
 	<form
 		action={ templ.SafeURL(url.Create(ctx, "expense", "create")) }
 		method="post"
@@ -33,7 +33,7 @@ templ createExpenseForm(ctx context.Context) {
 }
 
 templ CreateExpensePage(ctx context.Context) {
-	@baseHTML(ctx) {
-		@createExpenseForm(ctx)
+	@BaseHTML(ctx) {
+		@CreateExpenseForm(ctx)
 	}
 }

@@ -28,22 +28,34 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 
 	mux := http.NewServeMux()
 
+	mux.HandleFunc("/", app.notFoundHandler)
 	mux.HandleFunc("GET /health-check", app.healthCheck)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Static))))
-	mux.HandleFunc("/", app.notFoundHandler)
 
 	mux.HandleFunc("GET /home", app.homeHandler)
 
 	mux.HandleFunc("GET /expense/create", app.createExpensePage)
 	mux.HandleFunc("POST /expense/create", app.createExpense)
-
 	mux.HandleFunc("GET /expense/{SK}", app.showExpense)
 	mux.HandleFunc("GET /expense/edit/{SK}", app.showEditableExpense)
 	mux.HandleFunc("PUT /expense/edit/{SK}", app.updateExpense)
+	mux.HandleFunc("DELETE /expense/{SK}", app.deleteExpense)
 
 	app.Handler = mux
 
 	return app
+}
+
+func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
+	sk := r.PathValue("SK")
+
+	err := app.expenseStore.DeleteExpense(r.Context(), sk)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "error while deleting item:"+err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
