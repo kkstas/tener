@@ -1,8 +1,10 @@
 package components
 
 import (
-	"fmt"
 	"context"
+	"fmt"
+	"slices"
+	"time"
 
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/url"
@@ -11,14 +13,53 @@ import (
 const (
 	buttonStyles                       = "bg-white hover:bg-gray-100 text-gray-800 font-medium py-1 px-3 border border-gray-400 rounded shadow"
 	inputStyles                        = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-	singleExpenseContainerStyles       = "border border-gray-300 px-2 py-2 rounded mt-2"
+	singleExpenseContainerStyles       = "border border-gray-300 px-2 pt-2 rounded mt-2"
 	insideSingleExpenseContainerStyles = "flex flex-row place-items-center overflow-x-scroll break-words"
 )
 
+func parseTime(timestamp string) string {
+	t, err := time.Parse("2006-01-02", timestamp)
+	if err != nil {
+		return err.Error()
+	}
+	return t.Local().Format("Monday, 02 Jan")
+}
+
+type expenseDay struct {
+	date     string
+	expenses []model.Expense
+}
+
+func parseExpensesIntoExpenseDays(expenses []model.Expense) []expenseDay {
+	days := make(map[string][]model.Expense)
+
+	for _, expense := range expenses {
+		days[expense.SK[:10]] = append(days[expense.SK[:10]], expense)
+	}
+
+	keys := make([]string, 0, len(days))
+
+	for k := range days {
+		keys = append(keys, k)
+	}
+	slices.Sort(keys)
+
+	expenseDays := make([]expenseDay, 0, len(keys))
+
+	for i := len(keys) - 1; i >= 0; i-- {
+		expenseDays = append(expenseDays, expenseDay{date: keys[i], expenses: days[keys[i]]})
+	}
+	return expenseDays
+}
+
 templ SingleExpense(ctx context.Context, expense model.Expense) {
 	<div hx-target="this" class={ singleExpenseContainerStyles }>
-		<div class={ insideSingleExpenseContainerStyles, "no-scroll", "[&>div>label]:text-xs [&>div>label]:text-gray-700 [&>div>label]:font-regular" }>
-			<div class={ "flex-1 p-2" }>
+		<div
+			class={ insideSingleExpenseContainerStyles,
+			"no-scroll",
+			"[&>div>label]:text-xs [&>div>label]:text-gray-700" }
+		>
+			<div class={ "flex-1 ps-2 pb-2" }>
 				<label>Name</label>
 				if expense.Name == "" {
 					<div>-</div>
@@ -26,11 +67,11 @@ templ SingleExpense(ctx context.Context, expense model.Expense) {
 					<div>{ expense.Name }</div>
 				}
 			</div>
-			<div class={ "flex-1 p-2" }>
+			<div class={ "flex-1 ps-2 pb-2" }>
 				<label>Category</label>
 				<div>{ expense.Category }</div>
 			</div>
-			<div class={ "flex-1 p-2" }>
+			<div class={ "flex-1 ps-2 pb-2" }>
 				<label>Amount</label>
 				<div>{ fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }</div>
 			</div>
@@ -82,8 +123,13 @@ templ EditSingleExpense(ctx context.Context, expense model.Expense) {
 
 templ ExpensesContainer(ctx context.Context, expenses []model.Expense) {
 	<div id="expenses-container" class="mx-auto lg:max-w-screen-md">
-		for _, el := range expenses {
-			@SingleExpense(ctx, el)
+		for _, expenseDay := range parseExpensesIntoExpenseDays(expenses) {
+			<div>
+				<p class="text-center mt-5 text-sm font-medium">{ parseTime(expenseDay.date) }</p>
+				for _, el := range expenseDay.expenses {
+					@SingleExpense(ctx, el)
+				}
+			</div>
 		}
 	</div>
 }
