@@ -278,10 +278,10 @@ func setTimeToMidnight(t time.Time, loc *time.Location) time.Time {
 	)
 }
 
-var validCurrencies = []string{"PLN", "USD", "EUR", "GBP", "CHF", "NOK", "SEK", "DKK", "HUF", "CZK", "CAD", "AUD", "JPY", "CNY", "TRY"}
+var ValidCurrencies = []string{"PLN", "USD", "EUR", "GBP", "CHF", "NOK", "SEK", "DKK", "HUF", "CZK", "CAD", "AUD", "JPY", "CNY", "TRY"}
 
 func validateCurrency(curr string) error {
-	if !slices.Contains(validCurrencies, curr) {
+	if !slices.Contains(ValidCurrencies, curr) {
 		return &InvalidCurrencyError{curr}
 	}
 	return nil

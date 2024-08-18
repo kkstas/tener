@@ -121,7 +121,7 @@ func (app *Application) notFoundHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *Application) createExpensePage(w http.ResponseWriter, r *http.Request) {
-	app.renderTempl(w, r, components.CreateExpensePage(r.Context()))
+	app.renderTempl(w, r, components.CreateExpensePage(r.Context(), model.ValidCurrencies))
 }
 
 func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
