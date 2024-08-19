@@ -2,8 +2,10 @@ package model
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -64,10 +66,16 @@ func (cs *ExpenseCategoryStore) CreateExpenseCategory(ctx context.Context, categ
 	}
 
 	_, err = cs.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: &cs.tableName,
-		Item:      item,
+		TableName:           &cs.tableName,
+		Item:                item,
+		ConditionExpression: aws.String("attribute_not_exists(SK)"),
 	})
 	if err != nil {
+		var condErr *types.ConditionalCheckFailedException
+		if errors.As(err, &condErr) {
+			return &ExpenseCategoryAlreadyExistsError{Name: categoryFC.SK}
+		}
+
 		return fmt.Errorf("failed to put expense category into DynamoDB: %w", err)
 	}
 

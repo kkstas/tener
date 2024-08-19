@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -201,6 +202,12 @@ func (app *Application) createExpenseCategory(w http.ResponseWriter, r *http.Req
 
 	err = app.expenseCategoryStore.CreateExpenseCategory(r.Context(), categoryFC)
 	if err != nil {
+		var alreadyExistsErr *model.ExpenseCategoryAlreadyExistsError
+		if errors.As(err, &alreadyExistsErr) {
+			sendErrorResponse(w, http.StatusConflict, err.Error(), err)
+			return
+		}
+
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return
 	}
