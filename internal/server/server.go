@@ -7,6 +7,7 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/rs/zerolog/log"
 
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/model"
@@ -51,7 +52,7 @@ func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
 
 	err := app.expenseStore.DeleteExpense(r.Context(), sk)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while deleting item:"+err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, "error while deleting item:"+err.Error(), err)
 		return
 	}
 
@@ -68,12 +69,12 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value")
+		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value", err)
 		return
 	}
 	expense, err := app.expenseStore.UpdateExpense(r.Context(), sk, name, category, amount, currency)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item:"+err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item:"+err.Error(), err)
 		return
 	}
 
@@ -85,11 +86,11 @@ func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Reque
 
 	expense, found, err := app.expenseStore.GetExpense(r.Context(), sk)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense:"+err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense:"+err.Error(), err)
 		return
 	}
 	if !found {
-		sendErrorResponse(w, http.StatusBadRequest, "no expense found for SK:"+sk)
+		sendErrorResponse(w, http.StatusBadRequest, "no expense found for SK:"+sk, err)
 		return
 	}
 
@@ -101,11 +102,11 @@ func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {
 
 	expense, found, err := app.expenseStore.GetExpense(r.Context(), sk)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense:"+err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense:"+err.Error(), err)
 		return
 	}
 	if !found {
-		sendErrorResponse(w, http.StatusNotFound, "no expense found for SK:"+sk)
+		sendErrorResponse(w, http.StatusNotFound, "no expense found for SK:"+sk, err)
 		return
 	}
 
@@ -132,19 +133,19 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value")
+		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value", err)
 		return
 	}
 
 	expense, err := model.NewExpense(name, category, amount, currency)
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, err.Error())
+		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
 	err = app.expenseStore.PutItem(r.Context(), expense)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item:"+err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item:"+err.Error(), err)
 		return
 	}
 
@@ -154,7 +155,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 func (app *Application) homeHandler(w http.ResponseWriter, r *http.Request) {
 	expenses, err := app.expenseStore.Query(r.Context())
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items:"+err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items:"+err.Error(), err)
 		return
 	}
 
@@ -165,12 +166,13 @@ func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, comp
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := component.Render(r.Context(), w); err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while generating template:"+err.Error())
+		sendErrorResponse(w, http.StatusInternalServerError, "error while generating template:"+err.Error(), err)
 		return
 	}
 }
 
-func sendErrorResponse(w http.ResponseWriter, statusCode int, message string) {
+func sendErrorResponse(w http.ResponseWriter, statusCode int, message string, err error) {
+	log.Error().Stack().Err(err).Msg("invalid amount value")
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(statusCode)
 	fmt.Fprintf(w, `{"message":%q}`, message)
