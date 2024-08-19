@@ -25,7 +25,8 @@ func TestCreateExpenseCategory(t *testing.T) {
 			t.Fatalf("failed querying ddb table for expense categories before putting expense category, %v", err)
 		}
 
-		err = store.CreateExpenseCategory(ctx, "asdf")
+		categoryFC, _ := NewExpenseCategory("some-name")
+		err = store.CreateExpenseCategory(ctx, categoryFC)
 		if err != nil {
 			t.Fatalf("failed putting item into ddb, %v", err)
 		}
@@ -50,9 +51,9 @@ func TestDeleteExpenseCategory(t *testing.T) {
 
 	store := NewExpenseCategoryStore(tableName, client)
 
-	expenseCategoryName := "some-name"
+	categoryFC, _ := NewExpenseCategory("some-name")
 
-	err = store.CreateExpenseCategory(ctx, expenseCategoryName)
+	err = store.CreateExpenseCategory(ctx, categoryFC)
 	if err != nil {
 		t.Fatalf("failed putting item into ddb, %v", err)
 	}
@@ -62,7 +63,7 @@ func TestDeleteExpenseCategory(t *testing.T) {
 		t.Fatalf("failed querying ddb table for expense categories before deleting one, %v", err)
 	}
 
-	err = store.DeleteExpenseCategory(ctx, expenseCategoryName)
+	err = store.DeleteExpenseCategory(ctx, categoryFC.SK)
 	if err != nil {
 		t.Fatalf("failed deleting expense category: %v", err)
 	}

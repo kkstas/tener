@@ -16,8 +16,9 @@ import (
 )
 
 type Application struct {
-	ddb          *dynamodb.Client
-	expenseStore *model.ExpenseStore
+	ddb                  *dynamodb.Client
+	expenseStore         *model.ExpenseStore
+	expenseCategoryStore *model.ExpenseCategoryStore
 	http.Handler
 }
 
@@ -26,6 +27,7 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 	app.ddb = ddb
 
 	app.expenseStore = model.NewExpenseStore(tableName, app.ddb)
+	app.expenseCategoryStore = model.NewExpenseCategoryStore(tableName, app.ddb)
 
 	mux := http.NewServeMux()
 
@@ -38,12 +40,17 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 
 	mux.HandleFunc("GET /home", app.homeHandler)
 
-	mux.HandleFunc("GET /expense/create", app.createExpensePage)
-	mux.HandleFunc("POST /expense/create", app.createExpense)
 	mux.HandleFunc("GET /expense/{SK}", app.showExpense)
 	mux.HandleFunc("GET /expense/edit/{SK}", app.showEditableExpense)
 	mux.HandleFunc("PUT /expense/edit/{SK}", app.updateExpense)
 	mux.HandleFunc("DELETE /expense/{SK}", app.deleteExpense)
+
+	mux.HandleFunc("GET /expense/create", app.createExpensePage)
+	mux.HandleFunc("POST /expense/create", app.createExpense)
+
+	mux.HandleFunc("GET /expensecategories", app.createExpenseCategoryPage)
+	mux.HandleFunc("POST /expensecategories/create", app.createExpenseCategory)
+	mux.HandleFunc("DELETE /expensecategories/{name}", app.deleteExpenseCategory)
 
 	app.Handler = secureHeaders(mux)
 
@@ -55,7 +62,19 @@ func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
 
 	err := app.expenseStore.DeleteExpense(r.Context(), sk)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while deleting item:"+err.Error(), err)
+		sendErrorResponse(w, http.StatusInternalServerError, "error while deleting item: "+err.Error(), err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (app *Application) deleteExpenseCategory(w http.ResponseWriter, r *http.Request) {
+	name := r.PathValue("name")
+
+	err := app.expenseCategoryStore.DeleteExpenseCategory(r.Context(), name)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "deleting item failed: "+err.Error(), err)
 		return
 	}
 
@@ -77,7 +96,7 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 	}
 	expense, err := app.expenseStore.UpdateExpense(r.Context(), sk, name, category, amount, currency)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item:"+err.Error(), err)
+		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item: "+err.Error(), err)
 		return
 	}
 
@@ -89,11 +108,11 @@ func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Reque
 
 	expense, found, err := app.expenseStore.GetExpense(r.Context(), sk)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense:"+err.Error(), err)
+		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense: "+err.Error(), err)
 		return
 	}
 	if !found {
-		sendErrorResponse(w, http.StatusBadRequest, "no expense found for SK:"+sk, err)
+		sendErrorResponse(w, http.StatusBadRequest, "no expense found for SK: "+sk, err)
 		return
 	}
 
@@ -105,11 +124,11 @@ func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {
 
 	expense, found, err := app.expenseStore.GetExpense(r.Context(), sk)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense:"+err.Error(), err)
+		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense: "+err.Error(), err)
 		return
 	}
 	if !found {
-		sendErrorResponse(w, http.StatusNotFound, "no expense found for SK:"+sk, err)
+		sendErrorResponse(w, http.StatusNotFound, "no expense found for SK: "+sk, err)
 		return
 	}
 
@@ -125,7 +144,23 @@ func (app *Application) notFoundHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *Application) createExpensePage(w http.ResponseWriter, r *http.Request) {
-	app.renderTempl(w, r, components.CreateExpensePage(r.Context(), model.ValidCurrencies))
+	categories, err := app.expenseCategoryStore.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.CreateExpensePage(r.Context(), model.ValidCurrencies, categories))
+}
+
+func (app *Application) createExpenseCategoryPage(w http.ResponseWriter, r *http.Request) {
+	categories, err := app.expenseCategoryStore.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.ExpenseCategoriesPage(r.Context(), categories))
 }
 
 func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
@@ -148,17 +183,35 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 
 	err = app.expenseStore.PutItem(r.Context(), expense)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item:"+err.Error(), err)
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return
 	}
 
 	http.Redirect(w, r, url.Create(r.Context(), "home"), http.StatusSeeOther)
 }
 
+func (app *Application) createExpenseCategory(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+
+	categoryFC, err := model.NewExpenseCategory(name)
+	if err != nil {
+		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
+		return
+	}
+
+	err = app.expenseCategoryStore.CreateExpenseCategory(r.Context(), categoryFC)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
+		return
+	}
+
+	http.Redirect(w, r, url.Create(r.Context(), "expensecategories"), http.StatusSeeOther)
+}
+
 func (app *Application) homeHandler(w http.ResponseWriter, r *http.Request) {
 	expenses, err := app.expenseStore.Query(r.Context())
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items:"+err.Error(), err)
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
 	}
 
@@ -169,7 +222,7 @@ func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, comp
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := component.Render(r.Context(), w); err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while generating template:"+err.Error(), err)
+		sendErrorResponse(w, http.StatusInternalServerError, "error while generating template: "+err.Error(), err)
 		return
 	}
 }

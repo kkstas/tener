@@ -1,0 +1,53 @@
+package components
+
+import (
+	"context"
+
+	"github.com/kkstas/tjener/internal/url"
+	"github.com/kkstas/tjener/internal/model"
+)
+
+templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCategory) {
+	@BaseHTML(ctx) {
+		<div class="mx-auto lg:max-w-screen-md">
+			<form
+				action={ templ.SafeURL(url.Create(ctx, "expensecategories", "create")) }
+				method="post"
+			>
+				<div>
+					<label>Category Name</label>
+					<input class={ inputStyles } type="text" name="name"/>
+				</div>
+				<button class={ buttonStyles, "mx-1" }>Submit</button>
+				<a class={ buttonStyles, "mx-1" } href={ templ.SafeURL(url.Create(ctx, "expense", "create")) }>Cancel</a>
+			</form>
+			<h1 class="text-center mt-5 text-md font-medium">All expense categories</h1>
+			for _, category := range categories {
+				@SingleExpenseCategory(ctx, category)
+			}
+		</div>
+	}
+}
+
+templ SingleExpenseCategory(ctx context.Context, category model.ExpenseCategory) {
+	<div hx-target="this" class={ singleExpenseContainerStyles }>
+		<div
+			class={ insideSingleExpenseContainerStyles,
+			"no-scroll",
+			"[&>div>label]:text-xs [&>div>label]:text-gray-700 [&>div]:min-w-5" }
+		>
+			<div class={ "flex-1 ps-2 pb-2" }>
+				<label>Name</label>
+				<div>{ category.SK }</div>
+			</div>
+			<button
+				class="p-1"
+				hx-delete={ url.Create(ctx, "expensecategories", category.SK) }
+				hx-swap="delete"
+				hx-confirm={ "Are you sure you want to delete this expense category?\n\nName: " + category.SK }
+			>
+				<svg class="w-4 h-4 p-0 m-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
+			</button>
+		</div>
+	</div>
+}

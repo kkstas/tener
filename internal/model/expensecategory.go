@@ -10,7 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-const expenseCategoryPK = "category"
+const expenseCategoryPK = "expensecategory"
 
 type ExpenseCategory struct {
 	PK string `dynamodbav:"PK"       json:"PK"`
@@ -52,11 +52,11 @@ func NewExpenseCategoryStore(tableName string, client *dynamodb.Client) *Expense
 	}
 }
 
-func (cs *ExpenseCategoryStore) CreateExpenseCategory(ctx context.Context, name string) error {
+func (cs *ExpenseCategoryStore) CreateExpenseCategory(ctx context.Context, categoryFC ExpenseCategory) error {
 	item, err := attributevalue.MarshalMap(
 		ExpenseCategory{
 			PK: expenseCategoryPK,
-			SK: name,
+			SK: categoryFC.SK,
 		},
 	)
 

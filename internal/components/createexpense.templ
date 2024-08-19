@@ -4,10 +4,12 @@ import (
 	"context"
 
 	"github.com/kkstas/tjener/internal/url"
+	"github.com/kkstas/tjener/internal/model"
 )
 
-templ CreateExpenseForm(ctx context.Context, currencies []string) {
+templ CreateExpenseForm(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
 	<form
+		class="mx-auto lg:max-w-screen-md"
 		action={ templ.SafeURL(url.Create(ctx, "expense", "create")) }
 		method="post"
 	>
@@ -37,15 +39,28 @@ templ CreateExpenseForm(ctx context.Context, currencies []string) {
 		</div>
 		<div>
 			<label>Category</label>
-			<input class={ inputStyles } type="text" name="category" value="food"/>
+			<sup><a class="text-xs text-blue-500" href={ templ.SafeURL(url.Create(ctx, "expensecategories")) }>Manage</a></sup>
+			<div class="relative">
+				<select
+					name="category"
+					class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
+				>
+					for _, category := range categories {
+						<option>{ category.SK }</option>
+					}
+				</select>
+				<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+					<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+				</div>
+			</div>
 		</div>
 		<button class={ buttonStyles, "mx-1" }>Submit</button>
 		<a class={ buttonStyles, "mx-1" } href={ templ.SafeURL(url.Create(ctx, "home")) }>Cancel</a>
 	</form>
 }
 
-templ CreateExpensePage(ctx context.Context, currencies []string) {
+templ CreateExpensePage(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
 	@BaseHTML(ctx) {
-		@CreateExpenseForm(ctx, currencies)
+		@CreateExpenseForm(ctx, currencies, categories)
 	}
 }
