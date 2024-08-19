@@ -34,11 +34,11 @@ func (e *InvalidAmountPrecisionError) Error() string {
 	return fmt.Sprintf("amount '%f' has too large precision", e.Amount)
 }
 
-type ExpenseNotFoundError struct {
+type ItemNotFoundError struct {
 	PK string
 	SK string
 }
 
-func (e *ExpenseNotFoundError) Error() string {
+func (e *ItemNotFoundError) Error() string {
 	return fmt.Sprintf("no item found with PK: %v, SK: %v", e.PK, e.SK)
 }
