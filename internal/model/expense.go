@@ -3,8 +3,6 @@ package model
 import (
 	"context"
 	"fmt"
-	"math"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
@@ -72,7 +70,7 @@ func NewExpenseStore(tableName string, client *dynamodb.Client) *ExpenseStore {
 	}
 }
 
-func (es *ExpenseStore) PutItem(ctx context.Context, expenseFC Expense) error {
+func (es *ExpenseStore) PutExpense(ctx context.Context, expenseFC Expense) error {
 	item, err := attributevalue.MarshalMap(
 		Expense{
 			PK:       expensePK,
@@ -98,80 +96,6 @@ func (es *ExpenseStore) PutItem(ctx context.Context, expenseFC Expense) error {
 	}
 
 	return nil
-}
-
-func (es *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
-	keyCond := expression.
-		Key("PK").Equal(expression.Value(expensePK)).
-		And(expression.Key("SK").GreaterThanEqual(expression.Value(getTimestampDaysAgo(7))))
-
-	exprBuilder := expression.NewBuilder()
-	exprBuilder.WithKeyCondition(keyCond)
-
-	expr, err := expression.NewBuilder().
-		WithKeyCondition(keyCond).
-		Build()
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to build expression for query %w", err)
-	}
-
-	return es.queryExpenses(ctx, expr)
-}
-
-func (es *ExpenseStore) QueryByCategory(ctx context.Context, category string) ([]Expense, error) {
-	keyCond := expression.
-		Key("PK").Equal(expression.Value(expensePK)).
-		And(expression.Key("SK").GreaterThanEqual(expression.Value(getTimestampDaysAgo(7))))
-
-	filterCond := expression.Name("category").Equal(expression.Value(category))
-
-	exprBuilder := expression.NewBuilder()
-	exprBuilder.WithKeyCondition(keyCond)
-
-	expr, err := expression.NewBuilder().
-		WithKeyCondition(keyCond).
-		WithFilter(filterCond).
-		Build()
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to build expression for query %w", err)
-	}
-
-	return es.queryExpenses(ctx, expr)
-}
-
-func (es *ExpenseStore) queryExpenses(ctx context.Context, expr expression.Expression) ([]Expense, error) {
-	var expenses []Expense
-
-	queryInput := dynamodb.QueryInput{
-		TableName:                 &es.tableName,
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
-		FilterExpression:          expr.Filter(),
-	}
-
-	queryPaginator := dynamodb.NewQueryPaginator(es.client, &queryInput)
-
-	for queryPaginator.HasMorePages() {
-		response, err := queryPaginator.NextPage(ctx)
-
-		if err != nil {
-			return nil, fmt.Errorf("failed to query for expenses: %w", err)
-		}
-
-		var resExpenses []Expense
-		err = attributevalue.UnmarshalListOfMaps(response.Items, &resExpenses)
-
-		if err != nil {
-			return expenses, fmt.Errorf("failed to unmarshal query response %w", err)
-		}
-
-		expenses = append(expenses, resExpenses...)
-	}
-
-	return expenses, nil
 }
 
 func (es *ExpenseStore) GetExpense(ctx context.Context, sk string) (Expense, bool, error) {
@@ -255,29 +179,54 @@ func (es *ExpenseStore) DeleteExpense(ctx context.Context, sk string) error {
 	return nil
 }
 
-func generateCurrentTimestamp() string {
-	loc, _ := time.LoadLocation("Europe/Warsaw")
-	return time.Now().In(loc).Format(time.RFC3339Nano)
+func (es *ExpenseStore) Query(ctx context.Context) ([]Expense, error) {
+	keyCond := expression.
+		Key("PK").Equal(expression.Value(expensePK)).
+		And(expression.Key("SK").GreaterThanEqual(expression.Value(getTimestampDaysAgo(7))))
+
+	exprBuilder := expression.NewBuilder()
+	exprBuilder.WithKeyCondition(keyCond)
+
+	expr, err := expression.NewBuilder().
+		WithKeyCondition(keyCond).
+		Build()
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to build expression for query %w", err)
+	}
+
+	return es.queryExpenses(ctx, expr)
 }
 
-func getTimestampDaysAgo(days int) string {
-	loc, _ := time.LoadLocation("Europe/Warsaw")
-	now := setTimeToMidnight(time.Now(), loc)
-	pastDate := now.Add(-(time.Duration(days) * 24 * time.Hour))
-	return pastDate.Format(time.RFC3339Nano)
-}
+func (es *ExpenseStore) queryExpenses(ctx context.Context, expr expression.Expression) ([]Expense, error) {
+	var expenses []Expense
 
-func setTimeToMidnight(t time.Time, loc *time.Location) time.Time {
-	return time.Date(
-		t.Year(),
-		t.Month(),
-		t.Day(),
-		0, 0, 0, 0,
-		loc,
-	)
-}
+	queryInput := dynamodb.QueryInput{
+		TableName:                 &es.tableName,
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+	}
 
-func roundToDecimalPlaces(num float64, precision int) float64 {
-	output := math.Pow(10, float64(precision))
-	return float64(int(num*output)) / output
+	queryPaginator := dynamodb.NewQueryPaginator(es.client, &queryInput)
+
+	for queryPaginator.HasMorePages() {
+		response, err := queryPaginator.NextPage(ctx)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to query for expenses: %w", err)
+		}
+
+		var resExpenses []Expense
+		err = attributevalue.UnmarshalListOfMaps(response.Items, &resExpenses)
+
+		if err != nil {
+			return expenses, fmt.Errorf("failed to unmarshal query response %w", err)
+		}
+
+		expenses = append(expenses, resExpenses...)
+	}
+
+	return expenses, nil
 }

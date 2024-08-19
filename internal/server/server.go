@@ -181,7 +181,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.expenseStore.PutItem(r.Context(), expense)
+	err = app.expenseStore.PutExpense(r.Context(), expense)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return

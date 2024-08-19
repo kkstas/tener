@@ -59,7 +59,6 @@ func (cs *ExpenseCategoryStore) CreateExpenseCategory(ctx context.Context, categ
 			SK: categoryFC.SK,
 		},
 	)
-
 	if err != nil {
 		return fmt.Errorf("failed to marshal expense category: %w", err)
 	}
@@ -68,9 +67,21 @@ func (cs *ExpenseCategoryStore) CreateExpenseCategory(ctx context.Context, categ
 		TableName: &cs.tableName,
 		Item:      item,
 	})
-
 	if err != nil {
 		return fmt.Errorf("failed to put expense category into DynamoDB: %w", err)
+	}
+
+	return nil
+}
+
+func (cs *ExpenseCategoryStore) DeleteExpenseCategory(ctx context.Context, name string) error {
+	categoryFD := ExpenseCategory{PK: expenseCategoryPK, SK: name}
+	_, err := cs.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: &cs.tableName,
+		Key:       categoryFD.GetKey(),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete expense category with name=%q from the table: %w", name, err)
 	}
 
 	return nil
@@ -117,7 +128,6 @@ func (cs *ExpenseCategoryStore) queryExpenseCategories(ctx context.Context, expr
 
 		var resCategories []ExpenseCategory
 		err = attributevalue.UnmarshalListOfMaps(response.Items, &resCategories)
-
 		if err != nil {
 			return categories, fmt.Errorf("failed to unmarshal query response for expense categories: %w", err)
 		}
@@ -126,17 +136,4 @@ func (cs *ExpenseCategoryStore) queryExpenseCategories(ctx context.Context, expr
 	}
 
 	return categories, nil
-}
-
-func (cs *ExpenseCategoryStore) DeleteExpenseCategory(ctx context.Context, name string) error {
-	categoryFD := ExpenseCategory{PK: expenseCategoryPK, SK: name}
-	_, err := cs.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
-		TableName: &cs.tableName,
-		Key:       categoryFD.GetKey(),
-	})
-
-	if err != nil {
-		return fmt.Errorf("failed to delete expense category with name=%q from the table: %w", name, err)
-	}
-	return nil
 }

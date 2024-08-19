@@ -22,7 +22,7 @@ func BenchmarkRFC3339Nano(b *testing.B) {
 	}
 }
 
-func TestPutItem(t *testing.T) {
+func TestPutExpense(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -38,7 +38,7 @@ func TestPutItem(t *testing.T) {
 		t.Fatalf("failed querying ddb table for expenses before putting expense, %v", err)
 	}
 
-	err = store.PutItem(ctx, Expense{})
+	err = store.PutExpense(ctx, Expense{})
 	if err != nil {
 		t.Fatalf("failed putting item into ddb, %v", err)
 	}
@@ -146,7 +146,7 @@ func TestDeleteExpense(t *testing.T) {
 
 	store := NewExpenseStore(tableName, client)
 
-	err = store.PutItem(ctx, Expense{})
+	err = store.PutExpense(ctx, Expense{})
 	if err != nil {
 		t.Fatalf("failed putting item into ddb, %v", err)
 	}
