@@ -5,4 +5,4 @@ import (
 )
 
 //go:embed css/*
-var Static embed.FS
+var Css embed.FS

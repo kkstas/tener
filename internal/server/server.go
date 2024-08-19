@@ -31,7 +31,10 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 
 	mux.HandleFunc("/", app.notFoundHandler)
 	mux.HandleFunc("GET /health-check", app.healthCheck)
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServer(http.FS(static.Static))))
+	mux.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/css")
+		http.FileServer(http.FS(static.Css)).ServeHTTP(w, r)
+	})))
 
 	mux.HandleFunc("GET /home", app.homeHandler)
 
@@ -42,7 +45,7 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 	mux.HandleFunc("PUT /expense/edit/{SK}", app.updateExpense)
 	mux.HandleFunc("DELETE /expense/{SK}", app.deleteExpense)
 
-	app.Handler = mux
+	app.Handler = secureHeaders(mux)
 
 	return app
 }
