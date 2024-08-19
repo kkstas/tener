@@ -205,7 +205,7 @@ func (app *Application) createExpenseCategory(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	http.Redirect(w, r, url.Create(r.Context(), "expensecategories"), http.StatusSeeOther)
+	app.renderTempl(w, r, components.SingleExpenseCategory(r.Context(), categoryFC))
 }
 
 func (app *Application) homeHandler(w http.ResponseWriter, r *http.Request) {

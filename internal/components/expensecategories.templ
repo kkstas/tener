@@ -3,16 +3,17 @@ package components
 import (
 	"context"
 
-	"github.com/kkstas/tjener/internal/url"
 	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/url"
 )
 
 templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCategory) {
 	@BaseHTML(ctx) {
 		<div class="mx-auto lg:max-w-screen-md">
 			<form
-				action={ templ.SafeURL(url.Create(ctx, "expensecategories", "create")) }
-				method="post"
+				hx-post={ url.Create(ctx, "expensecategories", "create") }
+				hx-swap="afterbegin"
+				hx-target="#expensecategorieslist"
 			>
 				<div>
 					<label>Category Name</label>
@@ -23,7 +24,9 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 			</form>
 			<h1 class="text-center mt-5 text-md font-medium">All expense categories</h1>
 			for _, category := range categories {
-				@SingleExpenseCategory(ctx, category)
+				<div id="expensecategorieslist">
+					@SingleExpenseCategory(ctx, category)
+				</div>
 			}
 		</div>
 	}
