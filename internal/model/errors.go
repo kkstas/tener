@@ -12,12 +12,13 @@ func (e *ExpenseCategoryAlreadyExistsError) Error() string {
 	return fmt.Sprintf("expense category '%s' already exists", e.Name)
 }
 
-type ExpenseCategoryIsTooShortError struct {
-	Name string
+type InvalidExpenseCategoryLengthError struct {
+	Min int
+	Max int
 }
 
-func (e *ExpenseCategoryIsTooShortError) Error() string {
-	return fmt.Sprintf("expense category '%s' is too short", e.Name)
+func (e *InvalidExpenseCategoryLengthError) Error() string {
+	return fmt.Sprintf("expense category's length must be between %d and %d", e.Min, e.Max)
 }
 
 type ExpenseAmountIsZeroError struct{}

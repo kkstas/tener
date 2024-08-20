@@ -81,22 +81,27 @@ func TestCreateExpense(t *testing.T) {
 	})
 
 	t.Run("returns an error when category is too short", func(t *testing.T) {
-		_, err := NewExpense("", "", 24.99, "PLN")
+		tooShortCategory := string(make([]byte, expenseCategoryMinLength- 1))
+		_, err := NewExpense("some name", tooShortCategory, 24.99, "PLN")
 
 		if err == nil {
-			t.Error("expected an error when category is empty string")
+			t.Error("expected an error but didn't get one")
 		}
-		var nameErr *ExpenseCategoryIsTooShortError
+		var nameErr *InvalidExpenseCategoryLengthError
 		if !errors.As(err, &nameErr) {
 			t.Errorf("expected %T, got %#v", nameErr, err)
 		}
+	})
 
-		_, err = NewExpense("", "a", 24.99, "PLN")
+	t.Run("returns an error when category is too long", func(t *testing.T) {
+		tooLongCategory := string(make([]byte, expenseCategoryMaxLength + 1))
+
+		_, err := NewExpense("some name", tooLongCategory, 24.99, "PLN")
+
 		if err == nil {
-			t.Error("expected an error when category's length is 1")
+			t.Error("expected an error but didn't get one")
 		}
-
-		nameErr = nil
+		var nameErr *InvalidExpenseCategoryLengthError
 		if !errors.As(err, &nameErr) {
 			t.Errorf("expected %T, got %#v", nameErr, err)
 		}

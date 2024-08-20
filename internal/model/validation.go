@@ -1,8 +1,16 @@
 package model
 
-import "slices"
+import (
+	"slices"
+	"unicode/utf8"
+)
 
 var ValidCurrencies = []string{"PLN", "USD", "EUR", "GBP", "CHF", "NOK", "SEK", "DKK", "HUF", "CZK", "CAD", "AUD", "JPY", "CNY", "TRY"}
+
+const (
+	expenseCategoryMinLength = 2
+	expenseCategoryMaxLength = 50
+)
 
 func validateCurrency(curr string) error {
 	if !slices.Contains(ValidCurrencies, curr) {
@@ -12,8 +20,9 @@ func validateCurrency(curr string) error {
 }
 
 func validateCategory(category string) error {
-	if len(category) <= 1 {
-		return &ExpenseCategoryIsTooShortError{category}
+	categoryLength := utf8.RuneCountInString(category)
+	if categoryLength < expenseCategoryMinLength || categoryLength > expenseCategoryMaxLength {
+		return &InvalidExpenseCategoryLengthError{expenseCategoryMinLength, expenseCategoryMaxLength}
 	}
 	return nil
 }
