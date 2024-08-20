@@ -13,12 +13,12 @@ import (
 const expensePK = "expense"
 
 type Expense struct {
-	PK       string  `dynamodbav:"PK"       json:"PK"`
-	SK       string  `dynamodbav:"SK"       json:"SK"`
-	Name     string  `dynamodbav:"name"     json:"name"`
-	Category string  `dynamodbav:"category" json:"category"`
-	Amount   float64 `dynamodbav:"amount"   json:"amount"`
-	Currency string  `dynamodbav:"currency" json:"currency"`
+	PK       string  `dynamodbav:"PK"`
+	SK       string  `dynamodbav:"SK"`
+	Name     string  `dynamodbav:"name"`
+	Category string  `dynamodbav:"category"`
+	Amount   float64 `dynamodbav:"amount"`
+	Currency string  `dynamodbav:"currency"`
 }
 
 type ExpenseStore struct {
