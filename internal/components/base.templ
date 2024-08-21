@@ -2,21 +2,21 @@ package components
 
 import (
 	"context"
-	
+
 	"github.com/kkstas/tjener/internal/url"
 )
 
 templ noScroll() {
 	<style type="text/css">
-				div.no-scroll {
-				  -ms-overflow-style: none; /* for Internet Explorer, Edge */
-				  scrollbar-width: none; /* for Firefox */
-				  overflow-y: scroll; 
-				}
-				div.no-scroll::-webkit-scrollbar {
-				  display: none; /* for Chrome, Safari, and Opera */
-				}
-			</style>
+		div.no-scroll {
+			-ms-overflow-style: none; /* for Internet Explorer, Edge */
+		   	scrollbar-width: none; /* for Firefox */
+			overflow-y: scroll; 
+		}
+		div.no-scroll::-webkit-scrollbar {
+			display: none; /* for Chrome, Safari, and Opera */
+		}
+	</style>
 }
 
 templ BaseHTML(ctx context.Context) {
@@ -24,6 +24,7 @@ templ BaseHTML(ctx context.Context) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<link rel="icon" type="image/svg+xml" href="/assets/public/icon.svg"/>
 			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
 			<link rel="stylesheet" href={ url.Create(ctx, "assets", "public", "css", "out.css") }/>
 			@noScroll()
