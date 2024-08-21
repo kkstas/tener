@@ -1,7 +1,6 @@
 package model
 
 import (
-	"math"
 	"time"
 )
 
@@ -25,9 +24,4 @@ func setTimeToMidnight(t time.Time, loc *time.Location) time.Time {
 		0, 0, 0, 0,
 		loc,
 	)
-}
-
-func roundToDecimalPlaces(num float64, precision int) float64 {
-	output := math.Pow(10, float64(precision))
-	return float64(int(num*output)) / output
 }

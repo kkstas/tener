@@ -10,13 +10,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/kkstas/tjener/pkg/validator"
 )
 
 const expenseCategoryPK = "expensecategory"
 
 type ExpenseCategory struct {
-	PK string `dynamodbav:"PK"       json:"PK"`
-	SK string `dynamodbav:"SK"       json:"SK"`
+	PK                  string `dynamodbav:"PK"`
+	SK                  string `dynamodbav:"SK"`
+	validator.Validator `dynamodbav:"-"`
 }
 
 type ExpenseCategoryStore struct {
@@ -37,14 +39,16 @@ func (c *ExpenseCategory) GetKey() map[string]types.AttributeValue {
 }
 
 func NewExpenseCategory(name string) (ExpenseCategory, error) {
-	if err := validateCategory(name); err != nil {
+	category := ExpenseCategory{
+		PK: expenseCategoryPK,
+		SK: name,
+	}
+	category.Check(validator.StringLengthBetween("name", name, expenseCategoryMinLength, expenseCategoryMaxLength))
+	if err := category.Validate(); err != nil {
 		return ExpenseCategory{}, err
 	}
 
-	return ExpenseCategory{
-		PK: expenseCategoryPK,
-		SK: name,
-	}, nil
+	return category, nil
 }
 
 func NewExpenseCategoryStore(tableName string, client *dynamodb.Client) *ExpenseCategoryStore {

@@ -8,17 +8,28 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/kkstas/tjener/pkg/validator"
 )
+
+var ValidCurrencies = []string{"PLN", "USD", "EUR", "GBP", "CHF", "NOK", "SEK", "DKK", "HUF", "CZK", "CAD", "AUD", "JPY", "CNY", "TRY"}
 
 const expensePK = "expense"
 
+const (
+	expenseNameMinLength     = 2
+	expenseNameMaxLength     = 50
+	expenseCategoryMinLength = 2
+	expenseCategoryMaxLength = 50
+)
+
 type Expense struct {
-	PK       string  `dynamodbav:"PK"`
-	SK       string  `dynamodbav:"SK"`
-	Name     string  `dynamodbav:"name"`
-	Category string  `dynamodbav:"category"`
-	Amount   float64 `dynamodbav:"amount"`
-	Currency string  `dynamodbav:"currency"`
+	PK                  string  `dynamodbav:"PK"`
+	SK                  string  `dynamodbav:"SK"`
+	Name                string  `dynamodbav:"name"`
+	Category            string  `dynamodbav:"category"`
+	Amount              float64 `dynamodbav:"amount"`
+	Currency            string  `dynamodbav:"currency"`
+	validator.Validator `dynamodbav:"-"`
 }
 
 type ExpenseStore struct {
@@ -39,18 +50,20 @@ func GetExpenseKey(sk string) map[string]types.AttributeValue {
 }
 
 func NewExpense(name, category string, amount float64, currency string) (Expense, error) {
+
 	return newExpenseInternal(expensePK, generateCurrentTimestamp(), name, category, amount, currency)
 }
 
 func newExpenseInternal(PK, SK, name, category string, amount float64, currency string) (Expense, error) {
-	if err := validateCategory(category); err != nil {
+	expense := Expense{}
+	expense.Check(validator.StringLengthBetween("name", name, expenseNameMinLength, expenseNameMaxLength))
+	expense.Check(validator.StringLengthBetween("category", category, expenseCategoryMinLength, expenseCategoryMaxLength))
+	expense.Check(validator.OneOf("currency", currency, ValidCurrencies))
+	expense.Check(validator.IsValidAmountPrecision("amount", amount))
+	expense.Check(validator.IsNonZero("amount", amount))
+
+	if err := expense.Validate(); err != nil {
 		return Expense{}, err
-	}
-	if err := validateAmount(amount); err != nil {
-		return Expense{}, err
-	}
-	if err := validateCurrency(currency); err != nil {
-		return Expense{}, &InvalidCurrencyError{currency}
 	}
 
 	return Expense{

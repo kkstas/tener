@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/url"
+	"github.com/kkstas/tjener/pkg/validator"
 	"github.com/kkstas/tjener/static"
 )
 
@@ -235,8 +237,15 @@ func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, comp
 }
 
 func sendErrorResponse(w http.ResponseWriter, statusCode int, message string, err error) {
-	log.Error().Stack().Err(err).Msg("invalid amount value")
+	log.Error().Stack().Err(err).Msg("")
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(statusCode)
+
+	var validationErr *validator.ValidationError
+	if errors.As(err, &validationErr) {
+		_ = json.NewEncoder(w).Encode(validationErr.ErrMessages)
+		return
+	}
+
 	fmt.Fprintf(w, `{"message":%q}`, message)
 }

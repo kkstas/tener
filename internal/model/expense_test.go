@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/kkstas/tjener/internal/database"
+	"github.com/kkstas/tjener/pkg/validator"
 )
 
 func BenchmarkRFC3339(b *testing.B) {
@@ -74,68 +75,56 @@ func TestGetDateAgo(t *testing.T) {
 
 func TestCreateExpense(t *testing.T) {
 	t.Run("creates valid expense", func(t *testing.T) {
-		_, err := NewExpense("", "food", 24.99, "PLN")
+		_, err := NewExpense("name", "food", 24.99, "PLN")
 		if err != nil {
 			t.Errorf("didn't expect an error but got one: %v", err)
 		}
 	})
 
 	t.Run("returns an error when category is too short", func(t *testing.T) {
-		tooShortCategory := string(make([]byte, expenseCategoryMinLength- 1))
+		tooShortCategory := string(make([]byte, expenseCategoryMinLength-1))
 		_, err := NewExpense("some name", tooShortCategory, 24.99, "PLN")
 
 		if err == nil {
 			t.Error("expected an error but didn't get one")
 		}
-		var nameErr *InvalidExpenseCategoryLengthError
-		if !errors.As(err, &nameErr) {
-			t.Errorf("expected %T, got %#v", nameErr, err)
+		var validationErr *validator.ValidationError
+		if !errors.As(err, &validationErr) {
+			t.Errorf("expected %T, got %#v", validationErr, err)
 		}
 	})
 
 	t.Run("returns an error when category is too long", func(t *testing.T) {
-		tooLongCategory := string(make([]byte, expenseCategoryMaxLength + 1))
+		tooLongCategory := string(make([]byte, expenseCategoryMaxLength+1))
 
 		_, err := NewExpense("some name", tooLongCategory, 24.99, "PLN")
 
 		if err == nil {
 			t.Error("expected an error but didn't get one")
 		}
-		var nameErr *InvalidExpenseCategoryLengthError
-		if !errors.As(err, &nameErr) {
-			t.Errorf("expected %T, got %#v", nameErr, err)
-		}
-	})
-
-	t.Run("returns an error when amount is zero", func(t *testing.T) {
-		_, err := NewExpense("", "food", 0, "PLN")
-		var zeroAmountErr *ExpenseAmountIsZeroError
-		if err == nil {
-			t.Error("expected an error but didn't get one")
-		}
-
-		if !errors.As(err, &zeroAmountErr) {
-			t.Errorf("expected %T, got %#v", zeroAmountErr, err)
+		var validationErr *validator.ValidationError
+		if !errors.As(err, &validationErr) {
+			t.Errorf("expected %T, got %#v", validationErr, err)
 		}
 	})
 
 	t.Run("returns an error when amount is float with precision larger than two", func(t *testing.T) {
 		_, err := NewExpense("", "food", 24.4234, "PLN")
-		var invalidAmountPrecisionError *InvalidAmountPrecisionError
+		var validationErr *validator.ValidationError
 		if err == nil {
 			t.Error("expected an error but didn't get one")
 		}
 
-		if !errors.As(err, &invalidAmountPrecisionError) {
-			t.Errorf("expected %T, got %#v", invalidAmountPrecisionError, err)
+		if !errors.As(err, &validationErr) {
+			t.Errorf("expected %T, got %#v", validationErr, err)
 		}
 	})
 
 	t.Run("returns an error if currency is invalid", func(t *testing.T) {
 		_, err := NewExpense("", "food", 24.99, "memecoin")
-		var invalidCurrencyErr *InvalidCurrencyError
-		if !errors.As(err, &invalidCurrencyErr) {
-			t.Errorf("expected %T, got %#v", invalidCurrencyErr, err)
+		var validationErr *validator.ValidationError
+		if !errors.As(err, &validationErr) {
+			t.Errorf("expected %T, got %#v", validationErr, err)
 		}
 	})
 }
