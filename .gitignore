@@ -5,4 +5,4 @@ build/tmp/
 build/docker/
 
 internal/components/**/*_templ.go
-static/css/out
+assets/public/css/out.css

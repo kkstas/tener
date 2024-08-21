@@ -51,7 +51,7 @@ func TestHealthCheck(t *testing.T) {
 func TestStaticCss(t *testing.T) {
 	t.Run("returns css file content with status 200", func(t *testing.T) {
 		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodGet, "/static/css/out", nil)
+		request := httptest.NewRequest(http.MethodGet, "/assets/public/css/out.css", nil)
 		server.NewApplication(nil, "").ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)

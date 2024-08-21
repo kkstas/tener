@@ -2,7 +2,7 @@ package components
 
 import (
 	"context"
-
+	
 	"github.com/kkstas/tjener/internal/url"
 )
 
@@ -25,7 +25,7 @@ templ BaseHTML(ctx context.Context) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
-			<link rel="stylesheet" href={ url.Create(ctx, "static", "css", "out") }/>
+			<link rel="stylesheet" href={ url.Create(ctx, "assets", "public", "css", "out.css") }/>
 			@noScroll()
 			<title>Home</title>
 		</head>

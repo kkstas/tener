@@ -11,11 +11,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/rs/zerolog/log"
 
+	"github.com/kkstas/tjener/assets"
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/url"
 	"github.com/kkstas/tjener/pkg/validator"
-	"github.com/kkstas/tjener/static"
 )
 
 type Application struct {
@@ -36,10 +36,7 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 
 	mux.HandleFunc("/", app.notFoundHandler)
 	mux.HandleFunc("GET /health-check", app.healthCheck)
-	mux.Handle("GET /static/", http.StripPrefix("/static/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/css")
-		http.FileServer(http.FS(static.Css)).ServeHTTP(w, r)
-	})))
+	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assets.Public))))
 
 	mux.HandleFunc("GET /home", app.homeHandler)
 
