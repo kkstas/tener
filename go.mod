@@ -1,6 +1,6 @@
 module github.com/kkstas/tjener
 
-go 1.22.5
+go 1.23.0
 
 require github.com/awslabs/aws-lambda-go-api-proxy v0.16.2
 
