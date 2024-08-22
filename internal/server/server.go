@@ -116,7 +116,13 @@ func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	app.renderTempl(w, r, components.EditSingleExpense(r.Context(), expense))
+	categories, err := app.expenseCategoryStore.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.EditSingleExpense(r.Context(), expense, categories))
 }
 
 func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {

@@ -94,7 +94,7 @@ templ SingleExpense(ctx context.Context, expense model.Expense) {
 	</div>
 }
 
-templ EditSingleExpense(ctx context.Context, expense model.Expense) {
+templ EditSingleExpense(ctx context.Context, expense model.Expense, categories []model.ExpenseCategory) {
 	<form hx-put={ url.Create(ctx, "expense", "edit", expense.SK) } hx-target="this" hx-swap="outerHTML" class={ singleExpenseContainerStyles }>
 		<div class={ insideSingleExpenseContainerStyles }>
 			<div class={ "flex-1 min-w-5 p-2" }>
@@ -103,7 +103,23 @@ templ EditSingleExpense(ctx context.Context, expense model.Expense) {
 			</div>
 			<div class={ "flex-1 min-w-5 p-2" }>
 				<label>Category</label>
-				<input class={ inputStyles } type="text" name="category" value={ expense.Category }/>
+				<div class="relative">
+					<select
+						name="category"
+						class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
+					>
+						for _, category := range categories {
+							if expense.Category == category.SK {
+								<option selected>{ category.SK }</option>
+							} else {
+								<option>{ category.SK }</option>
+							}
+						}
+					</select>
+					<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+						<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+					</div>
+				</div>
 			</div>
 			<div class={ "flex-1 min-w-5 p-2" }>
 				<label>Amount</label>
