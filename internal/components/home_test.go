@@ -11,10 +11,10 @@ import (
 
 func TestParseExpenses(t *testing.T) {
 	expenses := []model.Expense{
-		{PK: "expense", SK: "2024-08-18T14:36:51.351629414+02:00", Name: "zero", Category: "food", Amount: 1, Currency: "PLN"},
-		{PK: "expense", SK: "2024-08-17T15:26:14.136402263+02:00", Name: "one", Category: "aa", Amount: 124, Currency: "PLN"},
-		{PK: "expense", SK: "2024-08-18T15:26:14.136402263+02:00", Name: "two", Category: "asdf", Amount: 14, Currency: "PLN"},
-		{PK: "expense", SK: "2024-08-16T15:26:14.136402263+02:00", Name: "three", Category: "dasdfas", Amount: 82, Currency: "PLN"},
+		{CreatedAt: "2024-08-18T14:36:51.351629414+02:00", Name: "zero", Category: "food", Amount: 1, Currency: "PLN"},
+		{CreatedAt: "2024-08-17T15:26:14.136402263+02:00", Name: "one", Category: "aa", Amount: 124, Currency: "PLN"},
+		{CreatedAt: "2024-08-18T15:26:14.136402263+02:00", Name: "two", Category: "asdf", Amount: 14, Currency: "PLN"},
+		{CreatedAt: "2024-08-16T15:26:14.136402263+02:00", Name: "three", Category: "dasdfas", Amount: 82, Currency: "PLN"},
 	}
 
 	t.Run("returns expenseDays in date descending order", func(t *testing.T) {

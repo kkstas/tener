@@ -33,7 +33,7 @@ func initApplicationAndDDB() *server.Application {
 
 	createDDBTableIfNotExists(ctx, client, tableName)
 
-	expenseStore := model.NewExpenseStore(tableName, client)
+	expenseStore := model.NewExpenseDDBStore(tableName, client)
 	expenseCategoryStore := model.NewExpenseCategoryStore(tableName, client)
 
 	newApp := server.NewApplication(expenseStore, expenseCategoryStore)

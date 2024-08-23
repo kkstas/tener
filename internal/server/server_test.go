@@ -168,7 +168,7 @@ func assertStatus(t testing.TB, got, want int) {
 }
 
 func newTestApplication(client *dynamodb.Client, tableName string) *server.Application {
-	expenseStore := model.NewExpenseStore(tableName, client)
+	expenseStore := model.NewExpenseDDBStore(tableName, client)
 	expenseCategoryStore := model.NewExpenseCategoryStore(tableName, client)
 
 	return server.NewApplication(expenseStore, expenseCategoryStore)

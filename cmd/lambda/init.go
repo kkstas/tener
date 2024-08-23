@@ -36,7 +36,7 @@ func initApplication() *server.Application {
 		log.Fatal().Err(err).Msgf("DynamoDB table %q not found", tableName)
 	}
 
-	expenseStore := model.NewExpenseStore(tableName, client)
+	expenseStore := model.NewExpenseDDBStore(tableName, client)
 	expenseCategoryStore := model.NewExpenseCategoryStore(tableName, client)
 
 	return server.NewApplication(expenseStore, expenseCategoryStore)
