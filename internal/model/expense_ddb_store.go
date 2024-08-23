@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -109,24 +110,34 @@ func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expen
 		ExpressionAttributeValues: expr.Values(),
 		UpdateExpression:          expr.Update(),
 		ReturnValues:              types.ReturnValueUpdatedNew,
+		ConditionExpression:       aws.String("attribute_exists(SK)"),
 	})
 
 	if err != nil {
+		var condErr *types.ConditionalCheckFailedException
+		if errors.As(err, &condErr) {
+			return Expense{}, &ExpenseNotFoundError{CreatedAt: expenseFU.CreatedAt}
+		}
 		return Expense{}, fmt.Errorf("failed to update expense: %w", err)
 	}
 
 	return expenseFU, nil
 }
 
-func (es *ExpenseDDBStore) Delete(ctx context.Context, sk string) error {
+func (es *ExpenseDDBStore) Delete(ctx context.Context, createdAt string) error {
+	if _, err := es.FindOne(ctx, createdAt); err != nil {
+		return &ExpenseNotFoundError{CreatedAt: createdAt}
+	}
+
 	_, err := es.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &es.tableName,
-		Key:       getExpenseKey(sk),
+		Key:       getExpenseKey(createdAt),
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to delete expense with SK=%q from the table: %w", sk, err)
+		return fmt.Errorf("failed to delete expense with CreatedAt=%q from the table: %w", createdAt, err)
 	}
+
 	return nil
 }
 
