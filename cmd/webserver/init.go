@@ -13,6 +13,7 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 
 	"github.com/kkstas/tjener/internal/database"
+	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/server"
 )
 
@@ -32,7 +33,10 @@ func initApplicationAndDDB() *server.Application {
 
 	createDDBTableIfNotExists(ctx, client, tableName)
 
-	newApp := server.NewApplication(client, tableName)
+	expenseStore := model.NewExpenseStore(tableName, client)
+	expenseCategoryStore := model.NewExpenseCategoryStore(tableName, client)
+
+	newApp := server.NewApplication(expenseStore, expenseCategoryStore)
 	newApp.Handler = loggingMiddleware(newApp.Handler)
 
 	return newApp

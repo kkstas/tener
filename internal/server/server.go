@@ -40,12 +40,11 @@ type Application struct {
 	http.Handler
 }
 
-func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
+func NewApplication(expenseStore ExpenseStore, expenseCategoryStore ExpenseCategoryStore) *Application {
 	app := new(Application)
-	app.ddb = ddb
 
-	app.expense = model.NewExpenseStore(tableName, app.ddb)
-	app.expenseCategory = model.NewExpenseCategoryStore(tableName, app.ddb)
+	app.expense = expenseStore
+	app.expenseCategory = expenseCategoryStore
 
 	mux := http.NewServeMux()
 

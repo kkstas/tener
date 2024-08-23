@@ -11,6 +11,7 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 
 	"github.com/kkstas/tjener/internal/database"
+	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/server"
 )
 
@@ -35,7 +36,10 @@ func initApplication() *server.Application {
 		log.Fatal().Err(err).Msgf("DynamoDB table %q not found", tableName)
 	}
 
-	return server.NewApplication(client, tableName)
+	expenseStore := model.NewExpenseStore(tableName, client)
+	expenseCategoryStore := model.NewExpenseCategoryStore(tableName, client)
+
+	return server.NewApplication(expenseStore, expenseCategoryStore)
 }
 
 func initLogger() {

@@ -11,7 +11,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/kkstas/tjener/internal/database"
+	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/server"
 )
 
@@ -27,7 +29,7 @@ func TestHomeHandler(t *testing.T) {
 	t.Run("responds with html", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/home", nil)
-		server.NewApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication(client, tableName).ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 
@@ -42,7 +44,7 @@ func TestHealthCheck(t *testing.T) {
 	t.Run("returns status 200", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/health-check", nil)
-		server.NewApplication(nil, "").ServeHTTP(response, request)
+		newTestApplication(nil, "").ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 	})
@@ -52,7 +54,7 @@ func TestStaticCss(t *testing.T) {
 	t.Run("returns css file content with status 200", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/assets/public/css/out.css", nil)
-		server.NewApplication(nil, "").ServeHTTP(response, request)
+		newTestApplication(nil, "").ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 
@@ -63,7 +65,7 @@ func TestStaticCss(t *testing.T) {
 }
 
 func TestNotFoundHandler(t *testing.T) {
-	s := server.NewApplication(nil, "")
+	s := newTestApplication(nil, "")
 
 	cases := []struct {
 		method string
@@ -104,7 +106,7 @@ func TestCreateExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", nil)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		server.NewApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication(client, tableName).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
@@ -118,7 +120,7 @@ func TestCreateExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		server.NewApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication(client, tableName).ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
@@ -135,7 +137,7 @@ func TestCreateExpense(t *testing.T) {
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		server.NewApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication(client, tableName).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusSeeOther)
 	})
 }
@@ -153,7 +155,7 @@ func TestShowExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/expense/x", nil)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		server.NewApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication(client, tableName).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
 }
@@ -163,4 +165,11 @@ func assertStatus(t testing.TB, got, want int) {
 	if got != want {
 		t.Errorf("did not get correct status: got %d, want %d", got, want)
 	}
+}
+
+func newTestApplication(client *dynamodb.Client, tableName string) *server.Application {
+	expenseStore := model.NewExpenseStore(tableName, client)
+	expenseCategoryStore := model.NewExpenseCategoryStore(tableName, client)
+
+	return server.NewApplication(expenseStore, expenseCategoryStore)
 }
