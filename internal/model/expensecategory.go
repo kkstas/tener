@@ -26,7 +26,7 @@ type ExpenseCategoryStore struct {
 	tableName string
 }
 
-func (c *ExpenseCategory) GetKey() map[string]types.AttributeValue {
+func (c *ExpenseCategory) getKey() map[string]types.AttributeValue {
 	PK, err := attributevalue.Marshal(c.PK)
 	if err != nil {
 		panic(err)
@@ -58,7 +58,7 @@ func NewExpenseCategoryStore(tableName string, client *dynamodb.Client) *Expense
 	}
 }
 
-func (cs *ExpenseCategoryStore) CreateExpenseCategory(ctx context.Context, categoryFC ExpenseCategory) error {
+func (cs *ExpenseCategoryStore) Create(ctx context.Context, categoryFC ExpenseCategory) error {
 	item, err := attributevalue.MarshalMap(
 		ExpenseCategory{
 			PK: expenseCategoryPK,
@@ -86,11 +86,11 @@ func (cs *ExpenseCategoryStore) CreateExpenseCategory(ctx context.Context, categ
 	return nil
 }
 
-func (cs *ExpenseCategoryStore) DeleteExpenseCategory(ctx context.Context, name string) error {
+func (cs *ExpenseCategoryStore) Delete(ctx context.Context, name string) error {
 	categoryFD := ExpenseCategory{PK: expenseCategoryPK, SK: name}
 	_, err := cs.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &cs.tableName,
-		Key:       categoryFD.GetKey(),
+		Key:       categoryFD.getKey(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to delete expense category with name=%q from the table: %w", name, err)

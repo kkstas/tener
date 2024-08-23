@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -18,10 +19,24 @@ import (
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
+type ExpenseStore interface {
+	Create(ctx context.Context, expenseFC model.Expense) error
+	Delete(ctx context.Context, SK string) error
+	Update(ctx context.Context, SK, name, category string, amount float64, currency string) (model.Expense, error)
+	FindOne(ctx context.Context, SK string) (model.Expense, error)
+	Query(ctx context.Context) ([]model.Expense, error)
+}
+
+type ExpenseCategoryStore interface {
+	Create(ctx context.Context, categoryFC model.ExpenseCategory) error
+	Delete(ctx context.Context, name string) error
+	Query(ctx context.Context) ([]model.ExpenseCategory, error)
+}
+
 type Application struct {
-	ddb                  *dynamodb.Client
-	expenseStore         *model.ExpenseStore
-	expenseCategoryStore *model.ExpenseCategoryStore
+	ddb             *dynamodb.Client
+	expense         ExpenseStore
+	expenseCategory ExpenseCategoryStore
 	http.Handler
 }
 
@@ -29,8 +44,8 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 	app := new(Application)
 	app.ddb = ddb
 
-	app.expenseStore = model.NewExpenseStore(tableName, app.ddb)
-	app.expenseCategoryStore = model.NewExpenseCategoryStore(tableName, app.ddb)
+	app.expense = model.NewExpenseStore(tableName, app.ddb)
+	app.expenseCategory = model.NewExpenseCategoryStore(tableName, app.ddb)
 
 	mux := http.NewServeMux()
 
@@ -60,7 +75,7 @@ func NewApplication(ddb *dynamodb.Client, tableName string) *Application {
 func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
 	sk := r.PathValue("SK")
 
-	err := app.expenseStore.DeleteExpense(r.Context(), sk)
+	err := app.expense.Delete(r.Context(), sk)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "error while deleting item: "+err.Error(), err)
 		return
@@ -72,7 +87,7 @@ func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
 func (app *Application) deleteExpenseCategory(w http.ResponseWriter, r *http.Request) {
 	name := r.PathValue("name")
 
-	err := app.expenseCategoryStore.DeleteExpenseCategory(r.Context(), name)
+	err := app.expenseCategory.Delete(r.Context(), name)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "deleting item failed: "+err.Error(), err)
 		return
@@ -94,7 +109,7 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value", err)
 		return
 	}
-	expense, err := app.expenseStore.UpdateExpense(r.Context(), sk, name, category, amount, currency)
+	expense, err := app.expense.Update(r.Context(), sk, name, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item: "+err.Error(), err)
 		return
@@ -106,17 +121,19 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Request) {
 	sk := r.PathValue("SK")
 
-	expense, found, err := app.expenseStore.GetExpense(r.Context(), sk)
+	expense, err := app.expense.FindOne(r.Context(), sk)
+
 	if err != nil {
+		var notFoundErr *model.ExpenseNotFoundError
+		if errors.As(err, &notFoundErr) {
+			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
+			return
+		}
 		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense: "+err.Error(), err)
 		return
 	}
-	if !found {
-		sendErrorResponse(w, http.StatusBadRequest, "no expense found for SK: "+sk, err)
-		return
-	}
 
-	categories, err := app.expenseCategoryStore.Query(r.Context())
+	categories, err := app.expenseCategory.Query(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
@@ -128,13 +145,14 @@ func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Reque
 func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {
 	sk := r.PathValue("SK")
 
-	expense, found, err := app.expenseStore.GetExpense(r.Context(), sk)
+	expense, err := app.expense.FindOne(r.Context(), sk)
 	if err != nil {
+		var notFoundErr *model.ExpenseNotFoundError
+		if errors.As(err, &notFoundErr) {
+			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
+			return
+		}
 		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense: "+err.Error(), err)
-		return
-	}
-	if !found {
-		sendErrorResponse(w, http.StatusNotFound, "no expense found for SK: "+sk, err)
 		return
 	}
 
@@ -150,7 +168,7 @@ func (app *Application) notFoundHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (app *Application) createExpensePage(w http.ResponseWriter, r *http.Request) {
-	categories, err := app.expenseCategoryStore.Query(r.Context())
+	categories, err := app.expenseCategory.Query(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
@@ -160,7 +178,7 @@ func (app *Application) createExpensePage(w http.ResponseWriter, r *http.Request
 }
 
 func (app *Application) createExpenseCategoryPage(w http.ResponseWriter, r *http.Request) {
-	categories, err := app.expenseCategoryStore.Query(r.Context())
+	categories, err := app.expenseCategory.Query(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
@@ -187,7 +205,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.expenseStore.PutExpense(r.Context(), expense)
+	err = app.expense.Create(r.Context(), expense)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return
@@ -205,7 +223,7 @@ func (app *Application) createExpenseCategory(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	err = app.expenseCategoryStore.CreateExpenseCategory(r.Context(), categoryFC)
+	err = app.expenseCategory.Create(r.Context(), categoryFC)
 	if err != nil {
 		var alreadyExistsErr *model.ExpenseCategoryAlreadyExistsError
 		if errors.As(err, &alreadyExistsErr) {
@@ -221,7 +239,7 @@ func (app *Application) createExpenseCategory(w http.ResponseWriter, r *http.Req
 }
 
 func (app *Application) homeHandler(w http.ResponseWriter, r *http.Request) {
-	expenses, err := app.expenseStore.Query(r.Context())
+	expenses, err := app.expense.Query(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return

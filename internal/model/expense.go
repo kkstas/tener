@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -37,7 +38,7 @@ type ExpenseStore struct {
 	tableName string
 }
 
-func GetExpenseKey(sk string) map[string]types.AttributeValue {
+func getExpenseKey(sk string) map[string]types.AttributeValue {
 	PK, err := attributevalue.Marshal(expensePK)
 	if err != nil {
 		panic(err)
@@ -50,7 +51,6 @@ func GetExpenseKey(sk string) map[string]types.AttributeValue {
 }
 
 func NewExpense(name, category string, amount float64, currency string) (Expense, error) {
-
 	return newExpenseInternal(expensePK, generateCurrentTimestamp(), name, category, amount, currency)
 }
 
@@ -83,7 +83,7 @@ func NewExpenseStore(tableName string, client *dynamodb.Client) *ExpenseStore {
 	}
 }
 
-func (es *ExpenseStore) PutExpense(ctx context.Context, expenseFC Expense) error {
+func (es *ExpenseStore) Create(ctx context.Context, expenseFC Expense) error {
 	item, err := attributevalue.MarshalMap(
 		Expense{
 			PK:       expensePK,
@@ -100,8 +100,9 @@ func (es *ExpenseStore) PutExpense(ctx context.Context, expenseFC Expense) error
 	}
 
 	_, err = es.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: &es.tableName,
-		Item:      item,
+		TableName:           &es.tableName,
+		Item:                item,
+		ConditionExpression: aws.String("attribute_not_exists(SK)"),
 	})
 
 	if err != nil {
@@ -111,30 +112,30 @@ func (es *ExpenseStore) PutExpense(ctx context.Context, expenseFC Expense) error
 	return nil
 }
 
-func (es *ExpenseStore) GetExpense(ctx context.Context, sk string) (Expense, bool, error) {
-	expense := Expense{PK: expensePK, SK: sk}
+func (es *ExpenseStore) FindOne(ctx context.Context, SK string) (Expense, error) {
+	expense := Expense{PK: expensePK, SK: SK}
 	response, err := es.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &es.tableName,
-		Key:       GetExpenseKey(sk),
+		Key:       getExpenseKey(SK),
 	})
 
 	if err != nil {
-		return Expense{}, false, fmt.Errorf("GetItem DynamoDB operation failed for SK='%s': %w", sk, err)
+		return Expense{}, fmt.Errorf("GetItem DynamoDB operation failed for SK='%s': %w", SK, err)
 	}
 
-	if response.Item == nil || len(response.Item) == 0 {
-		return Expense{}, false, nil
+	if len(response.Item) == 0 {
+		return Expense{}, &ExpenseNotFoundError{PK: expensePK, SK: SK}
 	}
 
 	err = attributevalue.UnmarshalMap(response.Item, &expense)
 	if err != nil {
-		return Expense{}, true, fmt.Errorf("failed to unmarshal expense: %w", err)
+		return Expense{}, fmt.Errorf("failed to unmarshal expense: %w", err)
 	}
 
-	return expense, true, nil
+	return expense, nil
 }
 
-func (es *ExpenseStore) UpdateExpense(ctx context.Context, SK, name, category string, amount float64, currency string) (Expense, error) {
+func (es *ExpenseStore) Update(ctx context.Context, SK, name, category string, amount float64, currency string) (Expense, error) {
 	var err error
 	var response *dynamodb.UpdateItemOutput
 
@@ -157,7 +158,7 @@ func (es *ExpenseStore) UpdateExpense(ctx context.Context, SK, name, category st
 
 	response, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName:                 &es.tableName,
-		Key:                       GetExpenseKey(expense.SK),
+		Key:                       getExpenseKey(expense.SK),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		UpdateExpression:          expr.Update(),
@@ -180,10 +181,10 @@ func (es *ExpenseStore) UpdateExpense(ctx context.Context, SK, name, category st
 	return updatedExpense, nil
 }
 
-func (es *ExpenseStore) DeleteExpense(ctx context.Context, sk string) error {
+func (es *ExpenseStore) Delete(ctx context.Context, sk string) error {
 	_, err := es.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &es.tableName,
-		Key:       GetExpenseKey(sk),
+		Key:       getExpenseKey(sk),
 	})
 
 	if err != nil {

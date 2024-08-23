@@ -39,7 +39,7 @@ func TestPutExpense(t *testing.T) {
 		t.Fatalf("failed querying ddb table for expenses before putting expense, %v", err)
 	}
 
-	err = store.PutExpense(ctx, Expense{})
+	err = store.Create(ctx, Expense{})
 	if err != nil {
 		t.Fatalf("failed putting item into ddb, %v", err)
 	}
@@ -140,7 +140,7 @@ func TestDeleteExpense(t *testing.T) {
 
 	store := NewExpenseStore(tableName, client)
 
-	err = store.PutExpense(ctx, Expense{})
+	err = store.Create(ctx, Expense{})
 	if err != nil {
 		t.Fatalf("failed putting item into ddb, %v", err)
 	}
@@ -150,7 +150,7 @@ func TestDeleteExpense(t *testing.T) {
 		t.Fatalf("failed querying ddb table for expenses before deleting expense, %v", err)
 	}
 
-	err = store.DeleteExpense(ctx, expenses[0].SK)
+	err = store.Delete(ctx, expenses[0].SK)
 	if err != nil {
 		t.Fatalf("failed deleting expense: %v", err)
 	}
