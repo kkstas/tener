@@ -24,7 +24,7 @@ templ BaseHTML(ctx context.Context) {
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-			<link rel="icon" type="image/svg+xml" href="/assets/public/icon.svg"/>
+			<link rel="icon" type="image/svg+xml" href={ url.Create(ctx, "assets", "public", "icon.svg") }/>
 			<script src="https://unpkg.com/htmx.org@2.0.2"></script>
 			<link rel="stylesheet" href={ url.Create(ctx, "assets", "public", "css", "out.css") }/>
 			@noScroll()
