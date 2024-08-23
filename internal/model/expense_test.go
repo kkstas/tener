@@ -44,7 +44,7 @@ func TestTimestampDaysAgo(t *testing.T) {
 
 func TestNewExpense(t *testing.T) {
 	t.Run("creates valid expense", func(t *testing.T) {
-		_, err := NewExpense("name", "food", 24.99, "PLN")
+		_, err := NewExpenseFC("name", "food", 24.99, "PLN")
 		if err != nil {
 			t.Errorf("didn't expect an error but got one: %v", err)
 		}
@@ -52,7 +52,7 @@ func TestNewExpense(t *testing.T) {
 
 	t.Run("returns an error when category is too short", func(t *testing.T) {
 		tooShortCategory := string(make([]byte, expenseCategoryMinLength-1))
-		_, err := NewExpense("some name", tooShortCategory, 24.99, "PLN")
+		_, err := NewExpenseFC("some name", tooShortCategory, 24.99, "PLN")
 
 		if err == nil {
 			t.Error("expected an error but didn't get one")
@@ -66,7 +66,7 @@ func TestNewExpense(t *testing.T) {
 	t.Run("returns an error when category is too long", func(t *testing.T) {
 		tooLongCategory := string(make([]byte, expenseCategoryMaxLength+1))
 
-		_, err := NewExpense("some name", tooLongCategory, 24.99, "PLN")
+		_, err := NewExpenseFC("some name", tooLongCategory, 24.99, "PLN")
 
 		if err == nil {
 			t.Error("expected an error but didn't get one")
@@ -78,7 +78,7 @@ func TestNewExpense(t *testing.T) {
 	})
 
 	t.Run("returns an error when amount is float with precision larger than two", func(t *testing.T) {
-		_, err := NewExpense("", "food", 24.4234, "PLN")
+		_, err := NewExpenseFC("", "food", 24.4234, "PLN")
 		var validationErr *validator.ValidationError
 		if err == nil {
 			t.Error("expected an error but didn't get one")
@@ -90,7 +90,7 @@ func TestNewExpense(t *testing.T) {
 	})
 
 	t.Run("returns an error if currency is invalid", func(t *testing.T) {
-		_, err := NewExpense("", "food", 24.99, "memecoin")
+		_, err := NewExpenseFC("", "food", 24.99, "memecoin")
 		var validationErr *validator.ValidationError
 		if !errors.As(err, &validationErr) {
 			t.Errorf("expected %T, got %#v", validationErr, err)

@@ -78,7 +78,7 @@ func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, err
 	}
 
 	if len(response.Item) == 0 {
-		return Expense{}, &ExpenseNotFoundError{SK: SK}
+		return Expense{}, &ExpenseNotFoundError{CreatedAt: SK}
 	}
 
 	err = attributevalue.UnmarshalMap(response.Item, &expense)
@@ -89,20 +89,12 @@ func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, err
 	return expense, nil
 }
 
-func (es *ExpenseDDBStore) Update(ctx context.Context, SK, name, category string, amount float64, currency string) (Expense, error) {
-	var err error
-	var response *dynamodb.UpdateItemOutput
-
-	expense, err := newExpenseInternal(expensePK, SK, name, category, amount, currency)
-	if err != nil {
-		return Expense{}, err
-	}
-
+func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expense, error) {
 	update := expression.
-		Set(expression.Name("name"), expression.Value(expense.Name)).
-		Set(expression.Name("category"), expression.Value(expense.Category)).
-		Set(expression.Name("amount"), expression.Value(expense.Amount)).
-		Set(expression.Name("currency"), expression.Value(expense.Currency))
+		Set(expression.Name("name"), expression.Value(expenseFU.Name)).
+		Set(expression.Name("category"), expression.Value(expenseFU.Category)).
+		Set(expression.Name("amount"), expression.Value(expenseFU.Amount)).
+		Set(expression.Name("currency"), expression.Value(expenseFU.Currency))
 
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 
@@ -110,9 +102,9 @@ func (es *ExpenseDDBStore) Update(ctx context.Context, SK, name, category string
 		return Expense{}, fmt.Errorf("failed to build expression for update: %w", err)
 	}
 
-	response, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+	_, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName:                 &es.tableName,
-		Key:                       getExpenseKey(expense.CreatedAt),
+		Key:                       getExpenseKey(expenseFU.CreatedAt),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		UpdateExpression:          expr.Update(),
@@ -123,16 +115,7 @@ func (es *ExpenseDDBStore) Update(ctx context.Context, SK, name, category string
 		return Expense{}, fmt.Errorf("failed to update expense: %w", err)
 	}
 
-	var updatedExpense Expense
-	err = attributevalue.UnmarshalMap(response.Attributes, &updatedExpense)
-	if err != nil {
-		return Expense{}, fmt.Errorf("failed to unmarshall updated response: %w", err)
-	}
-
-	updatedExpense.PK = expensePK
-	updatedExpense.CreatedAt = SK
-
-	return updatedExpense, nil
+	return expenseFU, nil
 }
 
 func (es *ExpenseDDBStore) Delete(ctx context.Context, sk string) error {

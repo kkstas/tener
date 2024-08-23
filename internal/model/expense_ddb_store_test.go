@@ -9,7 +9,7 @@ import (
 	"github.com/kkstas/tjener/internal/model"
 )
 
-func TestPutExpense(t *testing.T) {
+func TestCreateDDBExpense(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -22,7 +22,7 @@ func TestPutExpense(t *testing.T) {
 
 	expenses, err := store.Query(ctx)
 	if err != nil {
-		t.Fatalf("failed querying ddb table for expenses before putting expense, %v", err)
+		t.Fatalf("failed querying for expenses before putting expense, %v", err)
 	}
 
 	err = store.Create(ctx, model.Expense{})
@@ -38,7 +38,7 @@ func TestPutExpense(t *testing.T) {
 	}
 }
 
-func TestDeleteExpense(t *testing.T) {
+func TestDeleteDDBExpense(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)

@@ -13,11 +13,11 @@ func (e *ExpenseCategoryAlreadyExistsError) Error() string {
 }
 
 type ExpenseNotFoundError struct {
-	SK  string
-	Err error
+	CreatedAt string
+	Err       error
 }
 
 func (e *ExpenseNotFoundError) Unwrap() error { return e.Err }
 func (e *ExpenseNotFoundError) Error() string {
-	return fmt.Sprintf("expense with SK='%s' not found", e.SK)
+	return fmt.Sprintf("expense with CreatedAt='%s' not found", e.CreatedAt)
 }

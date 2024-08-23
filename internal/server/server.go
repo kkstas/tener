@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/a-h/templ"
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/rs/zerolog/log"
 
 	"github.com/kkstas/tjener/assets"
@@ -22,7 +21,7 @@ import (
 type ExpenseStore interface {
 	Create(ctx context.Context, expenseFC model.Expense) error
 	Delete(ctx context.Context, SK string) error
-	Update(ctx context.Context, SK, name, category string, amount float64, currency string) (model.Expense, error)
+	Update(ctx context.Context, expenseFU model.Expense) (model.Expense, error)
 	FindOne(ctx context.Context, SK string) (model.Expense, error)
 	Query(ctx context.Context) ([]model.Expense, error)
 }
@@ -34,7 +33,6 @@ type ExpenseCategoryStore interface {
 }
 
 type Application struct {
-	ddb             *dynamodb.Client
 	expense         ExpenseStore
 	expenseCategory ExpenseCategoryStore
 	http.Handler
@@ -96,7 +94,7 @@ func (app *Application) deleteExpenseCategory(w http.ResponseWriter, r *http.Req
 }
 
 func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
-	sk := r.PathValue("SK")
+	createdAt := r.PathValue("SK")
 
 	category := r.FormValue("category")
 	currency := r.FormValue("currency")
@@ -108,7 +106,13 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value", err)
 		return
 	}
-	expense, err := app.expense.Update(r.Context(), sk, name, category, amount, currency)
+
+	expenseFU, err := model.NewExpenseFU(name, createdAt, category, amount, currency)
+	if err != nil {
+		sendErrorResponse(w, http.StatusBadRequest, "", err)
+	}
+
+	expense, err := app.expense.Update(r.Context(), expenseFU)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item: "+err.Error(), err)
 		return
@@ -198,7 +202,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	expense, err := model.NewExpense(name, category, amount, currency)
+	expense, err := model.NewExpenseFC(name, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return

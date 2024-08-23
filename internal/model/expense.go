@@ -23,28 +23,38 @@ type Expense struct {
 	validator.Validator `dynamodbav:"-"`
 }
 
-func NewExpense(name, category string, amount float64, currency string) (Expense, error) {
-	return newExpenseInternal(expensePK, generateCurrentTimestamp(), name, category, amount, currency)
+func NewExpenseFC(name, category string, amount float64, currency string) (Expense, error) {
+	return validateExpense(Expense{
+		PK:        expensePK,
+		CreatedAt: generateCurrentTimestamp(),
+		Name:      name,
+		Category:  category,
+		Amount:    amount,
+		Currency:  currency,
+	})
 }
 
-func newExpenseInternal(PK, createdAt, name, category string, amount float64, currency string) (Expense, error) {
-	expense := Expense{}
-	expense.Check(validator.StringLengthBetween("name", name, expenseNameMinLength, expenseNameMaxLength))
-	expense.Check(validator.StringLengthBetween("category", category, expenseCategoryMinLength, expenseCategoryMaxLength))
-	expense.Check(validator.OneOf("currency", currency, ValidCurrencies))
-	expense.Check(validator.IsValidAmountPrecision("amount", amount))
-	expense.Check(validator.IsNonZero("amount", amount))
-
-	if err := expense.Validate(); err != nil {
-		return Expense{}, err
-	}
-
-	return Expense{
-		PK:        PK,
+func NewExpenseFU(name, createdAt, category string, amount float64, currency string) (Expense, error) {
+	return validateExpense(Expense{
+		PK:        expensePK,
 		CreatedAt: createdAt,
 		Name:      name,
 		Category:  category,
 		Amount:    amount,
 		Currency:  currency,
-	}, nil
+	})
+}
+
+func validateExpense(expense Expense) (Expense, error) {
+	expense.Check(validator.StringLengthBetween("name", expense.Name, expenseNameMinLength, expenseNameMaxLength))
+	expense.Check(validator.StringLengthBetween("category", expense.Category, expenseCategoryMinLength, expenseCategoryMaxLength))
+	expense.Check(validator.OneOf("currency", expense.Currency, ValidCurrencies))
+	expense.Check(validator.IsValidAmountPrecision("amount", expense.Amount))
+	expense.Check(validator.IsNonZero("amount", expense.Amount))
+
+	if err := expense.Validate(); err != nil {
+		return Expense{}, err
+	}
+
+	return expense, nil
 }
