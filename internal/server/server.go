@@ -74,6 +74,11 @@ func (app *Application) deleteExpense(w http.ResponseWriter, r *http.Request) {
 
 	err := app.expense.Delete(r.Context(), sk)
 	if err != nil {
+		var notFoundErr *model.ExpenseNotFoundError
+		if errors.As(err, &notFoundErr) {
+			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
+			return
+		}
 		sendErrorResponse(w, http.StatusInternalServerError, "error while deleting item: "+err.Error(), err)
 		return
 	}
@@ -114,6 +119,11 @@ func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 
 	expense, err := app.expense.Update(r.Context(), expenseFU)
 	if err != nil {
+		var notFoundErr *model.ExpenseNotFoundError
+		if errors.As(err, &notFoundErr) {
+			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
+			return
+		}
 		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item: "+err.Error(), err)
 		return
 	}
