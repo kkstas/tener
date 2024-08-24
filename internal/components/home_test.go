@@ -48,7 +48,7 @@ func TestParseExpenses(t *testing.T) {
 	for _, c := range cases {
 		t.Run(fmt.Sprintf("should contain %d expense(s) for date %s", c.expenseCount, c.date), func(t *testing.T) {
 			var foundExpenses []model.Expense
-			found := false
+			var found bool
 			for _, day := range expenseDays {
 				if day.date == c.date {
 					foundExpenses = day.expenses

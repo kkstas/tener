@@ -152,7 +152,7 @@ func (app *Application) showEditableExpense(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	app.renderTempl(w, r, components.EditSingleExpense(r.Context(), expense, categories))
+	app.renderTempl(w, r, components.EditSingleExpense(r.Context(), expense, model.ValidCurrencies, categories))
 }
 
 func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {

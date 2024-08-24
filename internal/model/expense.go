@@ -4,7 +4,7 @@ import (
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
-var ValidCurrencies = []string{"PLN", "USD", "EUR", "GBP", "CHF", "NOK", "SEK", "DKK", "HUF", "CZK", "CAD", "AUD", "JPY", "CNY", "TRY"}
+var ValidCurrencies = []string{"PLN", "EUR", "GBP", "USD", "CZK", "CHF", "NOK", "SEK", "DKK", "HUF", "CAD", "AUD", "JPY", "CNY", "TRY"}
 
 const (
 	expenseNameMinLength     = 2
