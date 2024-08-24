@@ -1,8 +1,9 @@
 # Development Setup
 
-## Prerequisites
+## Prerequisites for local development
 
-- Docker
+- Go
+- Docker & docker-compose
 - Make
 
 ## Build and run
@@ -19,3 +20,11 @@ Hot reloading (with browser refresh) is enabled via `air`, app is proxied from p
 ```sh
 http://localhost:8080
 ```
+
+# Makefile Targets
+
+- `dev-build` - builds app & local DynamoDB containers
+- `dev-start` - starts the containers
+- `dev-down` - stops and removes the containers
+- `build-lambda` - builds the app as Lambda function and packages it into a zip file
+- `push-lambda` - updates the Lambda function on AWS using the built zip file
