@@ -2,34 +2,22 @@ package server_test
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/kkstas/tjener/internal/database"
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/server"
 )
 
 func TestHomeHandler(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
-	if err != nil {
-		t.Fatalf("could not create local test ddb table, %v", err)
-	}
-	defer removeDDB()
-
 	t.Run("responds with html", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/home", nil)
-		newTestApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication().ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 
@@ -44,7 +32,7 @@ func TestHealthCheck(t *testing.T) {
 	t.Run("returns status 200", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/health-check", nil)
-		newTestApplication(nil, "").ServeHTTP(response, request)
+		newTestApplication().ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 	})
@@ -54,7 +42,7 @@ func TestStaticCss(t *testing.T) {
 	t.Run("returns css file content with status 200", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/assets/public/css/out.css", nil)
-		newTestApplication(nil, "").ServeHTTP(response, request)
+		newTestApplication().ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 
@@ -65,7 +53,7 @@ func TestStaticCss(t *testing.T) {
 }
 
 func TestNotFoundHandler(t *testing.T) {
-	s := newTestApplication(nil, "")
+	s := newTestApplication()
 
 	cases := []struct {
 		method string
@@ -94,19 +82,11 @@ func TestNotFoundHandler(t *testing.T) {
 }
 
 func TestCreateExpense(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
-	if err != nil {
-		t.Fatalf("could not create local test ddb table, %v", err)
-	}
-	defer removeDDB()
-
 	t.Run("returns 400 if there's no form params", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", nil)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		newTestApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
@@ -120,7 +100,7 @@ func TestCreateExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		newTestApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication().ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
@@ -137,25 +117,17 @@ func TestCreateExpense(t *testing.T) {
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		newTestApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusSeeOther)
 	})
 }
 
 func TestShowExpense(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
-	if err != nil {
-		t.Fatalf("could not create local test ddb table, %v", err)
-	}
-	defer removeDDB()
-
 	t.Run("returns 404 if there's no found expense", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/expense/x", nil)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		newTestApplication(client, tableName).ServeHTTP(response, request)
+		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
 	})
 }
@@ -167,9 +139,6 @@ func assertStatus(t testing.TB, got, want int) {
 	}
 }
 
-func newTestApplication(client *dynamodb.Client, tableName string) *server.Application {
-	expenseStore := model.NewExpenseDDBStore(tableName, client)
-	expenseCategoryStore := model.NewExpenseCategoryStore(tableName, client)
-
-	return server.NewApplication(expenseStore, expenseCategoryStore)
+func newTestApplication() *server.Application {
+	return server.NewApplication(&model.ExpenseInMemoryStore{}, &model.ExpenseCategoryInMemoryStore{})
 }
