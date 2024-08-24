@@ -15,7 +15,11 @@ const (
 )
 
 templ SingleExpense(ctx context.Context, expense model.Expense) {
-	<div hx-target="this" class={ singleExpenseContainerStyles }>
+	<div
+		hx-target="this"
+		class={ singleExpenseContainerStyles }
+		data-created-at={ expense.CreatedAt }
+	>
 		<div
 			class={ insideSingleExpenseContainerStyles,
 			"no-scroll",
@@ -47,8 +51,10 @@ templ SingleExpense(ctx context.Context, expense model.Expense) {
 			<button
 				class="p-1"
 				hx-delete={ url.Create(ctx, "expense", expense.CreatedAt) }
-				hx-swap="delete"
+				hx-swap="none"
+				data-parent-id={ expense.CreatedAt }
 				hx-confirm={ "Are you sure you want to delete this expense?\n\nName: " + expense.Name + "\nCategory: " + expense.Category + "\nAmount: " + fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }
+				hx-on::after-request="this.parentElement.parentElement.remove(); insertDatesBetweenExpenses();"
 			>
 				<svg class="w-4 h-4 p-0 m-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
 			</button>
@@ -115,21 +121,53 @@ templ EditSingleExpense(ctx context.Context, expense model.Expense, currencies [
 	</form>
 }
 
+templ insertDatesBetweenExpensesScript() {
+	<script>
+		function insertDatesBetweenExpenses() {
+			const oldParagraphs = document.querySelectorAll("p.expense-date-paragraph");
+			oldParagraphs.forEach(paragraph => {
+			  paragraph.remove();
+			});
+
+			const createDateParagraphElem = (datestring) => {
+				const el = document.createElement("p");
+				el.classList.add("expense-date-paragraph", "text-center", "mt-5", "text-sm", "font-medium");
+				el.innerText = datestring;
+				return el;
+			}
+			const formatDate = (dateString) => {
+				const date = new Date(dateString);
+				const options = { weekday: 'long', day: 'numeric', month: 'short' };
+				return date.toLocaleDateString('en-US', options);
+			}
+
+			const expensesContainer = document.getElementById("expenses-container");
+
+			let prevDate = "";
+
+			for (const child of expensesContainer.children) {
+				const createdAt = child.dataset.createdAt.split("T")[0];
+				if (prevDate === "" || prevDate !== createdAt) {
+					child.insertAdjacentElement("beforebegin", createDateParagraphElem(formatDate(createdAt)));
+				}
+				prevDate = createdAt;
+			}
+		}
+	</script>
+}
+
 templ ExpensesContainer(ctx context.Context, expenses []model.Expense) {
 	<div id="expenses-container" class="mx-auto lg:max-w-screen-md">
-		for _, expenseDay := range parseExpensesIntoExpenseDays(expenses) {
-			<div>
-				<p class="text-center mt-5 text-sm font-medium">{ parseTime(expenseDay.date) }</p>
-				for _, el := range expenseDay.expenses {
-					@SingleExpense(ctx, el)
-				}
-			</div>
+		for i := len(expenses) - 1; i >= 0; i-- {
+			@SingleExpense(ctx, expenses[i])
 		}
 	</div>
+	<script>insertDatesBetweenExpenses();</script>
 }
 
 templ Page(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	@BaseHTML(ctx) {
+		@insertDatesBetweenExpensesScript()
 		@CreateExpenseContainer(ctx, currencies, categories)
 		@ExpensesContainer(ctx, expenses)
 	}
