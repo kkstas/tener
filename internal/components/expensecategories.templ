@@ -2,6 +2,7 @@ package components
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/url"
@@ -18,7 +19,14 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 			>
 				<div>
 					<label>Category Name</label>
-					<input class={ inputStyles } type="text" name="name"/>
+					<input
+						class={ inputStyles }
+						type="text"
+						name="name"
+						minlength={ strconv.Itoa(model.ExpenseCategoryMinLength) }
+						maxlength={ strconv.Itoa(model.ExpenseCategoryMaxLength) }
+						required
+					/>
 				</div>
 				<div class="flex justify-center">
 					<input type="submit" class={ buttonStyles, "my-2 mx-1" } value="Create"/>

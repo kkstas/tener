@@ -7,10 +7,10 @@ import (
 var ValidCurrencies = []string{"PLN", "EUR", "GBP", "USD", "CZK", "CHF", "NOK", "SEK", "DKK", "HUF", "CAD", "AUD", "JPY", "CNY", "TRY"}
 
 const (
-	expenseNameMinLength     = 2
-	expenseNameMaxLength     = 50
-	expenseCategoryMinLength = 2
-	expenseCategoryMaxLength = 50
+	ExpenseNameMinLength     = 2
+	ExpenseNameMaxLength     = 50
+	ExpenseCategoryMinLength = 2
+	ExpenseCategoryMaxLength = 50
 )
 
 type Expense struct {
@@ -46,8 +46,8 @@ func NewExpenseFU(name, createdAt, category string, amount float64, currency str
 }
 
 func validateExpense(expense Expense) (Expense, error) {
-	expense.Check(validator.StringLengthBetween("name", expense.Name, expenseNameMinLength, expenseNameMaxLength))
-	expense.Check(validator.StringLengthBetween("category", expense.Category, expenseCategoryMinLength, expenseCategoryMaxLength))
+	expense.Check(validator.StringLengthBetween("name", expense.Name, ExpenseNameMinLength, ExpenseNameMaxLength))
+	expense.Check(validator.StringLengthBetween("category", expense.Category, ExpenseCategoryMinLength, ExpenseCategoryMaxLength))
 	expense.Check(validator.OneOf("currency", expense.Currency, ValidCurrencies))
 	expense.Check(validator.IsValidAmountPrecision("amount", expense.Amount))
 	expense.Check(validator.IsNonZero("amount", expense.Amount))

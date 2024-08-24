@@ -15,7 +15,7 @@ func NewExpenseCategory(name string) (ExpenseCategory, error) {
 		PK:   expenseCategoryPK,
 		Name: name,
 	}
-	category.Check(validator.StringLengthBetween("name", name, expenseCategoryMinLength, expenseCategoryMaxLength))
+	category.Check(validator.StringLengthBetween("name", name, ExpenseCategoryMinLength, ExpenseCategoryMaxLength))
 	if err := category.Validate(); err != nil {
 		return ExpenseCategory{}, err
 	}

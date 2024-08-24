@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/url"
+	"strconv"
 )
 
 const (
@@ -67,7 +68,16 @@ templ EditSingleExpense(ctx context.Context, expense model.Expense, currencies [
 		<div class={ insideSingleExpenseContainerStyles }>
 			<div class={ "flex-1 min-w-5 p-2" }>
 				<label>Name</label>
-				<input class={ inputStyles } type="text" name="name" value={ expense.Name }/>
+				<input
+					class={ inputStyles }
+					type="text"
+					name="name"
+					value={ expense.Name }
+					placeholder={ expense.Name }
+					minlength={ strconv.Itoa(model.ExpenseNameMinLength) }
+					maxlength={ strconv.Itoa(model.ExpenseNameMaxLength) }
+					required
+				/>
 			</div>
 			<div class={ "flex-1 min-w-5 p-2" }>
 				<label>Category</label>
@@ -91,7 +101,15 @@ templ EditSingleExpense(ctx context.Context, expense model.Expense, currencies [
 			</div>
 			<div class={ "flex-1 min-w-5 p-2" }>
 				<label>Amount</label>
-				<input class={ inputStyles } type="text" name="amount" value={ fmt.Sprint(expense.Amount) }/>
+				<input
+					class={ inputStyles }
+					name="amount"
+					type="number"
+					step="0.01"
+					placeholder={ fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }
+					value={ fmt.Sprintf("%.2f", expense.Amount) }
+					required
+				/>
 			</div>
 			<div class={ "flex-1 min-w-5 p-2" }>
 				<label>Currency</label>

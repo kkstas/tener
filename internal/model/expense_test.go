@@ -51,7 +51,7 @@ func TestNewExpense(t *testing.T) {
 	})
 
 	t.Run("returns an error when category is too short", func(t *testing.T) {
-		tooShortCategory := string(make([]byte, expenseCategoryMinLength-1))
+		tooShortCategory := string(make([]byte, ExpenseCategoryMinLength-1))
 		_, err := NewExpenseFC("some name", tooShortCategory, 24.99, "PLN")
 
 		if err == nil {
@@ -64,7 +64,7 @@ func TestNewExpense(t *testing.T) {
 	})
 
 	t.Run("returns an error when category is too long", func(t *testing.T) {
-		tooLongCategory := string(make([]byte, expenseCategoryMaxLength+1))
+		tooLongCategory := string(make([]byte, ExpenseCategoryMaxLength+1))
 
 		_, err := NewExpenseFC("some name", tooLongCategory, 24.99, "PLN")
 
