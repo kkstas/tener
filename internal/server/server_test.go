@@ -2,7 +2,9 @@ package server_test
 
 import (
 	"bytes"
+	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/server"
+	u "github.com/kkstas/tjener/internal/url"
 )
 
 func TestHomeHandler(t *testing.T) {
@@ -120,6 +123,22 @@ func TestCreateExpense(t *testing.T) {
 		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
 	})
+
+	t.Run("allows comma and dot as a decimal separator", func(t *testing.T) {
+		var param = url.Values{}
+		param.Set("currency", "PLN")
+		param.Set("amount", "24,95")
+		param.Set("category", "food")
+		param.Set("name", "some name")
+		var payload = bytes.NewBufferString(param.Encode())
+
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		newTestApplication().ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusOK)
+	})
 }
 
 func TestShowExpense(t *testing.T) {
@@ -129,6 +148,31 @@ func TestShowExpense(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusNotFound)
+	})
+}
+
+func TestUpdateExpense(t *testing.T) {
+	t.Run("allows comma and dot as a decimal separator", func(t *testing.T) {
+		store := model.ExpenseInMemoryStore{}
+		createdAt := "2024-08-25T00:40:00.310284338+02:00"
+		err := store.Create(context.Background(), model.Expense{PK: "expense", CreatedAt: createdAt, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"})
+		if err != nil {
+			log.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		var param = url.Values{}
+		param.Set("currency", "PLN")
+		param.Set("amount", "24,95")
+		param.Set("category", "food")
+		param.Set("name", "some name")
+		var payload = bytes.NewBufferString(param.Encode())
+
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPut, u.Create(context.Background(), "expense", "edit", createdAt), payload)
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+		server.NewApplication(&store, &model.ExpenseCategoryInMemoryStore{}).ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusOK)
 	})
 }
 

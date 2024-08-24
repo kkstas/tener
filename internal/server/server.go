@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/rs/zerolog/log"
@@ -97,11 +98,10 @@ func (app *Application) deleteExpenseCategory(w http.ResponseWriter, r *http.Req
 
 func (app *Application) updateExpense(w http.ResponseWriter, r *http.Request) {
 	createdAt := r.PathValue("SK")
-
 	category := r.FormValue("category")
 	currency := r.FormValue("currency")
 	name := r.FormValue("name")
-	amountRaw := r.FormValue("amount")
+	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 
 	if err != nil {
@@ -191,7 +191,7 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 	category := r.FormValue("category")
 	currency := r.FormValue("currency")
 	name := r.FormValue("name")
-	amountRaw := r.FormValue("amount")
+	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 
 	if err != nil {
