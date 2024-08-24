@@ -7,11 +7,41 @@ import (
 	"github.com/kkstas/tjener/internal/model"
 )
 
+templ CreateExpenseContainer(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
+	<div class="w-full flex justify-center">
+		@toggleCreateExpenseFormScript()
+		@CreateExpenseButton(ctx)
+		@CreateExpenseForm(ctx, currencies, categories)
+	</div>
+}
+
+templ toggleCreateExpenseFormScript() {
+	<script>
+		function toggleCreateExpense() {
+			const createExpenseBtn = document.getElementById("createexpensebtn");
+			if (createExpenseBtn) createExpenseBtn.hidden = !createExpenseBtn.hidden;
+			const createExpenseForm = document.getElementById("createexpenseform");
+			if (createExpenseForm) createExpenseForm.hidden = !createExpenseForm.hidden;
+			createExpenseForm.reset()
+		}
+	</script>
+}
+
+templ CreateExpenseButton(ctx context.Context) {
+	<a id="createexpensebtn" onclick="toggleCreateExpense()" class={ buttonStyles }>
+		<p>Create new expense</p>
+	</a>
+}
+
 templ CreateExpenseForm(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
 	<form
+		id="createexpenseform"
 		class="mx-auto lg:max-w-screen-md"
-		action={ templ.SafeURL(url.Create(ctx, "expense", "create")) }
-		method="post"
+		hx-post={ url.Create(ctx, "expense", "create") }
+		hx-swap="outerHTML"
+		hx-target="#expenses-container"
+		hx-on::after-request="toggleCreateExpense()"
+		hidden
 	>
 		<div>
 			<label>Name</label>
@@ -54,13 +84,9 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 				</div>
 			</div>
 		</div>
-		<button class={ buttonStyles, "mx-1" }>Submit</button>
-		<a class={ buttonStyles, "mx-1" } href={ templ.SafeURL(url.Create(ctx, "home")) }>Cancel</a>
+		<div class="flex justify-center">
+			<input type="submit" class={ buttonStyles, "my-2 mx-1" } value="Create"/>
+			<a class={ buttonStyles, "my-2 mx-1" } onclick="toggleCreateExpense()">Cancel</a>
+		</div>
 	</form>
-}
-
-templ CreateExpensePage(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
-	@BaseHTML(ctx) {
-		@CreateExpenseForm(ctx, currencies, categories)
-	}
 }

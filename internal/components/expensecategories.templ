@@ -20,8 +20,10 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 					<label>Category Name</label>
 					<input class={ inputStyles } type="text" name="name"/>
 				</div>
-				<button class={ buttonStyles, "mx-1" }>Submit</button>
-				<a class={ buttonStyles, "mx-1" } href={ templ.SafeURL(url.Create(ctx, "expense", "create")) }>Cancel</a>
+				<div class="flex justify-center">
+					<input type="submit" class={ buttonStyles, "my-2 mx-1" } value="Create"/>
+					<a class={ buttonStyles, "my-2 mx-1" } href={ templ.SafeURL(url.Create(ctx, "home")) }>Go back</a>
+				</div>
 			</form>
 			<h1 class="text-center mt-5 text-md font-medium">All expense categories</h1>
 			<div id="expensecategorieslist">

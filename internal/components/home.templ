@@ -3,9 +3,6 @@ package components
 import (
 	"context"
 	"fmt"
-	"slices"
-	"time"
-
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/url"
 )
@@ -16,41 +13,6 @@ const (
 	singleExpenseContainerStyles       = "border border-gray-300 px-2 pt-2 rounded mt-2 bg-white"
 	insideSingleExpenseContainerStyles = "flex flex-row place-items-center overflow-x-scroll break-words"
 )
-
-func parseTime(timestamp string) string {
-	t, err := time.Parse("2006-01-02", timestamp)
-	if err != nil {
-		return err.Error()
-	}
-	return t.Local().Format("Monday, 02 Jan")
-}
-
-type expenseDay struct {
-	date     string
-	expenses []model.Expense
-}
-
-func parseExpensesIntoExpenseDays(expenses []model.Expense) []expenseDay {
-	days := make(map[string][]model.Expense)
-
-	for _, expense := range expenses {
-		days[expense.CreatedAt[:10]] = append(days[expense.CreatedAt[:10]], expense)
-	}
-
-	keys := make([]string, 0, len(days))
-
-	for k := range days {
-		keys = append(keys, k)
-	}
-	slices.Sort(keys)
-
-	expenseDays := make([]expenseDay, 0, len(keys))
-
-	for i := len(keys) - 1; i >= 0; i-- {
-		expenseDays = append(expenseDays, expenseDay{date: keys[i], expenses: days[keys[i]]})
-	}
-	return expenseDays
-}
 
 templ SingleExpense(ctx context.Context, expense model.Expense) {
 	<div hx-target="this" class={ singleExpenseContainerStyles }>
@@ -166,13 +128,9 @@ templ ExpensesContainer(ctx context.Context, expenses []model.Expense) {
 	</div>
 }
 
-templ Page(ctx context.Context, expenses []model.Expense) {
+templ Page(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	@BaseHTML(ctx) {
-		<div class="w-full flex justify-center">
-			<a class={ buttonStyles } href={ templ.URL(url.Create(ctx, "expense", "create")) }>
-				<p>Create new expense</p>
-			</a>
-		</div>
+		@CreateExpenseContainer(ctx, currencies, categories)
 		@ExpensesContainer(ctx, expenses)
 	}
 }

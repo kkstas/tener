@@ -105,7 +105,7 @@ func TestCreateExpense(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
-	t.Run("returns 201 with html", func(t *testing.T) {
+	t.Run("returns 200 with html", func(t *testing.T) {
 		var param = url.Values{}
 		param.Set("currency", "PLN")
 		param.Set("amount", "1.99")
@@ -118,7 +118,7 @@ func TestCreateExpense(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		newTestApplication().ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusSeeOther)
+		assertStatus(t, response.Code, http.StatusOK)
 	})
 }
 

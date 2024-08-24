@@ -14,7 +14,6 @@ import (
 	"github.com/kkstas/tjener/assets"
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/model"
-	"github.com/kkstas/tjener/internal/url"
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
@@ -56,8 +55,6 @@ func NewApplication(expenseStore ExpenseStore, expenseCategoryStore ExpenseCateg
 	mux.HandleFunc("GET /expense/edit/{SK}", app.showEditableExpense)
 	mux.HandleFunc("PUT /expense/edit/{SK}", app.updateExpense)
 	mux.HandleFunc("DELETE /expense/{SK}", app.deleteExpense)
-
-	mux.HandleFunc("GET /expense/create", app.createExpensePage)
 	mux.HandleFunc("POST /expense/create", app.createExpense)
 
 	mux.HandleFunc("GET /expensecategories", app.createExpenseCategoryPage)
@@ -180,16 +177,6 @@ func (app *Application) notFoundHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusNotFound)
 }
 
-func (app *Application) createExpensePage(w http.ResponseWriter, r *http.Request) {
-	categories, err := app.expenseCategory.Query(r.Context())
-	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
-		return
-	}
-
-	app.renderTempl(w, r, components.CreateExpensePage(r.Context(), model.ValidCurrencies, categories))
-}
-
 func (app *Application) createExpenseCategoryPage(w http.ResponseWriter, r *http.Request) {
 	categories, err := app.expenseCategory.Query(r.Context())
 	if err != nil {
@@ -224,7 +211,13 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.Redirect(w, r, url.Create(r.Context(), "home"), http.StatusSeeOther)
+	expenses, err := app.expense.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.ExpensesContainer(r.Context(), expenses))
 }
 
 func (app *Application) createExpenseCategory(w http.ResponseWriter, r *http.Request) {
@@ -258,7 +251,13 @@ func (app *Application) homeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.renderTempl(w, r, components.Page(r.Context(), expenses))
+	categories, err := app.expenseCategory.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.Page(r.Context(), expenses, model.ValidCurrencies, categories))
 }
 
 func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, component templ.Component) {
