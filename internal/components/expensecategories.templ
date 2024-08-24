@@ -42,13 +42,13 @@ templ SingleExpenseCategory(ctx context.Context, category model.ExpenseCategory)
 		>
 			<div class={ "flex-1 ps-2 pb-2" }>
 				<label>Name</label>
-				<div>{ category.SK }</div>
+				<div>{ category.Name }</div>
 			</div>
 			<button
 				class="p-1"
-				hx-delete={ url.Create(ctx, "expensecategories", category.SK) }
+				hx-delete={ url.Create(ctx, "expensecategories", category.Name) }
 				hx-swap="delete"
-				hx-confirm={ "Are you sure you want to delete this expense category?\n\nName: " + category.SK }
+				hx-confirm={ "Are you sure you want to delete this expense category?\n\nName: " + category.Name }
 			>
 				<svg class="w-4 h-4 p-0 m-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"></path></svg>
 			</button>

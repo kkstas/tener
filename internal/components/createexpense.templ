@@ -46,7 +46,7 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 					class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
 				>
 					for _, category := range categories {
-						<option>{ category.SK }</option>
+						<option>{ category.Name }</option>
 					}
 				</select>
 				<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
