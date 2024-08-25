@@ -19,7 +19,7 @@ import (
 )
 
 type ExpenseStore interface {
-	Create(ctx context.Context, expenseFC model.Expense) error
+	Create(ctx context.Context, expenseFC model.Expense) (model.Expense, error)
 	Delete(ctx context.Context, SK string) error
 	Update(ctx context.Context, expenseFU model.Expense) (model.Expense, error)
 	FindOne(ctx context.Context, SK string) (model.Expense, error)
@@ -200,19 +200,13 @@ func (app *Application) createExpense(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.expense.Create(r.Context(), expense)
+	createdExpense, err := app.expense.Create(r.Context(), expense)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return
 	}
 
-	expenses, err := app.expense.Query(r.Context())
-	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
-		return
-	}
-
-	app.renderTempl(w, r, components.ExpensesContainer(r.Context(), expenses))
+	app.renderTempl(w, r, components.SingleExpense(r.Context(), createdExpense))
 }
 
 func (app *Application) createExpenseCategory(w http.ResponseWriter, r *http.Request) {

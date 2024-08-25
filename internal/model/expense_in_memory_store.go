@@ -9,9 +9,9 @@ type ExpenseInMemoryStore struct {
 	expenses []Expense
 }
 
-func (e *ExpenseInMemoryStore) Create(ctx context.Context, expenseFC Expense) error {
+func (e *ExpenseInMemoryStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
 	e.expenses = append(e.expenses, expenseFC)
-	return nil
+	return expenseFC, nil
 }
 
 func (e *ExpenseInMemoryStore) Delete(ctx context.Context, createdAt string) error {

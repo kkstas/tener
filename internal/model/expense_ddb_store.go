@@ -38,20 +38,20 @@ func NewExpenseDDBStore(tableName string, client *dynamodb.Client) *ExpenseDDBSt
 	}
 }
 
-func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) error {
-	item, err := attributevalue.MarshalMap(
-		Expense{
-			PK:        expensePK,
-			CreatedAt: generateCurrentTimestamp(),
-			Name:      expenseFC.Name,
-			Amount:    expenseFC.Amount,
-			Currency:  expenseFC.Currency,
-			Category:  expenseFC.Category,
-		},
-	)
+func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
+	newExpense := Expense{
+		PK:        expensePK,
+		CreatedAt: generateCurrentTimestamp(),
+		Name:      expenseFC.Name,
+		Amount:    expenseFC.Amount,
+		Currency:  expenseFC.Currency,
+		Category:  expenseFC.Category,
+	}
+
+	item, err := attributevalue.MarshalMap(newExpense)
 
 	if err != nil {
-		return fmt.Errorf("failed to marshal expense: %w", err)
+		return Expense{}, fmt.Errorf("failed to marshal expense: %w", err)
 	}
 
 	_, err = es.client.PutItem(ctx, &dynamodb.PutItemInput{
@@ -61,10 +61,10 @@ func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) error 
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to put item into DynamoDB: %w", err)
+		return Expense{}, fmt.Errorf("failed to put item into DynamoDB: %w", err)
 	}
 
-	return nil
+	return newExpense, nil
 }
 
 func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, error) {

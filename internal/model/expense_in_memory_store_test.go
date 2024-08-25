@@ -10,22 +10,16 @@ import (
 
 func TestCreateInMemoryExpense(t *testing.T) {
 	ctx := context.Background()
-
 	store := model.ExpenseInMemoryStore{}
 
-	expenses, _ := store.Query(ctx)
-
-	err := store.Create(ctx, model.Expense{})
+	expense, err := store.Create(ctx, model.Expense{})
 	if err != nil {
-		t.Fatalf("failed creating expense, %v", err)
+		t.Fatalf("failed creating expense: %v", err)
 	}
-	newExpenses, err := store.Query(ctx)
 
+	_, err = store.FindOne(ctx, expense.CreatedAt)
 	if err != nil {
-		t.Fatalf("failed querying for expenses after creating expense, %v", err)
-	}
-	if (len(newExpenses) - 1) != len(expenses) {
-		t.Errorf("expected one new expense added. got %d", len(newExpenses)-len(expenses))
+		t.Errorf("didn't expect an error but got one: %v", err)
 	}
 }
 
@@ -33,23 +27,29 @@ func TestDeleteInMemoryExpense(t *testing.T) {
 	t.Run("deletes existing expense", func(t *testing.T) {
 		ctx := context.Background()
 		store := model.ExpenseInMemoryStore{}
-		createdAt := "2024-08-24T00:12:00.288547471+02:00"
 
-		_ = store.Create(ctx, model.Expense{CreatedAt: createdAt})
-
-		expenses, _ := store.Query(ctx)
-		if len(expenses) != 1 {
-			t.Fatalf("expected one expense saved in the store, got %#v", expenses)
-		}
-
-		err := store.Delete(ctx, "2024-08-24T00:12:00.288547471+02:00")
+		expense, err := store.Create(ctx, model.Expense{})
 		if err != nil {
-			t.Fatalf("didn't expect an error while deleting expense but got one: %v", err)
+			t.Fatalf("failed creating expense: %v", err)
 		}
 
-		expenses, _ = store.Query(ctx)
-		if len(expenses) != 0 {
-			t.Errorf("expected 0 expenses after deleting, got %d", len(expenses))
+		_, err = store.FindOne(ctx, expense.CreatedAt)
+		if err != nil {
+			t.Fatalf("failed finding expense after creation: %v", err)
+		}
+
+		err = store.Delete(ctx, expense.CreatedAt)
+		if err != nil {
+			t.Fatalf("failed deleting expense: %v", err)
+		}
+
+		_, err = store.FindOne(ctx, expense.CreatedAt)
+		if err == nil {
+			t.Fatal("expected error after trying to find deleted expense but didn't get one")
+		}
+		var notFoundErr *model.ExpenseNotFoundError
+		if !errors.As(err, &notFoundErr) {
+			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{CreatedAt: expense.CreatedAt})
 		}
 	})
 
@@ -71,24 +71,21 @@ func TestDeleteInMemoryExpense(t *testing.T) {
 }
 
 func TestUpdateInMemoryExpense(t *testing.T) {
+	ctx := context.Background()
+	store := model.ExpenseInMemoryStore{}
 	t.Run("updates existing expense", func(t *testing.T) {
-		ctx := context.Background()
-		store := model.ExpenseInMemoryStore{}
-		createdAt := "2024-08-24T00:12:00.288547471+02:00"
-
-		expense := model.Expense{
-			CreatedAt: createdAt,
-			Name:      "old name",
+		expenseFC := model.Expense{}
+		expense, err := store.Create(ctx, expenseFC)
+		if err != nil {
+			t.Fatalf("failed creating expense: %v", err)
 		}
-
-		_ = store.Create(ctx, expense)
 
 		expense.Name = "new name"
 		receivedExpense, err := store.Update(ctx, expense)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
-		newExpense, _ := store.FindOne(ctx, createdAt)
+		newExpense, _ := store.FindOne(ctx, expense.CreatedAt)
 
 		if newExpense.Name != expense.Name || receivedExpense.Name != expense.Name {
 			t.Error("expense update failed")
@@ -96,8 +93,6 @@ func TestUpdateInMemoryExpense(t *testing.T) {
 	})
 
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
-		ctx := context.Background()
-		store := model.ExpenseInMemoryStore{}
 		invalidCreatedAt := "invalidCreatedAt"
 
 		_, err := store.Update(ctx, model.Expense{CreatedAt: invalidCreatedAt})
@@ -113,27 +108,22 @@ func TestUpdateInMemoryExpense(t *testing.T) {
 }
 
 func TestFindOneInMemoryExpense(t *testing.T) {
+	ctx := context.Background()
+	store := model.ExpenseInMemoryStore{}
 	t.Run("finds existing expense", func(t *testing.T) {
-		ctx := context.Background()
-		store := model.ExpenseInMemoryStore{}
-		createdAt := "2024-08-24T00:12:00.288547471+02:00"
-
-		expense := model.Expense{
-			CreatedAt: createdAt,
-			Name:      "old name",
+		expenseFC := model.Expense{}
+		expense, err := store.Create(ctx, expenseFC)
+		if err != nil {
+			t.Fatalf("failed creating expense: %v", err)
 		}
 
-		_ = store.Create(ctx, expense)
-		_, err := store.FindOne(ctx, createdAt)
-
+		_, err = store.FindOne(ctx, expense.CreatedAt)
 		if err != nil {
-			t.Errorf("didn't expect error but got one: %v", err)
+			t.Errorf("didn't expect an error while finding expense but got one: %v", err)
 		}
 	})
 
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
-		ctx := context.Background()
-		store := model.ExpenseInMemoryStore{}
 		invalidCreatedAt := "invalidCreatedAt"
 
 		_, err := store.FindOne(ctx, invalidCreatedAt)

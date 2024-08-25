@@ -39,9 +39,9 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 		id="createexpenseform"
 		class="mx-auto lg:max-w-screen-md"
 		hx-post={ url.Create(ctx, "expense", "create") }
-		hx-swap="outerHTML"
+		hx-swap="afterbegin"
 		hx-target="#expenses-container"
-		hx-on::after-request="toggleCreateExpense()"
+		hx-on::after-request="toggleCreateExpense(); insertDatesBetweenExpenses();"
 		hidden
 	>
 		<div>
