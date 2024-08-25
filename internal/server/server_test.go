@@ -3,7 +3,6 @@ package server_test
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -53,35 +52,6 @@ func TestStaticCss(t *testing.T) {
 			t.Errorf("response body is empty")
 		}
 	})
-}
-
-func TestNotFoundHandler(t *testing.T) {
-	s := newTestApplication()
-
-	cases := []struct {
-		method string
-		target string
-	}{
-		{http.MethodGet, "/"},
-		{http.MethodPost, "/"},
-		{http.MethodPut, "/"},
-		{http.MethodPatch, "/"},
-		{http.MethodDelete, "/"},
-		{http.MethodGet, "/abcd1234"},
-		{http.MethodPost, "/abcd1234"},
-		{http.MethodPut, "/abcd1234"},
-		{http.MethodPatch, "/abcd1234"},
-		{http.MethodDelete, "/abcd1234"},
-	}
-
-	for _, want := range cases {
-		t.Run(fmt.Sprintf("responds with 404 for '%s %s'", want.method, want.target), func(t *testing.T) {
-			response := httptest.NewRecorder()
-			request := httptest.NewRequest(want.method, want.target, nil)
-			s.ServeHTTP(response, request)
-			assertStatus(t, response.Code, http.StatusNotFound)
-		})
-	}
 }
 
 func TestCreateExpense(t *testing.T) {

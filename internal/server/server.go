@@ -46,7 +46,6 @@ func NewApplication(expenseStore ExpenseStore, expenseCategoryStore ExpenseCateg
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("/", app.notFoundHandler)
 	mux.HandleFunc("GET /health-check", app.healthCheck)
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assets.Public))))
 
@@ -171,10 +170,6 @@ func (app *Application) showExpense(w http.ResponseWriter, r *http.Request) {
 
 func (app *Application) healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
-}
-
-func (app *Application) notFoundHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotFound)
 }
 
 func (app *Application) createExpenseCategoryPage(w http.ResponseWriter, r *http.Request) {
