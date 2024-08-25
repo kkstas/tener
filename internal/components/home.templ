@@ -12,7 +12,7 @@ const (
 	buttonStyles                       = "bg-white hover:bg-gray-100 text-gray-800 font-medium py-1 px-3 border border-gray-400 rounded shadow"
 	inputStyles                        = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:outline-gray-800/20 focus:outline-1"
 	singleExpenseContainerStyles       = "border border-gray-300 px-2 pt-2 rounded mt-2 bg-white"
-	insideSingleExpenseContainerStyles = "flex flex-row place-items-center overflow-x-scroll break-words"
+	insideSingleExpenseContainerStyles = "flex flex-row place-items-center overflow-x-scroll break-words [&>div>label]:text-xs [&>div>label]:text-gray-700 min-w-24 [&>div>label]:min-w-8 text-sm md:text-base"
 )
 
 templ SingleExpense(ctx context.Context, expense model.Expense) {
@@ -22,11 +22,9 @@ templ SingleExpense(ctx context.Context, expense model.Expense) {
 		data-created-at={ expense.CreatedAt }
 	>
 		<div
-			class={ insideSingleExpenseContainerStyles,
-			"no-scroll",
-			"[&>div>label]:text-xs [&>div>label]:text-gray-700 [&>div]:min-w-5" }
+			class={ insideSingleExpenseContainerStyles, "no-scroll" }
 		>
-			<div class={ "flex-1 ps-2 pb-2" }>
+			<div class={ "flex-1 ps-2 pb-2 w-[25%]" }>
 				<label>Name</label>
 				if expense.Name == "" {
 					<div>-</div>
@@ -65,7 +63,7 @@ templ SingleExpense(ctx context.Context, expense model.Expense) {
 
 templ EditSingleExpense(ctx context.Context, expense model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	<form hx-put={ url.Create(ctx, "expense", "edit", expense.CreatedAt) } hx-target="this" hx-swap="outerHTML" class={ singleExpenseContainerStyles }>
-		<div class={ insideSingleExpenseContainerStyles }>
+		<div class={ insideSingleExpenseContainerStyles, "no-scroll" }>
 			<div class={ "flex-1 min-w-5 p-2" }>
 				<label>Name</label>
 				<input
