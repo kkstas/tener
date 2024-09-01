@@ -21,9 +21,7 @@ templ CreateExpenseContainer(ctx context.Context, currencies []string, categorie
 templ CreateExpenseButton(ctx context.Context) {
 	<a
 		x-show="!showCreateExpenseForm"
-		x-on:click="
-			showCreateExpenseForm = true;
-		"
+		@click="showCreateExpenseForm = true;"
 		id="createexpensebtn"
 		class={ buttonStyles }
 	>
@@ -39,6 +37,7 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 		hx-swap="afterbegin"
 		hx-target="#expenses-container"
 		x-data="{ formErrors: {} }"
+		@click.outside="showCreateExpenseForm = false;"
 		@htmx:after-request.camel="
 			if (event.detail.successful) {
 				insertDatesBetweenExpenses();
@@ -57,6 +56,7 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 		<div>
 			<label>Name</label>
 			<input
+				x-bind:class="formErrors.name && 'border-red-500'"
 				class={ inputStyles }
 				type="text"
 				name="name"
@@ -73,6 +73,7 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 			<div class="relative">
 				<select
 					name="currency"
+					x-bind:class="formErrors.currency && 'border-red-500'"
 					class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
 				>
 					for _, currency := range currencies {
@@ -90,9 +91,11 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 		<div>
 			<label>Amount</label>
 			<input
+				x-bind:class="formErrors.amount && 'border-red-500'"
 				class={ inputStyles }
 				name="amount"
 				type="number"
+				inputmode="decimal"
 				step="0.01"
 				placeholder="0.00"
 				required
@@ -113,6 +116,7 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 				<select
 					name="category"
 					class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
+					x-bind:class="formErrors.category && 'border-red-500'"
 				>
 					for _, category := range categories {
 						<option>{ category.Name }</option>
@@ -134,9 +138,7 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 			/>
 			<a
 				class={ buttonStyles, "my-2 mx-1" }
-				x-on:click="
-					showCreateExpenseForm = false;
-				"
+				@click="showCreateExpenseForm = false;"
 			>Cancel</a>
 		</div>
 	</form>
