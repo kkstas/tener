@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"slices"
+	"strings"
 	"unicode/utf8"
 )
 
@@ -32,7 +33,7 @@ func (v *Validator) Validate() *ValidationError {
 }
 
 func StringLengthBetween(name, val string, min, max int) (bool, string, string) {
-	length := utf8.RuneCountInString(val)
+	length := utf8.RuneCountInString(strings.TrimSpace(val))
 	return length <= max && length >= min, name, fmt.Sprintf("must be between %d and %d characters long", min, max)
 }
 
@@ -42,14 +43,14 @@ func OneOf[T comparable](name string, val T, arr []T) (bool, string, string) {
 
 func IsValidAmountPrecision(name string, amount float64) (bool, string, string) {
 	if amount != roundToDecimalPlaces(amount, 2) {
-		return false, name, "amount must have a precision of up to 2 decimal places"
+		return false, name, "must have a precision of up to 2 decimal places"
 	}
 	return true, "", ""
 }
 
 func IsNonZero(name string, amount float64) (bool, string, string) {
 	if amount == 0 {
-		return false, name, "amount must be non-zero"
+		return false, name, "must be non-zero"
 	}
 	return true, "", ""
 }

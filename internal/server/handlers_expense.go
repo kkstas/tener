@@ -44,9 +44,9 @@ func (app *Application) renderSingleExpense(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
-	category := r.FormValue("category")
-	currency := r.FormValue("currency")
-	name := r.FormValue("name")
+	category := strings.TrimSpace(r.FormValue("category"))
+	currency := strings.TrimSpace(r.FormValue("currency"))
+	name := strings.TrimSpace(r.FormValue("name"))
 	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 
@@ -96,9 +96,9 @@ func (app *Application) renderSingleEditableExpense(w http.ResponseWriter, r *ht
 
 func (app *Application) updateAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
 	createdAt := r.PathValue("SK")
-	category := r.FormValue("category")
-	currency := r.FormValue("currency")
-	name := r.FormValue("name")
+	category := strings.TrimSpace(r.FormValue("category"))
+	currency := strings.TrimSpace(r.FormValue("currency"))
+	name := strings.TrimSpace(r.FormValue("name"))
 	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 

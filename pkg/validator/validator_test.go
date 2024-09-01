@@ -52,6 +52,7 @@ func TestStringLengthBetween(t *testing.T) {
 		{false, "some-name-2", "", 1, 1},
 		{true, "some-name-3", "hello", 5, 9},
 		{false, "some-name-4", "hello", 1, 4},
+		{false, "cant-be-space", "  ", 1, 9},
 	}
 
 	for _, c := range cases {
