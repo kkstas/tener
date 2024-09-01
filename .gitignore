@@ -6,3 +6,6 @@ build/docker/
 
 internal/components/**/*_templ.go
 assets/public/css/out.css
+
+.vscode/
+.idea/

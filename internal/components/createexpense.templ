@@ -4,45 +4,42 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/kkstas/tjener/internal/url"
 	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/url"
 )
 
 templ CreateExpenseContainer(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
-	<div class="w-full flex justify-center">
-		@toggleCreateExpenseFormScript()
+	<div
+		x-data="{ showCreateExpenseForm: false }"
+		class="w-full flex justify-center"
+	>
 		@CreateExpenseButton(ctx)
 		@CreateExpenseForm(ctx, currencies, categories)
 	</div>
 }
 
-templ toggleCreateExpenseFormScript() {
-	<script>
-		function toggleCreateExpense() {
-			const createExpenseBtn = document.getElementById("createexpensebtn");
-			if (createExpenseBtn) createExpenseBtn.hidden = !createExpenseBtn.hidden;
-			const createExpenseForm = document.getElementById("createexpenseform");
-			if (createExpenseForm) createExpenseForm.hidden = !createExpenseForm.hidden;
-			createExpenseForm.reset()
-		}
-	</script>
-}
-
 templ CreateExpenseButton(ctx context.Context) {
-	<a id="createexpensebtn" onclick="toggleCreateExpense()" class={ buttonStyles }>
+	<a
+		x-show="!showCreateExpenseForm"
+		x-on:click="
+			showCreateExpenseForm = true;
+		"
+		id="createexpensebtn"
+		class={ buttonStyles }
+	>
 		<p>Create new expense</p>
 	</a>
 }
 
 templ CreateExpenseForm(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
 	<form
+		x-show="showCreateExpenseForm"
 		id="createexpenseform"
 		class="mx-auto lg:max-w-screen-md"
 		hx-post={ url.Create(ctx, "expense", "create") }
 		hx-swap="afterbegin"
 		hx-target="#expenses-container"
-		hx-on::after-request="toggleCreateExpense(); insertDatesBetweenExpenses();"
-		hidden
+		hx-on::after-request="insertDatesBetweenExpenses();"
 	>
 		<div>
 			<label>Name</label>
@@ -84,7 +81,12 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 		</div>
 		<div>
 			<label>Category</label>
-			<sup><a class="text-xs text-blue-500" href={ templ.SafeURL(url.Create(ctx, "expensecategories")) }>Manage</a></sup>
+			<sup>
+				<a
+					class="text-xs text-blue-500"
+					href={ templ.SafeURL(url.Create(ctx, "expensecategories")) }
+				>Manage</a>
+			</sup>
 			<div class="relative">
 				<select
 					name="category"
@@ -100,8 +102,17 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 			</div>
 		</div>
 		<div class="flex justify-center">
-			<input type="submit" class={ buttonStyles, "my-2 mx-1" } value="Create"/>
-			<a class={ buttonStyles, "my-2 mx-1" } onclick="toggleCreateExpense()">Cancel</a>
+			<input
+				type="submit"
+				class={ buttonStyles, "my-2 mx-1" }
+				value="Create"
+			/>
+			<a
+				class={ buttonStyles, "my-2 mx-1" }
+				x-on:click="
+					showCreateExpenseForm = false;
+				"
+			>Cancel</a>
 		</div>
 	</form>
 }
