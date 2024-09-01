@@ -21,7 +21,6 @@ func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, comp
 }
 
 func sendErrorResponse(w http.ResponseWriter, statusCode int, message string, err error) {
-	log.Error().Stack().Err(err).Msg("")
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(statusCode)
 
@@ -31,5 +30,6 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, message string, er
 		return
 	}
 
+	log.Error().Stack().Err(err).Msg("")
 	fmt.Fprintf(w, `{"message":%q}`, message)
 }
