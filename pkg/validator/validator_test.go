@@ -94,6 +94,30 @@ func TestOneOf(t *testing.T) {
 	}
 }
 
+func TestIsValidDate(t *testing.T) {
+	cases := []struct {
+		want bool
+		val  string
+	}{
+		{true, "2024-02-02"},
+		{true, "2029-12-30"},
+		{true, "2004-11-28"},
+		{false, "20254-02-02"},
+		{false, "204-02-02"},
+		{false, "2004-14-02"},
+		{false, ""},
+	}
+
+	for _, c := range cases {
+		t.Run("should return %t for date '%s'", func(t *testing.T) {
+			got, _, _ := validator.IsValidDate("date", c.val)
+			if got != c.want {
+				t.Errorf("got %t, want %t for valid date '%s'", got, c.want, c.val)
+			}
+		})
+	}
+}
+
 func TestCheck(t *testing.T) {
 	t.Run("returns map of errors when check's first parameter is false", func(t *testing.T) {
 		someStruct := TestStruct{}

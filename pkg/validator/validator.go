@@ -5,6 +5,7 @@ import (
 	"math"
 	"slices"
 	"strings"
+	"time"
 	"unicode/utf8"
 )
 
@@ -52,6 +53,15 @@ func IsNonZero(name string, amount float64) (bool, string, string) {
 	if amount == 0 {
 		return false, name, "must be non-zero"
 	}
+	return true, "", ""
+}
+
+func IsValidDate(name, dateString string) (bool, string, string) {
+	_, err := time.Parse("2006-01-02", dateString)
+	if err != nil {
+		return false, name, "must be valid date"
+	}
+
 	return true, "", ""
 }
 
