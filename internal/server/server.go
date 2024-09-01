@@ -37,7 +37,7 @@ func NewApplication(expenseStore ExpenseStore, expenseCategoryStore ExpenseCateg
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health-check", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
-	mux.Handle("GET /assets/", http.StripPrefix("/assets/", http.FileServer(http.FS(assets.Public))))
+	mux.Handle("GET /assets/", http.StripPrefix("/assets/", cacheControlMiddleware(http.FileServer(http.FS(assets.Public)))))
 
 	mux.HandleFunc("GET    /home", app.renderHomePage)
 	mux.HandleFunc("GET    /expense/{SK}", app.renderSingleExpense)
