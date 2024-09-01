@@ -94,10 +94,10 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 				x-bind:class="formErrors.amount && 'border-red-500'"
 				class={ inputStyles }
 				name="amount"
-				type="number"
+				type="text"
 				inputmode="decimal"
-				step="0.01"
-				placeholder="0.00"
+				pattern="^\d+([.,]\d{1,2})?$"
+				title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
 				required
 			/>
 			<template x-for="err in formErrors.amount">
@@ -130,6 +130,12 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
 			</template>
 		</div>
+		<template x-if="formErrors.message">
+			<div>
+				<hr class="mt-3"/>
+				<p x-text="`Error: ${formErrors.message}`" class="text-red-500 text-xs italic mt-1"></p>
+			</div>
+		</template>
 		<div class="flex justify-center">
 			<input
 				type="submit"

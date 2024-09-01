@@ -36,6 +36,10 @@ func TestIsValidAmountPrecision(t *testing.T) {
 		if !got {
 			t.Error("expected true for value with valid precision")
 		}
+		got, _, _ = validator.IsValidAmountPrecision("name", 4423.44)
+		if !got {
+			t.Error("expected true for value with valid precision")
+		}
 	})
 
 }

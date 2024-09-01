@@ -44,14 +44,14 @@ func (app *Application) renderSingleExpense(w http.ResponseWriter, r *http.Reque
 }
 
 func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
-	category := strings.TrimSpace(r.FormValue("category"))
-	currency := strings.TrimSpace(r.FormValue("currency"))
-	name := strings.TrimSpace(r.FormValue("name"))
+	category := r.FormValue("category")
+	currency := r.FormValue("currency")
+	name := r.FormValue("name")
 	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value", err)
+		sendErrorResponse(w, http.StatusBadRequest, "amount must be a valid decimal number", err)
 		return
 	}
 

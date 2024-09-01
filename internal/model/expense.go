@@ -1,6 +1,8 @@
 package model
 
 import (
+	"strings"
+
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
@@ -27,10 +29,10 @@ func NewExpenseFC(name, category string, amount float64, currency string) (Expen
 	return validateExpense(Expense{
 		PK:        expensePK,
 		CreatedAt: generateCurrentTimestamp(),
-		Name:      name,
-		Category:  category,
+		Name:      strings.TrimSpace(name),
+		Category:  strings.TrimSpace(category),
 		Amount:    amount,
-		Currency:  currency,
+		Currency:  strings.TrimSpace(currency),
 	})
 }
 
@@ -38,10 +40,10 @@ func NewExpenseFU(name, createdAt, category string, amount float64, currency str
 	return validateExpense(Expense{
 		PK:        expensePK,
 		CreatedAt: createdAt,
-		Name:      name,
-		Category:  category,
+		Name:      strings.TrimSpace(name),
+		Category:  strings.TrimSpace(category),
 		Amount:    amount,
-		Currency:  currency,
+		Currency:  strings.TrimSpace(currency),
 	})
 }
 
