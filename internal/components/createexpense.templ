@@ -33,13 +33,26 @@ templ CreateExpenseButton(ctx context.Context) {
 
 templ CreateExpenseForm(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
 	<form
-		x-show="showCreateExpenseForm"
 		id="createexpenseform"
-		class="mx-auto lg:max-w-screen-md"
+		class="mx-auto lg:max-w-screen-md [&>div]:py-1"
 		hx-post={ url.Create(ctx, "expense", "create") }
 		hx-swap="afterbegin"
 		hx-target="#expenses-container"
-		hx-on::after-request="insertDatesBetweenExpenses();"
+		x-data="{ formErrors: {} }"
+		@htmx:after-request.camel="
+			if (event.detail.successful) {
+				insertDatesBetweenExpenses();
+				showCreateExpenseForm = false;
+				return;
+			}
+			
+			if (typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
+				formErrors = JSON.parse(event.detail.xhr.response);
+				return;
+			}
+		"
+		x-show="showCreateExpenseForm"
+		x-effect="showCreateExpenseForm; formErrors = {}; $el.reset();"
 	>
 		<div>
 			<label>Name</label>
@@ -51,6 +64,9 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 				maxlength={ strconv.Itoa(model.ExpenseNameMaxLength) }
 				required
 			/>
+			<template x-for="err in formErrors.name">
+				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
+			</template>
 		</div>
 		<div>
 			<label>Currency</label>
@@ -67,6 +83,9 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 					<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
 				</div>
 			</div>
+			<template x-for="err in formErrors.currency">
+				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
+			</template>
 		</div>
 		<div>
 			<label>Amount</label>
@@ -78,6 +97,9 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 				placeholder="0.00"
 				required
 			/>
+			<template x-for="err in formErrors.amount">
+				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
+			</template>
 		</div>
 		<div>
 			<label>Category</label>
@@ -100,6 +122,9 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 					<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
 				</div>
 			</div>
+			<template x-for="err in formErrors.category">
+				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
+			</template>
 		</div>
 		<div class="flex justify-center">
 			<input
