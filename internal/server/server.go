@@ -43,7 +43,7 @@ func NewApplication(expenseStore ExpenseStore, expenseCategoryStore ExpenseCateg
 	mux.HandleFunc("GET    /expense/{SK}", app.renderSingleExpense)
 	mux.HandleFunc("POST   /expense/create", app.createAndRenderSingleExpense)
 	mux.HandleFunc("GET    /expense/edit/{SK}", app.renderSingleEditableExpense)
-	mux.HandleFunc("PUT    /expense/edit/{SK}", app.updateAndRenderSingleExpense)
+	mux.HandleFunc("PUT    /expense/edit/{SK}", app.updateSingleExpenseAndRenderExpenses)
 	mux.HandleFunc("DELETE /expense/{SK}", app.deleteSingleExpense)
 
 	mux.HandleFunc("GET    /expensecategories", app.renderExpenseCategoriesPage)

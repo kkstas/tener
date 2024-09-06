@@ -95,7 +95,7 @@ func (app *Application) renderSingleEditableExpense(w http.ResponseWriter, r *ht
 	app.renderTempl(w, r, components.EditSingleExpense(r.Context(), expense, model.ValidCurrencies, categories))
 }
 
-func (app *Application) updateAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
+func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request) {
 	SK := r.PathValue("SK")
 	category := strings.TrimSpace(r.FormValue("category"))
 	currency := strings.TrimSpace(r.FormValue("currency"))
@@ -114,7 +114,7 @@ func (app *Application) updateAndRenderSingleExpense(w http.ResponseWriter, r *h
 		sendErrorResponse(w, http.StatusBadRequest, "", err)
 	}
 
-	expense, err := app.expense.Update(r.Context(), expenseFU)
+	_, err = app.expense.Update(r.Context(), expenseFU)
 	if err != nil {
 		var notFoundErr *model.ExpenseNotFoundError
 		if errors.As(err, &notFoundErr) {
@@ -125,7 +125,13 @@ func (app *Application) updateAndRenderSingleExpense(w http.ResponseWriter, r *h
 		return
 	}
 
-	app.renderTempl(w, r, components.SingleExpense(r.Context(), expense))
+	expenses, err := app.expense.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.ExpensesContainer(r.Context(), expenses))
 }
 
 func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request) {
