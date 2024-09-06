@@ -68,6 +68,7 @@ func TestCreateExpense(t *testing.T) {
 		param.Set("currency", "PLN")
 		param.Set("amount", "1.9d9")
 		param.Set("category", "food")
+		param.Set("date", "2024-01-01")
 		var payload = bytes.NewBufferString(param.Encode())
 
 		response := httptest.NewRecorder()
@@ -84,6 +85,7 @@ func TestCreateExpense(t *testing.T) {
 		param.Set("amount", "1.99")
 		param.Set("category", "food")
 		param.Set("name", "some name")
+		param.Set("date", "2024-01-01")
 		var payload = bytes.NewBufferString(param.Encode())
 
 		response := httptest.NewRecorder()
@@ -100,6 +102,7 @@ func TestCreateExpense(t *testing.T) {
 		param.Set("amount", "24,95")
 		param.Set("category", "food")
 		param.Set("name", "some name")
+		param.Set("date", "2024-01-01")
 		var payload = bytes.NewBufferString(param.Encode())
 
 		response := httptest.NewRecorder()
@@ -135,6 +138,7 @@ func TestUpdateExpense(t *testing.T) {
 		param.Set("amount", "24,95")
 		param.Set("category", "food")
 		param.Set("name", "some name")
+		param.Set("date", "2024-01-01")
 		var payload = bytes.NewBufferString(param.Encode())
 
 		response := httptest.NewRecorder()

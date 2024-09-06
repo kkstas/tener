@@ -129,6 +129,16 @@ templ EditSingleExpense(ctx context.Context, expense model.Expense, currencies [
 					</div>
 				</div>
 			</div>
+			<div class={ "flex-1 min-w-5 p-2" }>
+				<label>Date</label>
+				<input
+					class={ inputStyles }
+					type="date"
+					name="date"
+					value={ expense.Date }
+					required
+				/>
+			</div>
 		</div>
 		<div class={ " w-full flex justify-center" }>
 			<button class={ buttonStyles, "mx-1" }>Submit</button>

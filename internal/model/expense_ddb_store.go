@@ -43,6 +43,7 @@ func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) (Expen
 		PK:        expensePK,
 		CreatedAt: generateCurrentTimestamp(),
 		Name:      expenseFC.Name,
+		Date:      expenseFC.Date,
 		Amount:    expenseFC.Amount,
 		Currency:  expenseFC.Currency,
 		Category:  expenseFC.Category,
@@ -95,7 +96,8 @@ func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expen
 		Set(expression.Name("name"), expression.Value(expenseFU.Name)).
 		Set(expression.Name("category"), expression.Value(expenseFU.Category)).
 		Set(expression.Name("amount"), expression.Value(expenseFU.Amount)).
-		Set(expression.Name("currency"), expression.Value(expenseFU.Currency))
+		Set(expression.Name("currency"), expression.Value(expenseFU.Currency)).
+		Set(expression.Name("date"), expression.Value(expenseFU.Date))
 
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 

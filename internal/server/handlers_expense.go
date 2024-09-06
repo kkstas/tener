@@ -99,6 +99,7 @@ func (app *Application) updateAndRenderSingleExpense(w http.ResponseWriter, r *h
 	createdAt := r.PathValue("SK")
 	category := strings.TrimSpace(r.FormValue("category"))
 	currency := strings.TrimSpace(r.FormValue("currency"))
+	date := r.FormValue("date")
 	name := strings.TrimSpace(r.FormValue("name"))
 	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
 	amount, err := strconv.ParseFloat(amountRaw, 64)
@@ -108,7 +109,7 @@ func (app *Application) updateAndRenderSingleExpense(w http.ResponseWriter, r *h
 		return
 	}
 
-	expenseFU, err := model.NewExpenseFU(name, createdAt, category, amount, currency)
+	expenseFU, err := model.NewExpenseFU(name, createdAt, date, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, "", err)
 	}
