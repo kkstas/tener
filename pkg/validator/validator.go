@@ -59,7 +59,7 @@ func IsNonZero(name string, amount float64) (bool, string, string) {
 func IsValidDate(name, dateString string) (bool, string, string) {
 	_, err := time.Parse("2006-01-02", dateString)
 	if err != nil {
-		return false, name, "must be valid date"
+		return false, name, "must be a valid date"
 	}
 
 	return true, "", ""

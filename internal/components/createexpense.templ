@@ -3,6 +3,7 @@ package components
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/url"
@@ -65,6 +66,20 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 				required
 			/>
 			<template x-for="err in formErrors.name">
+				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
+			</template>
+		</div>
+		<div>
+			<label>Date</label>
+			<input
+				x-bind:class="formErrors.date && 'border-red-500'"
+				class={ inputStyles }
+				type="date"
+				name="date"
+				value={ time.Now().Format("2006-01-02") }
+				required
+			/>
+			<template x-for="err in formErrors.date">
 				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
 			</template>
 		</div>

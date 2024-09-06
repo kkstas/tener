@@ -25,7 +25,7 @@ type Expense struct {
 	validator.Validator `dynamodbav:"-"`
 }
 
-func NewExpenseFC(name, category string, amount float64, currency string) (Expense, error) {
+func NewExpenseFC(name, date, category string, amount float64, currency string) (Expense, error) {
 	return validateExpense(Expense{
 		PK:        expensePK,
 		CreatedAt: generateCurrentTimestamp(),

@@ -46,6 +46,7 @@ func (app *Application) renderSingleExpense(w http.ResponseWriter, r *http.Reque
 func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
 	category := r.FormValue("category")
 	currency := r.FormValue("currency")
+	date := r.FormValue("date")
 	name := r.FormValue("name")
 	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
 	amount, err := strconv.ParseFloat(amountRaw, 64)
@@ -55,7 +56,7 @@ func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *h
 		return
 	}
 
-	expense, err := model.NewExpenseFC(name, category, amount, currency)
+	expense, err := model.NewExpenseFC(name, date, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
