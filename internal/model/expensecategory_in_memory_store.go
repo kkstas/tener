@@ -14,16 +14,16 @@ func (e *ExpenseCategoryInMemoryStore) Create(ctx context.Context, categoryFC Ex
 	return nil
 }
 
-func (e *ExpenseCategoryInMemoryStore) Delete(ctx context.Context, createdAt string) error {
+func (e *ExpenseCategoryInMemoryStore) Delete(ctx context.Context, SK string) error {
 	var deleted bool
 
 	e.categories = slices.DeleteFunc(e.categories, func(category ExpenseCategory) bool {
 		deleted = true
-		return category.Name == createdAt
+		return category.Name == SK
 	})
 
 	if !deleted {
-		return &ExpenseCategoryNotFoundError{CreatedAt: createdAt}
+		return &ExpenseCategoryNotFoundError{SK: SK}
 	}
 
 	return nil

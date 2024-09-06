@@ -19,7 +19,7 @@ templ SingleExpense(ctx context.Context, expense model.Expense) {
 	<div
 		hx-target="this"
 		class={ singleExpenseContainerStyles }
-		data-created-at={ expense.CreatedAt }
+		data-expense-date={ expense.SK }
 	>
 		<div
 			class={ insideSingleExpenseContainerStyles, "no-scroll" }
@@ -42,16 +42,16 @@ templ SingleExpense(ctx context.Context, expense model.Expense) {
 			</div>
 			<button
 				class="p-1 pe-2"
-				hx-get={ url.Create(ctx, "expense", "edit", expense.CreatedAt) }
+				hx-get={ url.Create(ctx, "expense", "edit", expense.SK) }
 				hx-swap="outerHTML"
 			>
 				<svg class="w-4 h-4 p-0 m-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"></path></svg>
 			</button>
 			<button
 				class="p-1"
-				hx-delete={ url.Create(ctx, "expense", expense.CreatedAt) }
+				hx-delete={ url.Create(ctx, "expense", expense.SK) }
 				hx-swap="none"
-				data-parent-id={ expense.CreatedAt }
+				data-parent-id={ expense.SK }
 				hx-confirm={ "Are you sure you want to delete this expense?\n\nName: " + expense.Name + "\nCategory: " + expense.Category + "\nAmount: " + fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }
 				hx-on::after-request="this.parentElement.parentElement.remove(); insertDatesBetweenExpenses();"
 			>
@@ -62,7 +62,7 @@ templ SingleExpense(ctx context.Context, expense model.Expense) {
 }
 
 templ EditSingleExpense(ctx context.Context, expense model.Expense, currencies []string, categories []model.ExpenseCategory) {
-	<form hx-put={ url.Create(ctx, "expense", "edit", expense.CreatedAt) } hx-target="this" hx-swap="outerHTML" class={ singleExpenseContainerStyles }>
+	<form hx-put={ url.Create(ctx, "expense", "edit", expense.SK) } hx-target="this" hx-swap="outerHTML" class={ singleExpenseContainerStyles }>
 		<div class={ insideSingleExpenseContainerStyles, "no-scroll" }>
 			<div class={ "flex-1 min-w-5 p-2" }>
 				<label>Name</label>
@@ -142,7 +142,7 @@ templ EditSingleExpense(ctx context.Context, expense model.Expense, currencies [
 		</div>
 		<div class={ " w-full flex justify-center" }>
 			<button class={ buttonStyles, "mx-1" }>Submit</button>
-			<button class={ buttonStyles, "mx-1" } hx-get={ url.Create(ctx, "expense", expense.CreatedAt) }>Cancel</button>
+			<button class={ buttonStyles, "mx-1" } hx-get={ url.Create(ctx, "expense", expense.SK) }>Cancel</button>
 		</div>
 	</form>
 }
@@ -172,11 +172,11 @@ templ insertDatesBetweenExpensesScript() {
 			let prevDate = "";
 
 			for (const child of expensesContainer.children) {
-				const createdAt = child.dataset.createdAt.split("T")[0];
-				if (prevDate === "" || prevDate !== createdAt) {
-					child.insertAdjacentElement("beforebegin", createDateParagraphElem(formatDate(createdAt)));
+				const expenseDate = child.dataset.expenseDate.substring(0, 10);
+				if (prevDate === "" || prevDate !== expenseDate) {
+					child.insertAdjacentElement("beforebegin", createDateParagraphElem(formatDate(expenseDate)));
 				}
-				prevDate = createdAt;
+				prevDate = expenseDate;
 			}
 		}
 	</script>

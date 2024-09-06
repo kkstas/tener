@@ -96,7 +96,7 @@ func (app *Application) renderSingleEditableExpense(w http.ResponseWriter, r *ht
 }
 
 func (app *Application) updateAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
-	createdAt := r.PathValue("SK")
+	SK := r.PathValue("SK")
 	category := strings.TrimSpace(r.FormValue("category"))
 	currency := strings.TrimSpace(r.FormValue("currency"))
 	date := r.FormValue("date")
@@ -109,7 +109,7 @@ func (app *Application) updateAndRenderSingleExpense(w http.ResponseWriter, r *h
 		return
 	}
 
-	expenseFU, err := model.NewExpenseFU(name, createdAt, date, category, amount, currency)
+	expenseFU, err := model.NewExpenseFU(name, SK, date, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, "", err)
 	}

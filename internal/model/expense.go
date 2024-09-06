@@ -17,7 +17,7 @@ const (
 
 type Expense struct {
 	PK                  string  `dynamodbav:"PK"`
-	CreatedAt           string  `dynamodbav:"SK"`
+	SK                  string  `dynamodbav:"SK"`
 	Name                string  `dynamodbav:"name"`
 	Date                string  `dynamodbav:"date"`
 	Category            string  `dynamodbav:"category"`
@@ -28,25 +28,24 @@ type Expense struct {
 
 func NewExpenseFC(name, date, category string, amount float64, currency string) (Expense, error) {
 	return validateExpense(Expense{
-		PK:        expensePK,
-		CreatedAt: generateCurrentTimestamp(),
-		Name:      strings.TrimSpace(name),
-		Date:      date,
-		Category:  strings.TrimSpace(category),
-		Amount:    amount,
-		Currency:  strings.TrimSpace(currency),
+		PK:       expensePK,
+		Name:     strings.TrimSpace(name),
+		Date:     date,
+		Category: strings.TrimSpace(category),
+		Amount:   amount,
+		Currency: strings.TrimSpace(currency),
 	})
 }
 
-func NewExpenseFU(name, createdAt, date, category string, amount float64, currency string) (Expense, error) {
+func NewExpenseFU(name, SK, date, category string, amount float64, currency string) (Expense, error) {
 	return validateExpense(Expense{
-		PK:        expensePK,
-		CreatedAt: createdAt,
-		Name:      strings.TrimSpace(name),
-		Date:      date,
-		Category:  strings.TrimSpace(category),
-		Amount:    amount,
-		Currency:  strings.TrimSpace(currency),
+		PK:       expensePK,
+		SK:       SK,
+		Name:     strings.TrimSpace(name),
+		Date:     date,
+		Category: strings.TrimSpace(category),
+		Amount:   amount,
+		Currency: strings.TrimSpace(currency),
 	})
 }
 

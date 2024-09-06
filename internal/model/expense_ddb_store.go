@@ -40,13 +40,13 @@ func NewExpenseDDBStore(tableName string, client *dynamodb.Client) *ExpenseDDBSt
 
 func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
 	newExpense := Expense{
-		PK:        expensePK,
-		CreatedAt: generateCurrentTimestamp(),
-		Name:      expenseFC.Name,
-		Date:      expenseFC.Date,
-		Amount:    expenseFC.Amount,
-		Currency:  expenseFC.Currency,
-		Category:  expenseFC.Category,
+		PK:       expensePK,
+		SK:       generateSK(expenseFC.Date),
+		Name:     expenseFC.Name,
+		Date:     expenseFC.Date,
+		Amount:   expenseFC.Amount,
+		Currency: expenseFC.Currency,
+		Category: expenseFC.Category,
 	}
 
 	item, err := attributevalue.MarshalMap(newExpense)
@@ -69,7 +69,7 @@ func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) (Expen
 }
 
 func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, error) {
-	expense := Expense{PK: expensePK, CreatedAt: SK}
+	expense := Expense{PK: expensePK, SK: SK}
 	response, err := es.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &es.tableName,
 		Key:       getExpenseKey(SK),
@@ -80,7 +80,7 @@ func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, err
 	}
 
 	if len(response.Item) == 0 {
-		return Expense{}, &ExpenseNotFoundError{CreatedAt: SK}
+		return Expense{}, &ExpenseNotFoundError{SK: SK}
 	}
 
 	err = attributevalue.UnmarshalMap(response.Item, &expense)
@@ -92,52 +92,63 @@ func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, err
 }
 
 func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expense, error) {
-	update := expression.
-		Set(expression.Name("name"), expression.Value(expenseFU.Name)).
-		Set(expression.Name("category"), expression.Value(expenseFU.Category)).
-		Set(expression.Name("amount"), expression.Value(expenseFU.Amount)).
-		Set(expression.Name("currency"), expression.Value(expenseFU.Currency)).
-		Set(expression.Name("date"), expression.Value(expenseFU.Date))
-
-	expr, err := expression.NewBuilder().WithUpdate(update).Build()
-
-	if err != nil {
-		return Expense{}, fmt.Errorf("failed to build expression for update: %w", err)
+	deleteItem := types.TransactWriteItem{
+		Delete: &types.Delete{
+			TableName:           aws.String(es.tableName),
+			Key:                 getExpenseKey(expenseFU.SK),
+			ConditionExpression: aws.String("attribute_exists(SK)"),
+		},
 	}
 
-	_, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName:                 &es.tableName,
-		Key:                       getExpenseKey(expenseFU.CreatedAt),
-		ExpressionAttributeNames:  expr.Names(),
-		ExpressionAttributeValues: expr.Values(),
-		UpdateExpression:          expr.Update(),
-		ReturnValues:              types.ReturnValueUpdatedNew,
-		ConditionExpression:       aws.String("attribute_exists(SK)"),
+	expenseFU.SK = generateSK(expenseFU.Date)
+
+	putItem := types.TransactWriteItem{
+		Put: &types.Put{
+			TableName: aws.String(es.tableName),
+			Item: map[string]types.AttributeValue{
+				"PK":       &types.AttributeValueMemberS{Value: expensePK},
+				"SK":       &types.AttributeValueMemberS{Value: expenseFU.SK},
+				"name":     &types.AttributeValueMemberS{Value: expenseFU.Name},
+				"category": &types.AttributeValueMemberS{Value: expenseFU.Category},
+				"amount":   &types.AttributeValueMemberN{Value: fmt.Sprintf("%f", expenseFU.Amount)},
+				"currency": &types.AttributeValueMemberS{Value: expenseFU.Currency},
+				"date":     &types.AttributeValueMemberS{Value: expenseFU.Date},
+			},
+		},
+	}
+
+	_, err := es.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: []types.TransactWriteItem{deleteItem, putItem},
 	})
 
 	if err != nil {
-		var condErr *types.ConditionalCheckFailedException
-		if errors.As(err, &condErr) {
-			return Expense{}, &ExpenseNotFoundError{CreatedAt: expenseFU.CreatedAt}
+		var transactionErr *types.TransactionCanceledException
+
+		if errors.As(err, &transactionErr) {
+			for _, reason := range transactionErr.CancellationReasons {
+				if reason.Code != nil && *reason.Code == "ConditionalCheckFailed" {
+					return Expense{}, &ExpenseNotFoundError{SK: expenseFU.SK}
+				}
+			}
 		}
-		return Expense{}, fmt.Errorf("failed to update expense: %w", err)
+		return Expense{}, fmt.Errorf("failed to update expense atomically: %w", err)
 	}
 
 	return expenseFU, nil
 }
 
-func (es *ExpenseDDBStore) Delete(ctx context.Context, createdAt string) error {
-	if _, err := es.FindOne(ctx, createdAt); err != nil {
-		return &ExpenseNotFoundError{CreatedAt: createdAt}
+func (es *ExpenseDDBStore) Delete(ctx context.Context, SK string) error {
+	if _, err := es.FindOne(ctx, SK); err != nil {
+		return &ExpenseNotFoundError{SK: SK}
 	}
 
 	_, err := es.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &es.tableName,
-		Key:       getExpenseKey(createdAt),
+		Key:       getExpenseKey(SK),
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to delete expense with CreatedAt=%q from the table: %w", createdAt, err)
+		return fmt.Errorf("failed to delete expense with SK=%q from the table: %w", SK, err)
 	}
 
 	return nil

@@ -65,7 +65,7 @@ func TestDeleteInMemoryExpenseCategory(t *testing.T) {
 
 		var notFoundErr *model.ExpenseCategoryNotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseCategoryNotFoundError{CreatedAt: nonExistingName})
+			t.Errorf("got %#v, want %#v", err, &model.ExpenseCategoryNotFoundError{SK: nonExistingName})
 		}
 	})
 }

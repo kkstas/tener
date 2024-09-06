@@ -127,8 +127,8 @@ func TestShowExpense(t *testing.T) {
 func TestUpdateExpense(t *testing.T) {
 	t.Run("allows comma and dot as a decimal separator", func(t *testing.T) {
 		store := model.ExpenseInMemoryStore{}
-		createdAt := "2024-08-25T00:40:00.310284338+02:00"
-		_, err := store.Create(context.Background(), model.Expense{PK: "expense", CreatedAt: createdAt, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"})
+		SK := "2024-08-25::1725652252238"
+		_, err := store.Create(context.Background(), model.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"})
 		if err != nil {
 			log.Fatalf("didn't expect an error but got one: %v", err)
 		}
@@ -142,7 +142,7 @@ func TestUpdateExpense(t *testing.T) {
 		var payload = bytes.NewBufferString(param.Encode())
 
 		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodPut, u.Create(context.Background(), "expense", "edit", createdAt), payload)
+		request := httptest.NewRequest(http.MethodPut, u.Create(context.Background(), "expense", "edit", SK), payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		server.NewApplication(&store, &model.ExpenseCategoryInMemoryStore{}).ServeHTTP(response, request)
