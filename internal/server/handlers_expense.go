@@ -40,7 +40,13 @@ func (app *Application) renderSingleExpense(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	app.renderTempl(w, r, components.SingleExpense(r.Context(), expense))
+	categories, err := app.expenseCategory.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.Expense(r.Context(), expense, model.ValidCurrencies, categories))
 }
 
 func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
@@ -68,31 +74,13 @@ func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *h
 		return
 	}
 
-	app.renderTempl(w, r, components.SingleExpense(r.Context(), createdExpense))
-}
-
-func (app *Application) renderSingleEditableExpense(w http.ResponseWriter, r *http.Request) {
-	sk := r.PathValue("SK")
-
-	expense, err := app.expense.FindOne(r.Context(), sk)
-
-	if err != nil {
-		var notFoundErr *model.ExpenseNotFoundError
-		if errors.As(err, &notFoundErr) {
-			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
-			return
-		}
-		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense: "+err.Error(), err)
-		return
-	}
-
 	categories, err := app.expenseCategory.Query(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
 	}
 
-	app.renderTempl(w, r, components.EditSingleExpense(r.Context(), expense, model.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Expense(r.Context(), createdExpense, model.ValidCurrencies, categories))
 }
 
 func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request) {
@@ -112,6 +100,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 	expenseFU, err := model.NewExpenseFU(name, SK, date, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, "", err)
+		return
 	}
 
 	_, err = app.expense.Update(r.Context(), expenseFU)
@@ -131,7 +120,13 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	app.renderTempl(w, r, components.ExpensesContainer(r.Context(), expenses))
+	categories, err := app.expenseCategory.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, model.ValidCurrencies, categories))
 }
 
 func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request) {

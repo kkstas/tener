@@ -36,12 +36,11 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 		class="mx-auto lg:max-w-screen-md [&>div]:py-1"
 		hx-post={ url.Create(ctx, "expense", "create") }
 		hx-swap="afterbegin"
-		hx-target="#expenses-container"
+		hx-target="#all-expenses-list"
 		x-data="{ formErrors: {} }"
 		@click.outside="showCreateExpenseForm = false;"
 		@htmx:after-request.camel="
 			if (event.detail.successful) {
-				insertDatesBetweenExpenses();
 				showCreateExpenseForm = false;
 				return;
 			}

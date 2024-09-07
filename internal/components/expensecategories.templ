@@ -8,6 +8,13 @@ import (
 	"github.com/kkstas/tjener/internal/url"
 )
 
+const (
+	buttonStyles                       = "bg-white hover:bg-gray-100 text-gray-800 font-medium py-1 px-3 border border-gray-400 rounded shadow"
+	inputStyles                        = "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:outline-gray-800/20 focus:outline-1"
+	singleExpenseContainerStyles       = "border border-gray-300 px-2 pt-2 rounded mt-2 bg-white"
+	insideSingleExpenseContainerStyles = "flex flex-row place-items-center overflow-x-scroll break-words [&>div>label]:text-xs [&>div>label]:text-gray-700 min-w-24 [&>div>label]:min-w-8 text-sm md:text-base"
+)
+
 templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCategory) {
 	@BaseHTML(ctx) {
 		<div class="mx-auto lg:max-w-screen-md">
