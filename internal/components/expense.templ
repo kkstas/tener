@@ -61,38 +61,38 @@ templ Expense(ctx context.Context, expense model.Expense, currencies []string, c
 templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	<div
 		x-data="{
-        popoverOpen: false,
-        popoverArrow: true,
-        popoverPosition: 'bottom',
-        popoverHeight: 0,
-        popoverOffset: 8,
-        popoverHeightCalculate() {
-            this.$refs.popover.classList.add('invisible');
-            this.popoverOpen=true;
-            let that=this;
-            $nextTick(function(){
-                that.popoverHeight = that.$refs.popover.offsetHeight;
-                that.popoverOpen=false;
-                that.$refs.popover.classList.remove('invisible');
-                that.$refs.popoverInner.setAttribute('x-transition', '');
-                that.popoverPositionCalculate();
-            });
-        },
-        popoverPositionCalculate(){
-            if(window.innerHeight < (this.$refs.popoverButton.getBoundingClientRect().top + this.$refs.popoverButton.offsetHeight + this.popoverOffset + this.popoverHeight)){
-                this.popoverPosition = 'top';
-            } else {
-                this.popoverPosition = 'bottom';
-            }
-        }
-    }"
+			popoverOpen: false,
+			popoverArrow: true,
+			popoverPosition: 'bottom',
+			popoverHeight: 0,
+			popoverOffset: 8,
+			popoverHeightCalculate() {
+				this.$refs.popover.classList.add('invisible');
+				this.popoverOpen=true;
+				let that=this;
+				$nextTick(function(){
+					that.popoverHeight = that.$refs.popover.offsetHeight;
+					that.popoverOpen=false;
+					that.$refs.popover.classList.remove('invisible');
+					that.$refs.popoverInner.setAttribute('x-transition', '');
+					that.popoverPositionCalculate();
+				});
+			},
+			popoverPositionCalculate(){
+				if(window.innerHeight < (this.$refs.popoverButton.getBoundingClientRect().top + this.$refs.popoverButton.offsetHeight + this.popoverOffset + this.popoverHeight)){
+					this.popoverPosition = 'top';
+				} else {
+					this.popoverPosition = 'bottom';
+				}
+			}
+		}"
 		x-init="
         that = this;
         window.addEventListener('resize', function(){
             popoverPositionCalculate();
         });
         $watch('popoverOpen', function(value){
-            if(value){ popoverPositionCalculate(); document.getElementById('edit-expense-name-input').focus();  }
+            if(value) { popoverPositionCalculate(); document.getElementById('edit-expense-name-input').focus();  }
         });
     "
 		class="relative"
@@ -142,6 +142,14 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 						hx-put={ url.Create(ctx, "expense", "edit", expense.SK) }
 						hx-target="#all-expenses-list"
 						hx-swap="outerHTML"
+						x-data="{ formErrors: {} }"
+						x-effect="if (popoverOpen) { formErrors = {}; $el.reset(); }"
+						@htmx:after-request.camel="
+							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
+								formErrors = JSON.parse(event.detail.xhr.response);
+								return;
+							}
+						"
 					>
 						<div class="grid items-center grid-cols-3 gap-4">
 							<label
@@ -149,6 +157,7 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								for="edit-expense-name-input"
 							>Name</label>
 							<input
+								x-bind:class="formErrors.name && 'border-red-500'"
 								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
 								id="edit-expense-name-input"
 								type="text"
@@ -159,6 +168,9 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								maxlength={ strconv.Itoa(model.ExpenseNameMaxLength) }
 								required
 							/>
+							<template x-for="err in formErrors.name">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
 						</div>
 						<div
 							class="grid items-center grid-cols-3 gap-4"
@@ -185,6 +197,9 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 									<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
 								</div>
 							</div>
+							<template x-for="err in formErrors.category">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
 						</div>
 						<div
 							class="grid items-center grid-cols-3 gap-4"
@@ -205,6 +220,9 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
 								required
 							/>
+							<template x-for="err in formErrors.amount">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
 						</div>
 						<div
 							class="grid items-center grid-cols-3 gap-4"
@@ -221,6 +239,9 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								value={ expense.Date }
 								required
 							/>
+							<template x-for="err in formErrors.date">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
 						</div>
 						<div
 							class="grid items-center grid-cols-3 gap-4"
@@ -247,6 +268,9 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 									<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
 								</div>
 							</div>
+							<template x-for="err in formErrors.currency">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
 						</div>
 						<button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-blue-500 transition-colors duration-100 rounded-md focus:ring-2 focus:ring-offset-2 focus:ring-blue-100 bg-blue-50 hover:text-blue-600 hover:bg-blue-100">
 							Submit
