@@ -1,16 +1,20 @@
 package model
 
 import (
-	"strconv"
 	"strings"
 	"time"
 )
 
-func generateSK(date string) string {
-	return date + "::" + strconv.FormatInt(time.Now().UnixMilli(), 10)
+func buildSK(date, createdAt string) string {
+	return date + "::" + createdAt
 }
 
-func getTimestampDaysAgo(days int) string {
+func generateCurrentTimestamp() string {
+	loc, _ := time.LoadLocation("Europe/Warsaw")
+	return time.Now().In(loc).Format(time.RFC3339Nano)
+}
+
+func getDateStringDaysAgo(days int) string {
 	loc, _ := time.LoadLocation("Europe/Warsaw")
 	now := setTimeToMidnight(time.Now(), loc)
 	pastDate := now.Add(-(time.Duration(days) * 24 * time.Hour))

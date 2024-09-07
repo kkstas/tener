@@ -3,6 +3,7 @@ package validator_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/kkstas/tjener/pkg/validator"
 )
@@ -110,7 +111,7 @@ func TestIsValidDate(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("should return %t for date '%s'", func(t *testing.T) {
-			got, _, _ := validator.IsValidDate("date", c.val)
+			got, _, _ := validator.IsValidTime("date", time.DateOnly, c.val)
 			if got != c.want {
 				t.Errorf("got %t, want %t for valid date '%s'", got, c.want, c.val)
 			}

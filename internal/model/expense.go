@@ -2,6 +2,7 @@ package model
 
 import (
 	"strings"
+	"time"
 
 	"github.com/kkstas/tjener/pkg/validator"
 )
@@ -23,17 +24,21 @@ type Expense struct {
 	Category            string  `dynamodbav:"category"`
 	Amount              float64 `dynamodbav:"amount"`
 	Currency            string  `dynamodbav:"currency"`
+	CreatedAt           string  `dynamodbav:"createdAt"`
 	validator.Validator `dynamodbav:"-"`
 }
 
 func NewExpenseFC(name, date, category string, amount float64, currency string) (Expense, error) {
+	currentTimestamp := generateCurrentTimestamp()
 	return validateExpense(Expense{
-		PK:       expensePK,
-		Name:     strings.TrimSpace(name),
-		Date:     date,
-		Category: strings.TrimSpace(category),
-		Amount:   amount,
-		Currency: strings.TrimSpace(currency),
+		PK:        expensePK,
+		SK:        buildSK(date, currentTimestamp),
+		Name:      strings.TrimSpace(name),
+		Date:      date,
+		Category:  strings.TrimSpace(category),
+		Amount:    amount,
+		Currency:  strings.TrimSpace(currency),
+		CreatedAt: currentTimestamp,
 	})
 }
 
@@ -55,7 +60,7 @@ func validateExpense(expense Expense) (Expense, error) {
 	expense.Check(validator.OneOf("currency", expense.Currency, ValidCurrencies))
 	expense.Check(validator.IsValidAmountPrecision("amount", expense.Amount))
 	expense.Check(validator.IsNonZero("amount", expense.Amount))
-	expense.Check(validator.IsValidDate("date", expense.Date))
+	expense.Check(validator.IsValidTime("date", time.DateOnly, expense.Date))
 
 	if err := expense.Validate(); err != nil {
 		return Expense{}, err

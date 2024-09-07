@@ -99,7 +99,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	expenseFU, err := model.NewExpenseFU(name, SK, date, category, amount, currency)
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, "", err)
+		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 

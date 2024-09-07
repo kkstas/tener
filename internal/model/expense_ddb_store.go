@@ -38,18 +38,31 @@ func NewExpenseDDBStore(tableName string, client *dynamodb.Client) *ExpenseDDBSt
 	}
 }
 
-func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
+func (es *ExpenseDDBStore) marshalExpense(PK, SK, name, date string, amount float64, currency, category, createdAt string) (Expense, map[string]types.AttributeValue, error) {
 	newExpense := Expense{
-		PK:       expensePK,
-		SK:       generateSK(expenseFC.Date),
-		Name:     expenseFC.Name,
-		Date:     expenseFC.Date,
-		Amount:   expenseFC.Amount,
-		Currency: expenseFC.Currency,
-		Category: expenseFC.Category,
+		PK:        PK,
+		SK:        SK,
+		Name:      name,
+		Date:      date,
+		Amount:    amount,
+		Currency:  currency,
+		Category:  category,
+		CreatedAt: createdAt,
 	}
-
 	item, err := attributevalue.MarshalMap(newExpense)
+	return newExpense, item, err
+}
+
+func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
+	newExpense, item, err := es.marshalExpense(expensePK,
+		buildSK(expenseFC.Date, expenseFC.CreatedAt),
+		expenseFC.Name,
+		expenseFC.Date,
+		expenseFC.Amount,
+		expenseFC.Currency,
+		expenseFC.Category,
+		expenseFC.CreatedAt,
+	)
 
 	if err != nil {
 		return Expense{}, fmt.Errorf("failed to marshal expense: %w", err)
@@ -92,6 +105,20 @@ func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, err
 }
 
 func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expense, error) {
+	foundExpense, err := es.FindOne(ctx, expenseFU.SK)
+	if err != nil {
+		return Expense{}, fmt.Errorf("failed to find expense for update: %w", err)
+	}
+
+	expenseFU.CreatedAt = foundExpense.CreatedAt
+
+	if expenseFU.SK == buildSK(expenseFU.Date, foundExpense.CreatedAt) {
+		return es.updateWithoutNewSK(ctx, expenseFU)
+	}
+	return es.updateWithNewSK(ctx, expenseFU)
+}
+
+func (es *ExpenseDDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense) (Expense, error) {
 	deleteItem := types.TransactWriteItem{
 		Delete: &types.Delete{
 			TableName:           aws.String(es.tableName),
@@ -100,24 +127,28 @@ func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expen
 		},
 	}
 
-	expenseFU.SK = generateSK(expenseFU.Date)
+	expense, item, err := es.marshalExpense(
+		expensePK,
+		buildSK(expenseFU.Date, expenseFU.CreatedAt),
+		expenseFU.Name,
+		expenseFU.Date,
+		expenseFU.Amount,
+		expenseFU.Currency,
+		expenseFU.Category,
+		expenseFU.CreatedAt,
+	)
+	if err != nil {
+		return Expense{}, fmt.Errorf("failed to marshal expense: %w", err)
+	}
 
 	putItem := types.TransactWriteItem{
 		Put: &types.Put{
 			TableName: aws.String(es.tableName),
-			Item: map[string]types.AttributeValue{
-				"PK":       &types.AttributeValueMemberS{Value: expensePK},
-				"SK":       &types.AttributeValueMemberS{Value: expenseFU.SK},
-				"name":     &types.AttributeValueMemberS{Value: expenseFU.Name},
-				"category": &types.AttributeValueMemberS{Value: expenseFU.Category},
-				"amount":   &types.AttributeValueMemberN{Value: fmt.Sprintf("%f", expenseFU.Amount)},
-				"currency": &types.AttributeValueMemberS{Value: expenseFU.Currency},
-				"date":     &types.AttributeValueMemberS{Value: expenseFU.Date},
-			},
+			Item:      item,
 		},
 	}
 
-	_, err := es.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+	_, err = es.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
 		TransactItems: []types.TransactWriteItem{deleteItem, putItem},
 	})
 
@@ -127,11 +158,45 @@ func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expen
 		if errors.As(err, &transactionErr) {
 			for _, reason := range transactionErr.CancellationReasons {
 				if reason.Code != nil && *reason.Code == "ConditionalCheckFailed" {
-					return Expense{}, &ExpenseNotFoundError{SK: expenseFU.SK}
+					return Expense{}, &ExpenseNotFoundError{SK: expense.SK}
 				}
 			}
 		}
 		return Expense{}, fmt.Errorf("failed to update expense atomically: %w", err)
+	}
+
+	return expense, nil
+}
+
+func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Expense) (Expense, error) {
+	update := expression.
+		Set(expression.Name("name"), expression.Value(expenseFU.Name)).
+		Set(expression.Name("category"), expression.Value(expenseFU.Category)).
+		Set(expression.Name("amount"), expression.Value(expenseFU.Amount)).
+		Set(expression.Name("currency"), expression.Value(expenseFU.Currency))
+
+	expr, err := expression.NewBuilder().WithUpdate(update).Build()
+
+	if err != nil {
+		return Expense{}, fmt.Errorf("failed to build expression for update: %w", err)
+	}
+
+	_, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName:                 &es.tableName,
+		Key:                       getExpenseKey(expenseFU.SK),
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		UpdateExpression:          expr.Update(),
+		ReturnValues:              types.ReturnValueUpdatedNew,
+		ConditionExpression:       aws.String("attribute_exists(SK)"),
+	})
+
+	if err != nil {
+		var condErr *types.ConditionalCheckFailedException
+		if errors.As(err, &condErr) {
+			return Expense{}, &ExpenseNotFoundError{SK: expenseFU.SK}
+		}
+		return Expense{}, fmt.Errorf("failed to update expense: %w", err)
 	}
 
 	return expenseFU, nil
@@ -157,7 +222,7 @@ func (es *ExpenseDDBStore) Delete(ctx context.Context, SK string) error {
 func (es *ExpenseDDBStore) Query(ctx context.Context) ([]Expense, error) {
 	keyCond := expression.
 		Key("PK").Equal(expression.Value(expensePK)).
-		And(expression.Key("SK").GreaterThanEqual(expression.Value(getTimestampDaysAgo(7))))
+		And(expression.Key("SK").GreaterThanEqual(expression.Value(getDateStringDaysAgo(31))))
 
 	exprBuilder := expression.NewBuilder()
 	exprBuilder.WithKeyCondition(keyCond)

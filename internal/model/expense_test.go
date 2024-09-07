@@ -27,7 +27,7 @@ func TestTimestampDaysAgo(t *testing.T) {
 		loc, _ := time.LoadLocation("Europe/Warsaw")
 		want, _, _ := strings.Cut(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).Format(time.RFC3339Nano), "T")
 
-		got := getTimestampDaysAgo(0)
+		got := getDateStringDaysAgo(0)
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)
 		}
