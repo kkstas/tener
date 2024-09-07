@@ -1,0 +1,259 @@
+package components
+
+import (
+	"context"
+	"fmt"
+	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/url"
+	"strconv"
+)
+
+templ Expenses(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
+	<div
+		x-data="{
+        activeAccordion: '',
+        setActiveAccordion(id) {
+            this.activeAccordion = (this.activeAccordion == id) ? '' : id
+        }
+    }"
+		class="my-10 relative w-full max-w-md mx-auto text-sm font-normal bg-white border border-gray-200 divide-y divide-gray-200 rounded-md"
+		id="all-expenses-list"
+	>
+		for i := len(expenses) - 1; i >= 0; i-- {
+			@Expense(ctx, expenses[i], currencies, categories)
+		}
+	</div>
+}
+
+templ Expense(ctx context.Context, expense model.Expense, currencies []string, categories []model.ExpenseCategory) {
+	<div x-data="{ id: $id('accordion') }" class="expense-element cursor-pointer group">
+		<button @click="setActiveAccordion(id)" class="flex items-center focus:outline-none justify-between w-full p-4 text-left select-none">
+			<div class="flex flex-1 justify-between">
+				<div class="flex flex-col justify-between">
+					<div class="text-lg font-medium">{ expense.Name }</div>
+					<div class="text-sm">{ expense.Category }</div>
+				</div>
+				<div class="text-end flex flex-col justify-between">
+					<div class="text-lg font-medium">{ fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }</div>
+					<div class="text-sm">{ expense.Date }</div>
+				</div>
+			</div>
+		</button>
+		<div x-show="activeAccordion==id" x-collapse x-cloak>
+			<hr class="w-[80%] mx-auto mb-2"/>
+			<div class="flex justify-center mb-2">
+				<button
+					type="button"
+					class="mx-2 inline-flex items-center justify-center px-4 py-1 text-sm font-medium tracking-wide text-red-600 transition-colors duration-100 bg-white border-2 border-red-600 rounded-md hover:text-white hover:bg-red-600"
+					hx-target="closest .expense-element"
+					hx-delete={ url.Create(ctx, "expense", expense.SK) }
+					hx-swap="delete"
+					hx-confirm={ "Are you sure you want to delete this expense?\n\nName: " + expense.Name + "\nCategory: " + expense.Category + "\nAmount: " + fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }
+				>
+					Delete	
+				</button>
+				@ExpenseEditButton(ctx, expense, currencies, categories)
+			</div>
+		</div>
+	</div>
+}
+
+templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies []string, categories []model.ExpenseCategory) {
+	<div
+		x-data="{
+        popoverOpen: false,
+        popoverArrow: true,
+        popoverPosition: 'bottom',
+        popoverHeight: 0,
+        popoverOffset: 8,
+        popoverHeightCalculate() {
+            this.$refs.popover.classList.add('invisible');
+            this.popoverOpen=true;
+            let that=this;
+            $nextTick(function(){
+                that.popoverHeight = that.$refs.popover.offsetHeight;
+                that.popoverOpen=false;
+                that.$refs.popover.classList.remove('invisible');
+                that.$refs.popoverInner.setAttribute('x-transition', '');
+                that.popoverPositionCalculate();
+            });
+        },
+        popoverPositionCalculate(){
+            if(window.innerHeight < (this.$refs.popoverButton.getBoundingClientRect().top + this.$refs.popoverButton.offsetHeight + this.popoverOffset + this.popoverHeight)){
+                this.popoverPosition = 'top';
+            } else {
+                this.popoverPosition = 'bottom';
+            }
+        }
+    }"
+		x-init="
+        that = this;
+        window.addEventListener('resize', function(){
+            popoverPositionCalculate();
+        });
+        $watch('popoverOpen', function(value){
+            if(value){ popoverPositionCalculate(); document.getElementById('edit-expense-name-input').focus();  }
+        });
+    "
+		class="relative"
+	>
+		<button
+			x-ref="popoverButton"
+			@click="popoverOpen=!popoverOpen"
+			class="mx-2 inline-flex items-center justify-center px-4 py-1 text-sm font-medium tracking-wide text-blue-600 transition-colors duration-100 bg-white border-2 border-blue-600 rounded-md hover:text-white hover:bg-blue-600"
+		>
+			Edit
+		</button>
+		<div
+			x-ref="popover"
+			x-show="popoverOpen"
+			x-init="setTimeout(function(){ popoverHeightCalculate(); }, 100);"
+			x-trap.inert="popoverOpen"
+			@click.away="popoverOpen=false;"
+			@keydown.escape.window="popoverOpen=false"
+			:class="{ 'top-0 mt-12' : popoverPosition == 'bottom', 'bottom-0 mb-12' : popoverPosition == 'top' }"
+			class="absolute w-[300px] max-w-lg -translate-x-1/2 left-1/2"
+			x-cloak
+		>
+			<div
+				x-ref="popoverInner"
+				x-show="popoverOpen"
+				class="w-full p-4 bg-white border rounded-md shadow-sm border-neutral-200/70"
+			>
+				<div
+					x-show="popoverArrow && popoverPosition == 'bottom'"
+					class="absolute top-0 inline-block w-5 mt-px overflow-hidden -translate-x-2 -translate-y-2.5 left-1/2"
+				>
+					<div class="w-2.5 h-2.5 origin-bottom-left transform rotate-45 bg-white border-t border-l rounded-sm"></div>
+				</div>
+				<div
+					x-show="popoverArrow  && popoverPosition == 'top'"
+					class="absolute bottom-0 inline-block w-5 mb-px overflow-hidden -translate-x-2 translate-y-2.5 left-1/2"
+				>
+					<div class="w-2.5 h-2.5 origin-top-left transform -rotate-45 bg-white border-b border-l rounded-sm"></div>
+				</div>
+				<div class="grid gap-4">
+					<div class="space-y-2">
+						<h4 class="font-medium leading-none">Dimensions</h4>
+						<p class="text-sm text-muted-foreground">Set the dimensions for the layer.</p>
+					</div>
+					<form
+						class="grid gap-2"
+						hx-put={ url.Create(ctx, "expense", "edit", expense.SK) }
+						hx-target="#all-expenses-list"
+						hx-swap="outerHTML"
+					>
+						<div class="grid items-center grid-cols-3 gap-4">
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="edit-expense-name-input"
+							>Name</label>
+							<input
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								id="edit-expense-name-input"
+								type="text"
+								name="name"
+								value={ expense.Name }
+								placeholder={ expense.Name }
+								minlength={ strconv.Itoa(model.ExpenseNameMinLength) }
+								maxlength={ strconv.Itoa(model.ExpenseNameMaxLength) }
+								required
+							/>
+						</div>
+						<div
+							class="grid items-center grid-cols-3 gap-4"
+						>
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="edit-expense-category-input"
+							>Category</label>
+							<div class="flex w-full h-8 col-span-2 relative">
+								<select
+									id="edit-expense-category-input"
+									name="category"
+									class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
+								>
+									for _, category := range categories {
+										if expense.Category == category.Name {
+											<option selected>{ category.Name }</option>
+										} else {
+											<option>{ category.Name }</option>
+										}
+									}
+								</select>
+								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+									<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+								</div>
+							</div>
+						</div>
+						<div
+							class="grid items-center grid-cols-3 gap-4"
+						>
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="edit-expense-amount-input"
+							>Amount</label>
+							<input
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								id="edit-expense-amount-input"
+								name="amount"
+								type="text"
+								placeholder={ fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }
+								value={ fmt.Sprintf("%.2f", expense.Amount) }
+								inputmode="decimal"
+								pattern="^\d+([.,]\d{1,2})?$"
+								title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
+								required
+							/>
+						</div>
+						<div
+							class="grid items-center grid-cols-3 gap-4"
+						>
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="edit-expense-date-input"
+							>Date</label>
+							<input
+								id="edit-expense-date-input"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								type="date"
+								name="date"
+								value={ expense.Date }
+								required
+							/>
+						</div>
+						<div
+							class="grid items-center grid-cols-3 gap-4"
+						>
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="edit-expense-currency-input"
+							>Currency</label>
+							<div class="flex w-full h-8 col-span-2 relative">
+								<select
+									id="edit-expense-currency-input"
+									class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
+									name="currency"
+								>
+									for _, currency := range currencies {
+										if expense.Currency == currency {
+											<option selected>{ currency }</option>
+										} else {
+											<option>{ currency }</option>
+										}
+									}
+								</select>
+								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+									<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+								</div>
+							</div>
+						</div>
+						<button type="submit" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-blue-500 transition-colors duration-100 rounded-md focus:ring-2 focus:ring-offset-2 focus:ring-blue-100 bg-blue-50 hover:text-blue-600 hover:bg-blue-100">
+							Submit
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+}
