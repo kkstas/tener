@@ -11,7 +11,7 @@ import (
 type ExpenseStore interface {
 	Create(ctx context.Context, expenseFC model.Expense) (model.Expense, error)
 	Delete(ctx context.Context, SK string) error
-	Update(ctx context.Context, expenseFU model.Expense) (model.Expense, error)
+	Update(ctx context.Context, expenseFU model.Expense) error
 	FindOne(ctx context.Context, SK string) (model.Expense, error)
 	Query(ctx context.Context) ([]model.Expense, error)
 }

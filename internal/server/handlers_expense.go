@@ -103,7 +103,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	_, err = app.expense.Update(r.Context(), expenseFU)
+	err = app.expense.Update(r.Context(), expenseFU)
 	if err != nil {
 		var notFoundErr *model.ExpenseNotFoundError
 		if errors.As(err, &notFoundErr) {

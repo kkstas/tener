@@ -139,16 +139,16 @@ func TestUpdateDDBExpense(t *testing.T) {
 		}
 
 		expense.Name = "new name"
-		receivedExpense, err := store.Update(ctx, expense)
+		err = store.Update(ctx, expense)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
-		newExpense, err := store.FindOne(ctx, receivedExpense.SK)
+		newExpense, err := store.FindOne(ctx, expense.SK)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
 
-		if newExpense.Name != expense.Name || receivedExpense.Name != expense.Name {
+		if newExpense.Name != expense.Name {
 			t.Error("expense update failed")
 		}
 	})
@@ -162,11 +162,11 @@ func TestUpdateDDBExpense(t *testing.T) {
 
 		newDate := "2024-09-09"
 		expense.Date = newDate
-		receivedExpense, err := store.Update(ctx, expense)
+		err = store.Update(ctx, expense)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
-		newExpense, err := store.FindOne(ctx, receivedExpense.SK)
+		newExpense, err := store.FindOne(ctx, expense.Date+"::"+expense.CreatedAt)
 		if err != nil {
 			t.Fatalf("didn't expect an error while searching for expense but got one: %v", err)
 		}
@@ -187,11 +187,11 @@ func TestUpdateDDBExpense(t *testing.T) {
 
 		newName := "new name"
 		expense.Name = newName
-		receivedExpense, err := store.Update(ctx, expense)
+		err = store.Update(ctx, expense)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
-		newExpense, err := store.FindOne(ctx, receivedExpense.SK)
+		newExpense, err := store.FindOne(ctx, expense.Date+"::"+expense.CreatedAt)
 		if err != nil {
 			t.Fatalf("didn't expect an error while searching for expense but got one: %v", err)
 		}
@@ -202,7 +202,7 @@ func TestUpdateDDBExpense(t *testing.T) {
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
 		invalidSK := "invalidSK"
 
-		_, err := store.Update(ctx, model.Expense{SK: invalidSK})
+		err := store.Update(ctx, model.Expense{SK: invalidSK})
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}

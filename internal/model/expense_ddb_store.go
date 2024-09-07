@@ -104,10 +104,10 @@ func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, err
 	return expense, nil
 }
 
-func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expense, error) {
+func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) error {
 	foundExpense, err := es.FindOne(ctx, expenseFU.SK)
 	if err != nil {
-		return Expense{}, fmt.Errorf("failed to find expense for update: %w", err)
+		return fmt.Errorf("failed to find expense for update: %w", err)
 	}
 
 	expenseFU.CreatedAt = foundExpense.CreatedAt
@@ -118,7 +118,7 @@ func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) (Expen
 	return es.updateWithNewSK(ctx, expenseFU)
 }
 
-func (es *ExpenseDDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense) (Expense, error) {
+func (es *ExpenseDDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense) error {
 	deleteItem := types.TransactWriteItem{
 		Delete: &types.Delete{
 			TableName:           aws.String(es.tableName),
@@ -138,7 +138,7 @@ func (es *ExpenseDDBStore) updateWithNewSK(ctx context.Context, expenseFU Expens
 		expenseFU.CreatedAt,
 	)
 	if err != nil {
-		return Expense{}, fmt.Errorf("failed to marshal expense: %w", err)
+		return fmt.Errorf("failed to marshal expense: %w", err)
 	}
 
 	putItem := types.TransactWriteItem{
@@ -158,17 +158,17 @@ func (es *ExpenseDDBStore) updateWithNewSK(ctx context.Context, expenseFU Expens
 		if errors.As(err, &transactionErr) {
 			for _, reason := range transactionErr.CancellationReasons {
 				if reason.Code != nil && *reason.Code == "ConditionalCheckFailed" {
-					return Expense{}, &ExpenseNotFoundError{SK: expense.SK}
+					return &ExpenseNotFoundError{SK: expense.SK}
 				}
 			}
 		}
-		return Expense{}, fmt.Errorf("failed to update expense atomically: %w", err)
+		return fmt.Errorf("failed to update expense atomically: %w", err)
 	}
 
-	return expense, nil
+	return nil
 }
 
-func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Expense) (Expense, error) {
+func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Expense) error {
 	update := expression.
 		Set(expression.Name("name"), expression.Value(expenseFU.Name)).
 		Set(expression.Name("category"), expression.Value(expenseFU.Category)).
@@ -178,7 +178,7 @@ func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Exp
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 
 	if err != nil {
-		return Expense{}, fmt.Errorf("failed to build expression for update: %w", err)
+		return fmt.Errorf("failed to build expression for update: %w", err)
 	}
 
 	_, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
@@ -194,12 +194,12 @@ func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Exp
 	if err != nil {
 		var condErr *types.ConditionalCheckFailedException
 		if errors.As(err, &condErr) {
-			return Expense{}, &ExpenseNotFoundError{SK: expenseFU.SK}
+			return &ExpenseNotFoundError{SK: expenseFU.SK}
 		}
-		return Expense{}, fmt.Errorf("failed to update expense: %w", err)
+		return fmt.Errorf("failed to update expense: %w", err)
 	}
 
-	return expenseFU, nil
+	return nil
 }
 
 func (es *ExpenseDDBStore) Delete(ctx context.Context, SK string) error {

@@ -81,13 +81,13 @@ func TestUpdateInMemoryExpense(t *testing.T) {
 		}
 
 		expense.Name = "new name"
-		receivedExpense, err := store.Update(ctx, expense)
+		err = store.Update(ctx, expense)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
 		newExpense, _ := store.FindOne(ctx, expense.SK)
 
-		if newExpense.Name != expense.Name || receivedExpense.Name != expense.Name {
+		if newExpense.Name != expense.Name {
 			t.Error("expense update failed")
 		}
 	})
@@ -95,7 +95,7 @@ func TestUpdateInMemoryExpense(t *testing.T) {
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
 		invalidSK := "invalidSK"
 
-		_, err := store.Update(ctx, model.Expense{SK: invalidSK})
+		err := store.Update(ctx, model.Expense{SK: invalidSK})
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}

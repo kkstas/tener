@@ -29,7 +29,7 @@ func (e *ExpenseInMemoryStore) Delete(ctx context.Context, SK string) error {
 	return nil
 }
 
-func (e *ExpenseInMemoryStore) Update(ctx context.Context, expenseFU Expense) (Expense, error) {
+func (e *ExpenseInMemoryStore) Update(ctx context.Context, expenseFU Expense) error {
 	var found bool
 
 	for i, el := range e.expenses {
@@ -40,9 +40,9 @@ func (e *ExpenseInMemoryStore) Update(ctx context.Context, expenseFU Expense) (E
 	}
 
 	if !found {
-		return Expense{}, &ExpenseNotFoundError{SK: expenseFU.SK}
+		return &ExpenseNotFoundError{SK: expenseFU.SK}
 	}
-	return expenseFU, nil
+	return nil
 }
 
 func (e *ExpenseInMemoryStore) FindOne(ctx context.Context, SK string) (Expense, error) {
