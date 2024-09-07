@@ -114,16 +114,6 @@ func TestCreateExpense(t *testing.T) {
 	})
 }
 
-func TestShowExpense(t *testing.T) {
-	t.Run("returns 404 if there's no found expense", func(t *testing.T) {
-		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodGet, "/expense/x", nil)
-		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		newTestApplication().ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusNotFound)
-	})
-}
-
 func TestUpdateExpense(t *testing.T) {
 	t.Run("allows comma and dot as a decimal separator", func(t *testing.T) {
 		store := model.ExpenseInMemoryStore{}

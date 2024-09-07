@@ -26,29 +26,6 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request) {
 	app.renderTempl(w, r, components.Page(r.Context(), expenses, model.ValidCurrencies, categories))
 }
 
-func (app *Application) renderSingleExpense(w http.ResponseWriter, r *http.Request) {
-	sk := r.PathValue("SK")
-
-	expense, err := app.expense.FindOne(r.Context(), sk)
-	if err != nil {
-		var notFoundErr *model.ExpenseNotFoundError
-		if errors.As(err, &notFoundErr) {
-			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
-			return
-		}
-		sendErrorResponse(w, http.StatusInternalServerError, "error while getting expense: "+err.Error(), err)
-		return
-	}
-
-	categories, err := app.expenseCategory.Query(r.Context())
-	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
-		return
-	}
-
-	app.renderTempl(w, r, components.Expense(r.Context(), expense, model.ValidCurrencies, categories))
-}
-
 func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
 	category := r.FormValue("category")
 	currency := r.FormValue("currency")
