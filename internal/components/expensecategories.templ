@@ -52,11 +52,7 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 
 templ SingleExpenseCategory(ctx context.Context, category model.ExpenseCategory) {
 	<div hx-target="this" class={ singleExpenseContainerStyles }>
-		<div
-			class={ insideSingleExpenseContainerStyles,
-			"no-scroll",
-			"[&>div>label]:text-xs [&>div>label]:text-gray-700 [&>div]:min-w-5" }
-		>
+		<div class={ insideSingleExpenseContainerStyles, "[&>div>label]:text-xs [&>div>label]:text-gray-700 [&>div]:min-w-5" }>
 			<div class={ "flex-1 ps-2 pb-2" }>
 				<label>Name</label>
 				<div>{ category.Name }</div>
