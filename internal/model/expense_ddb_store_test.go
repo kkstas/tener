@@ -11,6 +11,13 @@ import (
 	"github.com/kkstas/tjener/internal/model"
 )
 
+const (
+	validExpenseName     = "Some name"
+	validExpenseDate     = "2024-09-07"
+	validExpenseCategory = "Some category"
+	validExpenseAmount   = 24.99
+)
+
 func TestCreateDDBExpense(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -21,32 +28,19 @@ func TestCreateDDBExpense(t *testing.T) {
 	defer removeDDB()
 	store := model.NewExpenseDDBStore(tableName, client)
 
-	expenseName := "Some name"
-	expenseDate := "2024-09-07"
-	expenseCategory := "Some category"
-	expenseAmount := 24.99
+	expense := createDefaultExpenseHelper(t, ctx, store)
 
-	expenseFC, err := model.NewExpenseFC(expenseName, expenseDate, expenseCategory, expenseAmount, model.ValidCurrencies[0])
+	foundExpense, err := store.FindOne(ctx, expense.SK)
 	if err != nil {
 		t.Fatalf("didn't expect an error but got one: %v", err)
 	}
 
-	expense, err := store.Create(ctx, expenseFC)
-	if err != nil {
-		t.Fatalf("failed putting item into ddb, %v", err)
-	}
-
-	foundExpense, err := store.FindOne(ctx, expense.SK)
-	if err != nil {
-		t.Errorf("didn't expect an error but got one: %v", err)
-	}
-
 	t.Run("creates new expense with correct data", func(t *testing.T) {
-		assertEqual(t, foundExpense.Name, expenseName)
-		assertEqual(t, strings.HasPrefix(foundExpense.SK, expenseDate), true)
-		assertEqual(t, foundExpense.Date, expenseDate)
-		assertEqual(t, foundExpense.Category, expenseCategory)
-		assertEqual(t, foundExpense.Amount, expenseAmount)
+		assertEqual(t, foundExpense.Name, validExpenseName)
+		assertEqual(t, strings.HasPrefix(foundExpense.SK, validExpenseDate), true)
+		assertEqual(t, foundExpense.Date, validExpenseDate)
+		assertEqual(t, foundExpense.Category, validExpenseCategory)
+		assertEqual(t, foundExpense.Amount, validExpenseAmount)
 		assertValidTime(t, time.RFC3339Nano, foundExpense.CreatedAt)
 	})
 
@@ -69,11 +63,7 @@ func TestDeleteDDBExpense(t *testing.T) {
 		defer removeDDB()
 
 		store := model.NewExpenseDDBStore(tableName, client)
-
-		expense, err := store.Create(ctx, model.Expense{})
-		if err != nil {
-			t.Fatalf("failed creating expense: %v", err)
-		}
+		expense := createDefaultExpenseHelper(t, ctx, store)
 
 		_, err = store.FindOne(ctx, expense.SK)
 		if err != nil {
@@ -132,13 +122,9 @@ func TestUpdateDDBExpense(t *testing.T) {
 	store := model.NewExpenseDDBStore(tableName, client)
 
 	t.Run("updates existing expense", func(t *testing.T) {
-		expenseFC := model.Expense{}
-		expense, err := store.Create(ctx, expenseFC)
-		if err != nil {
-			t.Fatalf("failed creating expense: %v", err)
-		}
+		expense := createDefaultExpenseHelper(t, ctx, store)
 
-		expense.Name = "new name"
+		expense.Name = validExpenseName
 		err = store.Update(ctx, expense)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
@@ -154,18 +140,14 @@ func TestUpdateDDBExpense(t *testing.T) {
 	})
 
 	t.Run("assigns Date as first part of SK and keeps CreatedAt as second part when Date is updated", func(t *testing.T) {
-		expenseFC := model.Expense{Date: "2024-04-04"}
-		expense, err := store.Create(ctx, expenseFC)
-		if err != nil {
-			t.Fatalf("failed creating expense: %v", err)
-		}
-
+		expense := createDefaultExpenseHelper(t, ctx, store)
 		newDate := "2024-09-09"
 		expense.Date = newDate
 		err = store.Update(ctx, expense)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
+
 		newExpense, err := store.FindOne(ctx, expense.Date+"::"+expense.CreatedAt)
 		if err != nil {
 			t.Fatalf("didn't expect an error while searching for expense but got one: %v", err)
@@ -176,15 +158,11 @@ func TestUpdateDDBExpense(t *testing.T) {
 
 		assertEqual(t, dateFromSK, newDate)
 		assertEqual(t, createdAtFromSK, expense.CreatedAt)
+		assertEqual(t, newExpense.CreatedAt, expense.CreatedAt)
 	})
 
 	t.Run("keep the same SK when Date is not changed", func(t *testing.T) {
-		expenseFC := model.Expense{Date: "2024-04-04", Name: "name"}
-		expense, err := store.Create(ctx, expenseFC)
-		if err != nil {
-			t.Fatalf("failed creating expense: %v", err)
-		}
-
+		expense := createDefaultExpenseHelper(t, ctx, store)
 		newName := "new name"
 		expense.Name = newName
 		err = store.Update(ctx, expense)
@@ -197,6 +175,7 @@ func TestUpdateDDBExpense(t *testing.T) {
 		}
 
 		assertEqual(t, newExpense.SK, expense.SK)
+		assertEqual(t, newExpense.Name, newName)
 	})
 
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
@@ -226,11 +205,7 @@ func TestFindOneDDBExpense(t *testing.T) {
 	store := model.NewExpenseDDBStore(tableName, client)
 
 	t.Run("finds existing expense", func(t *testing.T) {
-		expenseFC := model.Expense{}
-		expense, err := store.Create(ctx, expenseFC)
-		if err != nil {
-			t.Fatalf("failed creating expense: %v", err)
-		}
+		expense := createDefaultExpenseHelper(t, ctx, store)
 
 		_, err = store.FindOne(ctx, expense.SK)
 		if err != nil {
@@ -251,6 +226,24 @@ func TestFindOneDDBExpense(t *testing.T) {
 			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: invalidSK})
 		}
 	})
+}
+
+func createDefaultExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore) model.Expense {
+	t.Helper()
+	return createExpenseHelper(t, ctx, store, validExpenseName, validExpenseDate, validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
+}
+
+func createExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore, name, date, category string, amount float64, currency string) model.Expense {
+	t.Helper()
+	expenseFC, err := model.NewExpenseFC(name, date, category, amount, currency)
+	if err != nil {
+		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
+	}
+	expense, err := store.Create(ctx, expenseFC)
+	if err != nil {
+		t.Fatalf("didn't expect an error while putting expense into DDB but got one: %v", err)
+	}
+	return expense
 }
 
 func assertEqual[T comparable](t testing.TB, got, want T) {
