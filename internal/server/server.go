@@ -14,6 +14,7 @@ type ExpenseStore interface {
 	Update(ctx context.Context, expenseFU model.Expense) error
 	FindOne(ctx context.Context, SK string) (model.Expense, error)
 	Query(ctx context.Context) ([]model.Expense, error)
+	QueryByDateRange(ctx context.Context, from, to string) ([]model.Expense, error)
 }
 
 type ExpenseCategoryStore interface {
@@ -40,6 +41,7 @@ func NewApplication(expenseStore ExpenseStore, expenseCategoryStore ExpenseCateg
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", cacheControlMiddleware(http.FileServer(http.FS(assets.Public)))))
 
 	mux.HandleFunc("GET    /home", app.renderHomePage)
+	mux.HandleFunc("GET    /expense/all", app.renderExpenses)
 	mux.HandleFunc("POST   /expense/create", app.createAndRenderSingleExpense)
 	mux.HandleFunc("PUT    /expense/edit/{SK}", app.updateSingleExpenseAndRenderExpenses)
 	mux.HandleFunc("DELETE /expense/{SK}", app.deleteSingleExpense)

@@ -7,11 +7,12 @@ import (
 	"strings"
 
 	"github.com/kkstas/tjener/internal/components"
+	"github.com/kkstas/tjener/internal/helpers"
 	"github.com/kkstas/tjener/internal/model"
 )
 
 func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request) {
-	expenses, err := app.expense.Query(r.Context())
+	expenses, err := app.expense.QueryByDateRange(r.Context(), helpers.MonthAgo(), helpers.DaysAgo(0))
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
@@ -24,6 +25,32 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	app.renderTempl(w, r, components.Page(r.Context(), expenses, model.ValidCurrencies, categories))
+}
+
+func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request) {
+	from := r.URL.Query().Get("from")
+	to := r.URL.Query().Get("to")
+
+	if from == "" {
+		from = helpers.MonthAgo()
+	}
+	if to == "" {
+		to = helpers.DaysAgo(0)
+	}
+
+	expenses, err := app.expense.QueryByDateRange(r.Context(), from, to)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
+		return
+	}
+
+	categories, err := app.expenseCategory.Query(r.Context())
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		return
+	}
+
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, model.ValidCurrencies, categories))
 }
 
 func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {

@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"slices"
+
+	"github.com/kkstas/tjener/internal/helpers"
 )
 
 type ExpenseInMemoryStore struct {
@@ -61,7 +63,7 @@ func (e *ExpenseInMemoryStore) Query(ctx context.Context) ([]Expense, error) {
 
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
 func (e *ExpenseInMemoryStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
-	daysDiff, err := daysBetween(from, to)
+	daysDiff, err := helpers.DaysBetween(from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
 	}
@@ -72,11 +74,11 @@ func (e *ExpenseInMemoryStore) QueryByDateRange(ctx context.Context, from, to st
 	var expenses []Expense
 
 	for _, expense := range e.expenses {
-		daysAfterFrom, err := daysBetween(from, expense.Date)
+		daysAfterFrom, err := helpers.DaysBetween(from, expense.Date)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get number of days between 'from' and 'expense.Date' for expense: %+v: %w", expense, err)
 		}
-		daysBeforeTo, err := daysBetween(expense.Date, to)
+		daysBeforeTo, err := helpers.DaysBetween(expense.Date, to)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get number of days between 'expense.Date' and 'to for expense: %+v: %w", expense, err)
 		}

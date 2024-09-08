@@ -1,4 +1,4 @@
-package model
+package helpers
 
 import (
 	"strings"
@@ -12,7 +12,7 @@ func TestDateStringDaysAgo(t *testing.T) {
 		loc, _ := time.LoadLocation("Europe/Warsaw")
 		want, _, _ := strings.Cut(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).Format(time.RFC3339Nano), "T")
 
-		got := dateStringDaysAgo(0)
+		got := DaysAgo(0)
 		if got != want {
 			t.Errorf("got %q, want %q", got, want)
 		}
@@ -31,7 +31,7 @@ func TestNextDay(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("returns next day", func(t *testing.T) {
-			got, err := nextDay(c.input)
+			got, err := NextDay(c.input)
 			if err != nil {
 				t.Fatalf("didn't expect an error but got one: %v", err)
 			}
@@ -42,7 +42,7 @@ func TestNextDay(t *testing.T) {
 	}
 
 	t.Run("should return error on string with invalid date layout", func(t *testing.T) {
-		_, err := nextDay("2024-0404")
+		_, err := NextDay("2024-0404")
 		if err == nil {
 			t.Error("expected error but didn't get one")
 		}
@@ -63,7 +63,7 @@ func TestDaysBetween(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("returns next day", func(t *testing.T) {
-			got, err := daysBetween(c.from, c.to)
+			got, err := DaysBetween(c.from, c.to)
 			if err != nil {
 				t.Fatalf("didn't expect an error but got one: %v", err)
 			}
@@ -74,11 +74,11 @@ func TestDaysBetween(t *testing.T) {
 	}
 
 	t.Run("should return error on strings with invalid date layout", func(t *testing.T) {
-		_, err := daysBetween("2024-0404", "2024-04-05")
+		_, err := DaysBetween("2024-0404", "2024-04-05")
 		if err == nil {
 			t.Error("expected error but didn't get one")
 		}
-		_, err = daysBetween("2024-04-04", "202404-05")
+		_, err = DaysBetween("2024-04-04", "202404-05")
 		if err == nil {
 			t.Error("expected error but didn't get one")
 		}

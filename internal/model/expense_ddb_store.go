@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/kkstas/tjener/internal/helpers"
 )
 
 type ExpenseDDBStore struct {
@@ -220,7 +221,7 @@ func (es *ExpenseDDBStore) Delete(ctx context.Context, SK string) error {
 func (es *ExpenseDDBStore) Query(ctx context.Context) ([]Expense, error) {
 	keyCond := expression.
 		Key("PK").Equal(expression.Value(expensePK)).
-		And(expression.Key("SK").GreaterThanEqual(expression.Value(dateStringDaysAgo(31))))
+		And(expression.Key("SK").GreaterThanEqual(expression.Value(helpers.DaysAgo(31))))
 
 	exprBuilder := expression.NewBuilder()
 	exprBuilder.WithKeyCondition(keyCond)
@@ -238,14 +239,15 @@ func (es *ExpenseDDBStore) Query(ctx context.Context) ([]Expense, error) {
 
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
 func (es *ExpenseDDBStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
-	daysDiff, err := daysBetween(from, to)
+	fmt.Printf("querying from='%s' to='%s'\n", from, to)
+	daysDiff, err := helpers.DaysBetween(from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
 	}
 	if daysDiff < minQueryRangeDaysDiff || daysDiff > maxQueryRangeDaysDiff {
 		return nil, fmt.Errorf("invalid difference between 'from' and 'to' date; got=%d, max=%d, min=%d", daysDiff, minQueryRangeDaysDiff, maxQueryRangeDaysDiff)
 	}
-	dayAfterTo, err := nextDay(to)
+	dayAfterTo, err := helpers.NextDay(to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get next day for date '%s': %w", to, err)
 	}

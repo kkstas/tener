@@ -4,6 +4,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/kkstas/tjener/internal/helpers"
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
@@ -33,7 +34,7 @@ type Expense struct {
 }
 
 func NewExpenseFC(name, date, category string, amount float64, currency string) (Expense, error) {
-	currentTimestamp := generateCurrentTimestamp()
+	currentTimestamp := helpers.GenerateCurrentTimestamp()
 	return validateExpense(Expense{
 		PK:        expensePK,
 		SK:        buildSK(date, currentTimestamp),
