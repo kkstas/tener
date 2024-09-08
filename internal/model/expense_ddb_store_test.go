@@ -228,6 +228,55 @@ func TestFindOneDDBExpense(t *testing.T) {
 	})
 }
 
+func TestQueryByDateRange(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
+	if err != nil {
+		t.Fatalf("failed creating local test ddb table, %v", err)
+	}
+	defer removeDDB()
+	store := model.NewExpenseDDBStore(tableName, client)
+
+	createExpenseHelper(t, ctx, store, validExpenseName, "2024-01-15", validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
+	createExpenseHelper(t, ctx, store, validExpenseName, "2024-01-16", validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
+	createExpenseHelper(t, ctx, store, validExpenseName, "2024-01-17", validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
+	createExpenseHelper(t, ctx, store, validExpenseName, "2024-01-18", validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
+
+	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
+		expenses, err := store.QueryByDateRange(ctx, "2024-01-15", "2024-01-18")
+		if err != nil {
+			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
+		}
+		if len(expenses) != 4 {
+			t.Errorf("expected 4 expenses returned, got %d", len(expenses))
+		}
+
+		expenses, err = store.QueryByDateRange(ctx, "2024-01-15", "2024-01-16")
+		if err != nil {
+			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
+		}
+		if len(expenses) != 2 {
+			t.Errorf("expected 2 expenses returned, got %d", len(expenses))
+		}
+
+		expenses, err = store.QueryByDateRange(ctx, "2024-01-15", "2024-01-15")
+		if err != nil {
+			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
+		}
+		if len(expenses) != 1 {
+			t.Errorf("expected 1 expense returned, got %d", len(expenses))
+		}
+	})
+
+	t.Run("returns error when date range is above one year", func(t *testing.T) {
+		_, err := store.QueryByDateRange(ctx, "2023-01-01", "2024-01-02")
+		if err == nil {
+			t.Error("expected and error but didn't get one")
+		}
+	})
+}
+
 func createDefaultExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore) model.Expense {
 	t.Helper()
 	return createExpenseHelper(t, ctx, store, validExpenseName, validExpenseDate, validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])

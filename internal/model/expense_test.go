@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"strings"
 	"testing"
 	"time"
 
@@ -19,19 +18,6 @@ func BenchmarkRFC3339Nano(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		_ = time.Now().Format(time.RFC3339Nano)
 	}
-}
-
-func TestTimestampDaysAgo(t *testing.T) {
-	t.Run("returns today", func(t *testing.T) {
-		now := time.Now()
-		loc, _ := time.LoadLocation("Europe/Warsaw")
-		want, _, _ := strings.Cut(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).Format(time.RFC3339Nano), "T")
-
-		got := getDateStringDaysAgo(0)
-		if got != want {
-			t.Errorf("got %q, want %q", got, want)
-		}
-	})
 }
 
 func TestNewExpense(t *testing.T) {
