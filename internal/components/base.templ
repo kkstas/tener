@@ -24,6 +24,7 @@ templ BaseHTML(ctx context.Context) {
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<link rel="icon" type="image/svg+xml" href={ url.Create(ctx, "assets", "public", "icon.svg") }/>
+			<style>[x-cloak] { display: none !important; }</style>
 			<script src={ url.Create(ctx, "assets", "public", "js", "htmx-2.0.2.min.js ") }></script>
 			<script defer src={ url.Create(ctx, "assets", "public", "js", "alpine-collapse-3.14.1.min.js ") }></script>
 			<script defer src={ url.Create(ctx, "assets", "public", "js", "alpine-focus-3.14.1.min.js ") }></script>

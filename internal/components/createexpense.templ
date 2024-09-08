@@ -10,157 +10,173 @@ import (
 )
 
 templ CreateExpenseContainer(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
-	<div
-		x-data="{ showCreateExpenseForm: false }"
-		class="w-full flex justify-center"
-	>
-		@CreateExpenseButton(ctx)
-		@CreateExpenseForm(ctx, currencies, categories)
+	<div class="my-10 relative w-full max-w-md mx-auto text-sm font-normal bg-white border border-gray-200 divide-y divide-gray-200 rounded-md">
+		<div x-data="{ id: $id('accordion') }" class="cursor-pointer group">
+			<button @click="setActiveAccordion(id)" class="flex items-center justify-center w-full p-4 text-left select-none">
+				<div class="w-8 h-8 me-[5%]">
+					<svg class="stroke-gray-800" width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Edit / Add_Row"><path id="Vector" d="M3 14V15C3 16.1046 3.89543 17 5 17L19 17C20.1046 17 21 16.1046 21 15L21 13C21 11.8954 20.1046 11 19 11H13M10 8H7M7 8H4M7 8V5M7 8V11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
+				</div>
+				<span class="font-medium text-lg">Add expense</span>
+				<div class="w-8 h-8 ms-[5%]"></div>
+			</button>
+			<div x-show="activeAccordion==id" x-collapse x-cloak>
+				<div class="p-4 pt-0">
+					<form
+						class="grid gap-2"
+						hx-post={ url.Create(ctx, "expense", "create") }
+						hx-target="#all-expenses-list"
+						hx-swap="outerHTML"
+						x-data="{ formErrors: {} }"
+						x-effect="if (activeAccordion==id) { formErrors = {}; $el.reset(); }"
+						hx-include="#expenses-main-filter-date-from, #expenses-main-filter-date-to"
+						@htmx:after-request.camel="
+							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
+								formErrors = JSON.parse(event.detail.xhr.response);
+								return;
+							} else {
+								setActiveAccordion(id);
+								return;
+							}
+						"
+					>
+						<div class="grid items-center grid-cols-3 gap-4">
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="create-expense-name-input"
+							>Name</label>
+							<input
+								x-bind:class="formErrors.name && 'border-red-500'"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								id="create-expense-name-input"
+								type="text"
+								name="name"
+								minlength={ strconv.Itoa(model.ExpenseNameMinLength) }
+								maxlength={ strconv.Itoa(model.ExpenseNameMaxLength) }
+								required
+							/>
+							<template x-for="err in formErrors.name">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
+						</div>
+						<div
+							class="grid items-center grid-cols-3 gap-4"
+						>
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="create-expense-category-input"
+							>
+								Category
+								<sup>
+									<a
+										class="text-xs font-normal text-blue-500"
+										href={ templ.SafeURL(url.Create(ctx, "expensecategories")) }
+									>Manage</a>
+								</sup>
+							</label>
+							<div class="flex w-full h-8 col-span-2 relative">
+								<select
+									id="create-expense-category-input"
+									name="category"
+									x-bind:class="formErrors.category && 'border-red-500'"
+									class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
+								>
+									for _, category := range categories {
+										<option>{ category.Name }</option>
+									}
+								</select>
+								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+									<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+								</div>
+							</div>
+							<template x-for="err in formErrors.category">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
+						</div>
+						<div
+							class="grid items-center grid-cols-3 gap-4"
+						>
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="create-expense-amount-input"
+							>Amount</label>
+							<input
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								x-bind:class="formErrors.amount && 'border-red-500'"
+								id="create-expense-amount-input"
+								name="amount"
+								type="text"
+								placeholder="0.00 PLN"
+								inputmode="decimal"
+								pattern="^\d+([.,]\d{1,2})?$"
+								title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
+								required
+							/>
+							<template x-for="err in formErrors.amount">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
+						</div>
+						<div
+							class="grid items-center grid-cols-3 gap-4"
+						>
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="create-expense-date-input"
+							>Date</label>
+							<input
+								id="create-expense-date-input"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								x-bind:class="formErrors.date && 'border-red-500'"
+								value={ time.Now().Format("2006-01-02") }
+								type="date"
+								name="date"
+								required
+							/>
+							<template x-for="err in formErrors.date">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
+						</div>
+						<div
+							class="grid items-center grid-cols-3 gap-4"
+						>
+							<label
+								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+								for="create-expense-currency-input"
+							>Currency</label>
+							<div class="flex w-full h-8 col-span-2 relative">
+								<select
+									id="create-expense-currency-input"
+									class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
+									x-bind:class="formErrors.currency && 'border-red-500'"
+									name="currency"
+								>
+									for _, currency := range currencies {
+										<option>{ currency }</option>
+									}
+								</select>
+								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+									<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
+								</div>
+							</div>
+							<template x-for="err in formErrors.currency">
+								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
+							</template>
+						</div>
+						<button
+							type="submit"
+							class="mt-3 inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 focus:shadow-outline focus:outline-none"
+						>
+							Submit
+						</button>
+						<button
+							@click="setActiveAccordion(id);"
+							type="button"
+							class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide transition-colors duration-100 rounded-md text-neutral-600 bg-neutral-100 focus:ring-2 focus:ring-offset-2 focus:ring-neutral-100 hover:text-neutral-600 hover:bg-neutral-100"
+						>
+							Cancel
+						</button>
+					</form>
+				</div>
+			</div>
+		</div>
 	</div>
-}
-
-templ CreateExpenseButton(ctx context.Context) {
-	<a
-		x-show="!showCreateExpenseForm"
-		@click="showCreateExpenseForm = true;"
-		id="createexpensebtn"
-		class={ buttonStyles }
-	>
-		<p>Create new expense</p>
-	</a>
-}
-
-templ CreateExpenseForm(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
-	<form
-		id="createexpenseform"
-		class="mx-auto lg:max-w-screen-md [&>div]:py-1"
-		hx-post={ url.Create(ctx, "expense", "create") }
-		hx-swap="outerHTML"
-		hx-target="#all-expenses-list"
-		hx-include="#expenses-main-filter-date-from, #expenses-main-filter-date-to"
-		x-data="{ formErrors: {} }"
-		@click.outside="showCreateExpenseForm = false;"
-		@htmx:after-request.camel="
-			if (event.detail.successful) {
-				showCreateExpenseForm = false;
-				return;
-			}
-			
-			if (typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
-				formErrors = JSON.parse(event.detail.xhr.response);
-				return;
-			}
-		"
-		x-show="showCreateExpenseForm"
-		x-effect="showCreateExpenseForm; formErrors = {}; $el.reset();"
-	>
-		<div>
-			<label>Name</label>
-			<input
-				x-bind:class="formErrors.name && 'border-red-500'"
-				class={ inputStyles }
-				type="text"
-				name="name"
-				minlength={ strconv.Itoa(model.ExpenseNameMinLength) }
-				maxlength={ strconv.Itoa(model.ExpenseNameMaxLength) }
-				required
-			/>
-			<template x-for="err in formErrors.name">
-				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
-			</template>
-		</div>
-		<div>
-			<label>Date</label>
-			<input
-				x-bind:class="formErrors.date && 'border-red-500'"
-				class={ inputStyles }
-				type="date"
-				name="date"
-				value={ time.Now().Format("2006-01-02") }
-				required
-			/>
-			<template x-for="err in formErrors.date">
-				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
-			</template>
-		</div>
-		<div>
-			<label>Currency</label>
-			<div class="relative">
-				<select
-					name="currency"
-					x-bind:class="formErrors.currency && 'border-red-500'"
-					class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
-				>
-					for _, currency := range currencies {
-						<option>{ currency }</option>
-					}
-				</select>
-				<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-					<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
-				</div>
-			</div>
-			<template x-for="err in formErrors.currency">
-				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
-			</template>
-		</div>
-		<div>
-			<label>Amount</label>
-			<input
-				x-bind:class="formErrors.amount && 'border-red-500'"
-				class={ inputStyles }
-				name="amount"
-				type="text"
-				inputmode="decimal"
-				pattern="^\d+([.,]\d{1,2})?$"
-				title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
-				required
-			/>
-			<template x-for="err in formErrors.amount">
-				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
-			</template>
-		</div>
-		<div>
-			<label>Category</label>
-			<sup>
-				<a
-					class="text-xs text-blue-500"
-					href={ templ.SafeURL(url.Create(ctx, "expensecategories")) }
-				>Manage</a>
-			</sup>
-			<div class="relative">
-				<select
-					name="category"
-					class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1"
-					x-bind:class="formErrors.category && 'border-red-500'"
-				>
-					for _, category := range categories {
-						<option>{ category.Name }</option>
-					}
-				</select>
-				<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-					<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
-				</div>
-			</div>
-			<template x-for="err in formErrors.category">
-				<p x-text="err" class="text-red-500 text-xs italic mt-1"></p>
-			</template>
-		</div>
-		<template x-if="formErrors.message">
-			<div>
-				<hr class="mt-3"/>
-				<p x-text="`Error: ${formErrors.message}`" class="text-red-500 text-xs italic mt-1"></p>
-			</div>
-		</template>
-		<div class="flex justify-center">
-			<input
-				type="submit"
-				class={ buttonStyles, "my-2 mx-1" }
-				value="Create"
-			/>
-			<a
-				class={ buttonStyles, "my-2 mx-1" }
-				@click="showCreateExpenseForm = false;"
-			>Cancel</a>
-		</div>
-	</form>
 }

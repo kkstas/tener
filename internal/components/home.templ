@@ -8,8 +8,15 @@ import (
 
 templ Page(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	@BaseHTML(ctx) {
-		@CreateExpenseContainer(ctx, currencies, categories)
-		@ExpensesDateRangePicker(ctx)
-		@Expenses(ctx, expenses, currencies, categories)
+		<div
+			x-data="{
+				activeAccordion: '',
+				setActiveAccordion(id) { this.activeAccordion = (this.activeAccordion == id) ? '' : id }
+			}"
+		>
+			@CreateExpenseContainer(ctx, currencies, categories)
+			@ExpensesDateRangePicker(ctx)
+			@Expenses(ctx, expenses, currencies, categories)
+		</div>
 	}
 }

@@ -24,12 +24,6 @@ templ ExpensesDateRangePicker(ctx context.Context) {
 
 templ Expenses(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	<div
-		x-data="{
-        activeAccordion: '',
-        setActiveAccordion(id) {
-            this.activeAccordion = (this.activeAccordion == id) ? '' : id
-        }
-    }"
 		class="my-10 relative w-full max-w-md mx-auto text-sm font-normal bg-white border border-gray-200 divide-y divide-gray-200 rounded-md"
 		id="all-expenses-list"
 	>
@@ -287,9 +281,10 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
 							</template>
 						</div>
-						<button type="submit" class="mt-3 inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-blue-500 transition-colors duration-100 rounded-md focus:ring-2 focus:ring-offset-2 focus:ring-blue-100 bg-blue-50 hover:text-blue-600 hover:bg-blue-100">
-							Submit
-						</button>
+						<button
+							type="submit"
+							class="mt-3 inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-offset-2 focus:ring-blue-700 focus:shadow-outline focus:outline-none"
+						>Submit</button>
 					</form>
 				</div>
 			</div>
