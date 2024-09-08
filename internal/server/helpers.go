@@ -7,8 +7,10 @@ import (
 	"net/http"
 
 	"github.com/a-h/templ"
-	"github.com/kkstas/tjener/pkg/validator"
 	"github.com/rs/zerolog/log"
+
+	"github.com/kkstas/tjener/internal/helpers"
+	"github.com/kkstas/tjener/pkg/validator"
 )
 
 func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, component templ.Component) {
@@ -32,4 +34,17 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, message string, er
 
 	log.Error().Stack().Err(err).Msg("")
 	fmt.Fprintf(w, `{"message":%q}`, message)
+}
+
+func queryDatesRange(r *http.Request) (from, to string) {
+	from = r.FormValue("from")
+	to = r.FormValue("to")
+
+	if from == "" {
+		from = helpers.MonthAgo()
+	}
+	if to == "" {
+		to = helpers.DaysAgo(0)
+	}
+	return from, to
 }

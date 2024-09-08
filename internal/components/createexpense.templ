@@ -35,8 +35,9 @@ templ CreateExpenseForm(ctx context.Context, currencies []string, categories []m
 		id="createexpenseform"
 		class="mx-auto lg:max-w-screen-md [&>div]:py-1"
 		hx-post={ url.Create(ctx, "expense", "create") }
-		hx-swap="afterbegin"
+		hx-swap="outerHTML"
 		hx-target="#all-expenses-list"
+		hx-include="#expenses-main-filter-date-from, #expenses-main-filter-date-to"
 		x-data="{ formErrors: {} }"
 		@click.outside="showCreateExpenseForm = false;"
 		@htmx:after-request.camel="

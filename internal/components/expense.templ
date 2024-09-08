@@ -3,10 +3,24 @@ package components
 import (
 	"context"
 	"fmt"
+	"strconv"
+
+	"github.com/kkstas/tjener/internal/helpers"
 	"github.com/kkstas/tjener/internal/model"
 	"github.com/kkstas/tjener/internal/url"
-	"strconv"
 )
+
+templ ExpensesDateRangePicker(ctx context.Context) {
+	<form
+		hx-get={ url.Create(ctx, "expense", "all") }
+		hx-target="#all-expenses-list"
+		hx-swap="outerHTML"
+	>
+		<input id="expenses-main-filter-date-from" type="text" name="from" value={ helpers.MonthAgo() }/>
+		<input id="expenses-main-filter-date-to" type="text" name="to" value={ helpers.DaysAgo(0) }/>
+		<button type="submit">Submit</button>
+	</form>
+}
 
 templ Expenses(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	<div
@@ -52,9 +66,7 @@ templ Expense(ctx context.Context, expense model.Expense, currencies []string, c
 				>
 					Delete	
 				</button>
-				<template x-if="activeAccordion==id">
-					@ExpenseEditButton(ctx, expense, currencies, categories)
-				</template>
+				@ExpenseEditButton(ctx, expense, currencies, categories)
 			</div>
 		</div>
 	</div>
@@ -145,9 +157,11 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 						hx-swap="outerHTML"
 						x-data="{ formErrors: {} }"
 						x-effect="if (popoverOpen) { formErrors = {}; $el.reset(); }"
+						hx-include="#expenses-main-filter-date-from, #expenses-main-filter-date-to"
 						@htmx:after-request.camel="
 							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
 								formErrors = JSON.parse(event.detail.xhr.response);
+								popoverOpen = false;
 								return;
 							}
 						"

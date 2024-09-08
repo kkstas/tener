@@ -53,7 +53,9 @@ func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request) {
 	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, model.ValidCurrencies, categories))
 }
 
-func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *http.Request) {
+func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request) {
+	from, to := queryDatesRange(r)
+
 	category := r.FormValue("category")
 	currency := r.FormValue("currency")
 	date := r.FormValue("date")
@@ -72,9 +74,15 @@ func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *h
 		return
 	}
 
-	createdExpense, err := app.expense.Create(r.Context(), expense)
+	_, err = app.expense.Create(r.Context(), expense)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
+		return
+	}
+
+	expenses, err := app.expense.QueryByDateRange(r.Context(), from, to)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
 	}
 
@@ -84,10 +92,12 @@ func (app *Application) createAndRenderSingleExpense(w http.ResponseWriter, r *h
 		return
 	}
 
-	app.renderTempl(w, r, components.Expense(r.Context(), createdExpense, model.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, model.ValidCurrencies, categories))
 }
 
 func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request) {
+	from, to := queryDatesRange(r)
+
 	SK := r.PathValue("SK")
 	category := strings.TrimSpace(r.FormValue("category"))
 	currency := strings.TrimSpace(r.FormValue("currency"))
@@ -118,7 +128,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	expenses, err := app.expense.Query(r.Context())
+	expenses, err := app.expense.QueryByDateRange(r.Context(), from, to)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return

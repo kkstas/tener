@@ -2,21 +2,9 @@ package components
 
 import (
 	"context"
-	"github.com/kkstas/tjener/internal/model"
-	"github.com/kkstas/tjener/internal/url"
-)
 
-templ ExpensesDateRangePicker(ctx context.Context) {
-	<form
-		hx-get={ url.Create(ctx, "expense", "all") }
-		hx-target="#all-expenses-list"
-		hx-swap="outerHTML"
-	>
-		<input type="text" name="from" value="2024-01-01"/>
-		<input type="text" name="to" value="2024-09-01"/>
-		<button type="submit">Submit</button>
-	</form>
-}
+	"github.com/kkstas/tjener/internal/model"
+)
 
 templ Page(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	@BaseHTML(ctx) {

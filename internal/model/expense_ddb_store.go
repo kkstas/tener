@@ -239,7 +239,6 @@ func (es *ExpenseDDBStore) Query(ctx context.Context) ([]Expense, error) {
 
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
 func (es *ExpenseDDBStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
-	fmt.Printf("querying from='%s' to='%s'\n", from, to)
 	daysDiff, err := helpers.DaysBetween(from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
@@ -247,10 +246,12 @@ func (es *ExpenseDDBStore) QueryByDateRange(ctx context.Context, from, to string
 	if daysDiff < minQueryRangeDaysDiff || daysDiff > maxQueryRangeDaysDiff {
 		return nil, fmt.Errorf("invalid difference between 'from' and 'to' date; got=%d, max=%d, min=%d", daysDiff, minQueryRangeDaysDiff, maxQueryRangeDaysDiff)
 	}
+
 	dayAfterTo, err := helpers.NextDay(to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get next day for date '%s': %w", to, err)
 	}
+
 	keyCond := expression.
 		Key("PK").Equal(expression.Value(expensePK)).
 		And(expression.Key("SK").Between(expression.Value(from), expression.Value(dayAfterTo)))
