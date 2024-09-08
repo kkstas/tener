@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	validExpenseName     = "Some name"
-	validExpenseDate     = "2024-09-07"
-	validExpenseCategory = "Some category"
-	validExpenseAmount   = 24.99
+	validDDBExpenseName     = "Some name"
+	validDDBExpenseDate     = "2024-09-07"
+	validDDBExpenseCategory = "Some category"
+	validDDBExpenseAmount   = 24.99
 )
 
 func TestCreateDDBExpense(t *testing.T) {
@@ -28,7 +28,7 @@ func TestCreateDDBExpense(t *testing.T) {
 	defer removeDDB()
 	store := model.NewExpenseDDBStore(tableName, client)
 
-	expense := createDefaultExpenseHelper(t, ctx, store)
+	expense := createDefaultDDBExpenseHelper(t, ctx, store)
 
 	foundExpense, err := store.FindOne(ctx, expense.SK)
 	if err != nil {
@@ -36,11 +36,11 @@ func TestCreateDDBExpense(t *testing.T) {
 	}
 
 	t.Run("creates new expense with correct data", func(t *testing.T) {
-		assertEqual(t, foundExpense.Name, validExpenseName)
-		assertEqual(t, strings.HasPrefix(foundExpense.SK, validExpenseDate), true)
-		assertEqual(t, foundExpense.Date, validExpenseDate)
-		assertEqual(t, foundExpense.Category, validExpenseCategory)
-		assertEqual(t, foundExpense.Amount, validExpenseAmount)
+		assertEqual(t, foundExpense.Name, validDDBExpenseName)
+		assertEqual(t, strings.HasPrefix(foundExpense.SK, validDDBExpenseDate), true)
+		assertEqual(t, foundExpense.Date, validDDBExpenseDate)
+		assertEqual(t, foundExpense.Category, validDDBExpenseCategory)
+		assertEqual(t, foundExpense.Amount, validDDBExpenseAmount)
 		assertValidTime(t, time.RFC3339Nano, foundExpense.CreatedAt)
 	})
 
@@ -63,7 +63,7 @@ func TestDeleteDDBExpense(t *testing.T) {
 		defer removeDDB()
 
 		store := model.NewExpenseDDBStore(tableName, client)
-		expense := createDefaultExpenseHelper(t, ctx, store)
+		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 
 		_, err = store.FindOne(ctx, expense.SK)
 		if err != nil {
@@ -122,9 +122,9 @@ func TestUpdateDDBExpense(t *testing.T) {
 	store := model.NewExpenseDDBStore(tableName, client)
 
 	t.Run("updates existing expense", func(t *testing.T) {
-		expense := createDefaultExpenseHelper(t, ctx, store)
+		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 
-		expense.Name = validExpenseName
+		expense.Name = validDDBExpenseName
 		err = store.Update(ctx, expense)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
@@ -140,7 +140,7 @@ func TestUpdateDDBExpense(t *testing.T) {
 	})
 
 	t.Run("assigns Date as first part of SK and keeps CreatedAt as second part when Date is updated", func(t *testing.T) {
-		expense := createDefaultExpenseHelper(t, ctx, store)
+		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 		newDate := "2024-09-09"
 		expense.Date = newDate
 		err = store.Update(ctx, expense)
@@ -162,7 +162,7 @@ func TestUpdateDDBExpense(t *testing.T) {
 	})
 
 	t.Run("keep the same SK when Date is not changed", func(t *testing.T) {
-		expense := createDefaultExpenseHelper(t, ctx, store)
+		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 		newName := "new name"
 		expense.Name = newName
 		err = store.Update(ctx, expense)
@@ -205,7 +205,7 @@ func TestFindOneDDBExpense(t *testing.T) {
 	store := model.NewExpenseDDBStore(tableName, client)
 
 	t.Run("finds existing expense", func(t *testing.T) {
-		expense := createDefaultExpenseHelper(t, ctx, store)
+		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 
 		_, err = store.FindOne(ctx, expense.SK)
 		if err != nil {
@@ -228,7 +228,7 @@ func TestFindOneDDBExpense(t *testing.T) {
 	})
 }
 
-func TestQueryByDateRange(t *testing.T) {
+func TestQueryDDBByDateRange(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -238,10 +238,10 @@ func TestQueryByDateRange(t *testing.T) {
 	defer removeDDB()
 	store := model.NewExpenseDDBStore(tableName, client)
 
-	createExpenseHelper(t, ctx, store, validExpenseName, "2024-01-15", validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
-	createExpenseHelper(t, ctx, store, validExpenseName, "2024-01-16", validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
-	createExpenseHelper(t, ctx, store, validExpenseName, "2024-01-17", validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
-	createExpenseHelper(t, ctx, store, validExpenseName, "2024-01-18", validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
+	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-15", validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
+	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-16", validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
+	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-17", validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
+	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-18", validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
 		expenses, err := store.QueryByDateRange(ctx, "2024-01-15", "2024-01-18")
@@ -277,12 +277,12 @@ func TestQueryByDateRange(t *testing.T) {
 	})
 }
 
-func createDefaultExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore) model.Expense {
+func createDefaultDDBExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore) model.Expense {
 	t.Helper()
-	return createExpenseHelper(t, ctx, store, validExpenseName, validExpenseDate, validExpenseCategory, validExpenseAmount, model.ValidCurrencies[0])
+	return createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, validDDBExpenseDate, validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
 }
 
-func createExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore, name, date, category string, amount float64, currency string) model.Expense {
+func createDDBExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore, name, date, category string, amount float64, currency string) model.Expense {
 	t.Helper()
 	expenseFC, err := model.NewExpenseFC(name, date, category, amount, currency)
 	if err != nil {

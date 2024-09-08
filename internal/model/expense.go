@@ -10,6 +10,10 @@ import (
 var ValidCurrencies = []string{"PLN", "EUR", "GBP", "USD", "CZK", "CHF", "NOK", "SEK", "DKK", "HUF", "CAD", "AUD", "JPY", "CNY", "TRY"}
 
 const (
+	expensePK             = "expense"
+	minQueryRangeDaysDiff = 0
+	maxQueryRangeDaysDiff = 365
+
 	ExpenseNameMinLength     = 2
 	ExpenseNameMaxLength     = 50
 	ExpenseCategoryMinLength = 2

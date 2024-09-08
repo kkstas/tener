@@ -12,12 +12,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-const (
-	expensePK             = "expense"
-	minQueryRangeDaysDiff = 0
-	maxQueryRangeDaysDiff = 365
-)
-
 type ExpenseDDBStore struct {
 	client    *dynamodb.Client
 	tableName string

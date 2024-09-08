@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"fmt"
 	"slices"
 )
 
@@ -56,4 +57,33 @@ func (e *ExpenseInMemoryStore) FindOne(ctx context.Context, SK string) (Expense,
 
 func (e *ExpenseInMemoryStore) Query(ctx context.Context) ([]Expense, error) {
 	return e.expenses, nil
+}
+
+// Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
+func (e *ExpenseInMemoryStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
+	daysDiff, err := daysBetween(from, to)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
+	}
+	if daysDiff < minQueryRangeDaysDiff || daysDiff > maxQueryRangeDaysDiff {
+		return nil, fmt.Errorf("invalid difference between 'from' and 'to' date; got=%d, max=%d, min=%d", daysDiff, minQueryRangeDaysDiff, maxQueryRangeDaysDiff)
+	}
+
+	var expenses []Expense
+
+	for _, expense := range e.expenses {
+		daysAfterFrom, err := daysBetween(from, expense.Date)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get number of days between 'from' and 'expense.Date' for expense: %+v: %w", expense, err)
+		}
+		daysBeforeTo, err := daysBetween(expense.Date, to)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get number of days between 'expense.Date' and 'to for expense: %+v: %w", expense, err)
+		}
+		if daysAfterFrom >= 0 && daysBeforeTo >= 0 {
+			expenses = append(expenses, expense)
+		}
+	}
+
+	return expenses, nil
 }
