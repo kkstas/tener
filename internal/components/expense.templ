@@ -14,18 +14,45 @@ templ ExpensesDateRangePicker(ctx context.Context) {
 	<form
 		hx-get={ url.Create(ctx, "expense", "all") }
 		hx-target="#all-expenses-list"
+		hx-trigger="change[target.value.includes(' to ')] from:#main-date-range-picker"
 		hx-swap="outerHTML"
+		class="relative w-full max-w-md mx-auto flex justify-end px-5"
 	>
-		<input id="expenses-main-filter-date-from" type="text" name="from" value={ helpers.MonthAgo() }/>
-		<input id="expenses-main-filter-date-to" type="text" name="to" value={ helpers.DaysAgo(0) }/>
-		<button type="submit">Submit</button>
+		<style>.dateRange { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>'); background-position: center; background-repeat: no-repeat; } </style>
+		<input
+			id="main-date-range-picker"
+			placeholder="Select Date Range"
+			class="dateRange flex text-[0px] items-center justify-center w-10 h-10 bg-white border rounded-full shadow-sm cursor-pointer hover:bg-neutral-100 focus-visible:ring-gray-400 focus-visible:ring-2 focus-visible:outline-none active:bg-white border-neutral-200/70"
+		/>
+		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.MonthAgo() }/>
+		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
+		<script>
+			flatpickr("#main-date-range-picker", {
+				mode: "range",
+				dateFormat: "Y-m-d",
+				defaultDate: [document.getElementById("main-date-range-picker-from").value, document.getElementById("main-date-range-picker-to").value],
+				onClose: function(selectedDates, dateStr, instance) {
+					instance.input.blur();
+				},
+				onChange: function(selectedDates, dateStr, instance) {
+					function dateToISODateString(date) {
+						return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+					}
+					if (selectedDates.length === 2) {
+						document.getElementById("main-date-range-picker-from").value = dateToISODateString(selectedDates[0]);
+						document.getElementById("main-date-range-picker-to").value = dateToISODateString(selectedDates[1]);
+					}
+				}
+			});
+		</script>
 	</form>
 }
 
 templ Expenses(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
 	<div
-		class="my-10 relative w-full max-w-md mx-auto text-sm font-normal bg-white border border-gray-200 divide-y divide-gray-200 rounded-md"
+		class="my-3 relative w-full max-w-md mx-auto text-sm font-normal bg-white border border-gray-200 divide-y divide-gray-200 rounded-md"
 		id="all-expenses-list"
+		hx-include="#main-date-range-picker-from, #main-date-range-picker-to"
 	>
 		for i := len(expenses) - 1; i >= 0; i-- {
 			@Expense(ctx, expenses[i], currencies, categories)
@@ -95,14 +122,14 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 			}
 		}"
 		x-init="
-        that = this;
-        window.addEventListener('resize', function(){
-            popoverPositionCalculate();
-        });
-        $watch('popoverOpen', function(value){
-            if(value) { popoverPositionCalculate(); document.getElementById('edit-expense-name-input').focus();  }
-        });
-    "
+			that = this;
+			window.addEventListener('resize', function(){
+				popoverPositionCalculate();
+			});
+			$watch('popoverOpen', function(value){
+				if(value) { popoverPositionCalculate(); document.getElementById('edit-expense-name-input').focus();  }
+			});
+		"
 		class="relative"
 	>
 		<button
@@ -151,7 +178,6 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 						hx-swap="outerHTML"
 						x-data="{ formErrors: {} }"
 						x-effect="if (popoverOpen) { formErrors = {}; $el.reset(); }"
-						hx-include="#expenses-main-filter-date-from, #expenses-main-filter-date-to"
 						@htmx:after-request.camel="
 							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
 								formErrors = JSON.parse(event.detail.xhr.response);

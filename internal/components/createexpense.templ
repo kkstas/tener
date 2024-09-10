@@ -28,7 +28,7 @@ templ CreateExpenseContainer(ctx context.Context, currencies []string, categorie
 						hx-swap="outerHTML"
 						x-data="{ formErrors: {} }"
 						x-effect="if (activeAccordion==id) { formErrors = {}; $el.reset(); }"
-						hx-include="#expenses-main-filter-date-from, #expenses-main-filter-date-to"
+						hx-include="#main-date-range-picker-from, #main-date-range-picker-to"
 						@htmx:after-request.camel="
 							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
 								formErrors = JSON.parse(event.detail.xhr.response);
