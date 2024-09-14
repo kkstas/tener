@@ -16,16 +16,22 @@ templ ExpensesDateRangePicker(ctx context.Context) {
 		hx-target="#all-expenses-list"
 		hx-trigger="change[target.value.includes(' to ')] from:#main-date-range-picker"
 		hx-swap="outerHTML"
-		class="relative w-full max-w-md mx-auto flex justify-end px-5"
+		class="relative w-full max-w-md mx-auto flex justify-end px-3 mb-0"
 	>
-		<style>.dateRange { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/></svg>'); background-position: center; background-repeat: no-repeat; } </style>
-		<input
-			id="main-date-range-picker"
-			placeholder="Select Date Range"
-			class="dateRange flex text-[0px] items-center justify-center w-10 h-10 bg-white border rounded-full shadow-sm cursor-pointer hover:bg-neutral-100 focus-visible:ring-gray-400 focus-visible:ring-2 focus-visible:outline-none active:bg-white border-neutral-200/70"
-		/>
 		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.MonthAgo() }/>
 		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
+		<div class="flatpickr flex group">
+			<input
+				id="main-date-range-picker"
+				placeholder="Select Date Range"
+				class="bg-white text-sm text-center border rounded-full shadow-sm cursor-pointer group-hover:bg-neutral-100 focus-visible:ring-gray-400 focus-visible:ring-2 focus-visible:outline-none active:bg-white border-neutral-200/70"
+			/>
+			<a
+				class="ms-1 my-auto group-hover:opacity-80 cursor-pointer shadow-sm"
+				onclick="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
+				title="toggle"
+			><svg width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg></a>
+		</div>
 		<script>
 			flatpickr("#main-date-range-picker", {
 				mode: "range",
