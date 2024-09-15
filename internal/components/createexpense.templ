@@ -10,7 +10,7 @@ import (
 )
 
 templ CreateExpenseContainer(ctx context.Context, currencies []string, categories []model.ExpenseCategory) {
-	<div class="my-10 relative w-full max-w-md mx-auto text-sm font-normal bg-white has-[:focus]:bg-gray-50 border border-gray-200 divide-y divide-gray-200 rounded-md">
+	<div class="my-10 relative w-full max-w-md mx-auto text-sm font-normal bg-white focus:shadow-outline has-[:focus]:shadow-outline focus:outline-none has-[:focus]:outline-none focus:outline-gray-800/10 has-[:focus]:outline-gray-800/10 focus:outline-1 has-[:focus]:outline-1 border border-gray-200 divide-y divide-gray-200 rounded-md">
 		<div x-data="{ id: $id('accordion') }" class="cursor-pointer group">
 			<button @click="setActiveAccordion(id)" class="focus:outline-none flex items-center justify-center w-full p-4 text-left select-none">
 				<div class="w-8 h-8 me-[5%]">
@@ -46,7 +46,7 @@ templ CreateExpenseContainer(ctx context.Context, currencies []string, categorie
 							>Name</label>
 							<input
 								x-bind:class="formErrors.name && 'border-red-500'"
-								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								id="create-expense-name-input"
 								type="text"
 								name="name"
@@ -100,7 +100,7 @@ templ CreateExpenseContainer(ctx context.Context, currencies []string, categorie
 								for="create-expense-amount-input"
 							>Amount</label>
 							<input
-								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								x-bind:class="formErrors.amount && 'border-red-500'"
 								id="create-expense-amount-input"
 								name="amount"
@@ -124,7 +124,7 @@ templ CreateExpenseContainer(ctx context.Context, currencies []string, categorie
 							>Date</label>
 							<input
 								id="create-expense-date-input"
-								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								x-bind:class="formErrors.date && 'border-red-500'"
 								value={ time.Now().Format("2006-01-02") }
 								type="date"

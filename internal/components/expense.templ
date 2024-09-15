@@ -29,7 +29,7 @@ templ ExpensesDateRangePicker(ctx context.Context) {
 			<input
 				tabindex="-1"
 				id="main-date-range-picker"
-				class="bg-white text-sm text-center border rounded-full shadow-sm cursor-pointer group-hover:bg-neutral-100 group-focus-visible:ring-gray-400 group-focus-visible:ring-2 group-focus-visible:outline-none group-active:bg-white border-neutral-200/70"
+				class="bg-white text-sm text-center border rounded-full shadow-sm cursor-pointer group-hover:bg-neutral-100 group-active:bg-white border-neutral-200/70 focus:outline-none focus:shadow-outline group-focus-visible:shadow-outline group-focus-visible:outline-none group-focus-visible:bg-white focus:outline-gray-800/10 group-focus-visible:outline-gray-800/10 focus:outline-1 group-focus-visible:outline-1"
 			/>
 			<a
 				class="ms-1 my-auto opacity-80 group-hover:opacity-80 group-focus:opacity-100 cursor-pointer shadow-sm"
@@ -203,7 +203,7 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 							>Name</label>
 							<input
 								x-bind:class="formErrors.name && 'border-red-500'"
-								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								id="edit-expense-name-input"
 								type="text"
 								name="name"
@@ -254,7 +254,7 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								for="edit-expense-amount-input"
 							>Amount</label>
 							<input
-								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								id="edit-expense-amount-input"
 								name="amount"
 								type="text"
@@ -278,7 +278,7 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 							>Date</label>
 							<input
 								id="edit-expense-date-input"
-								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:bg-white focus:outline-gray-800/10 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								type="date"
 								name="date"
 								value={ expense.Date }
