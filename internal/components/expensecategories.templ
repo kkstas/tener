@@ -20,7 +20,7 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 				<div>
 					<label>Category Name</label>
 					<input
-						class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:outline-gray-800/20 focus:outline-1"
+						class="shadow appearance-none border dark:bg-gray-800 dark:border-gray-700 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:shadow-outline focus:outline-none focus:outline-gray-800/10 dark:focus:outline-gray-300/20 focus:outline-1"
 						type="text"
 						name="name"
 						minlength={ strconv.Itoa(model.ExpenseCategoryMinLength) }
@@ -31,12 +31,12 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 				<div class="flex justify-center">
 					<input
 						type="submit"
-						class="bg-white hover:bg-gray-100 text-gray-800 font-medium py-1 px-3 border border-gray-400 rounded shadow my-2 mx-1"
+						class="bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium py-1 px-3 border border-gray-400 dark:border-gray-700 rounded shadow my-2 mx-1"
 						value="Create"
 					/>
 					<a
 						href={ templ.SafeURL(url.Create(ctx, "home")) }
-						class="bg-white hover:bg-gray-100 text-gray-800 font-medium py-1 px-3 border border-gray-400 rounded shadow my-2 mx-1"
+						class="bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 font-medium py-1 px-3 border border-gray-400 dark:border-gray-700 rounded shadow my-2 mx-1"
 					>Go back</a>
 				</div>
 			</form>
@@ -51,8 +51,8 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 }
 
 templ SingleExpenseCategory(ctx context.Context, category model.ExpenseCategory) {
-	<div hx-target="this" class="border border-gray-300 px-2 pt-2 rounded mt-2 bg-white">
-		<div class="[&>div>label]:text-xs [&>div>label]:text-gray-700 [&>div]:min-w-5 flex flex-row place-items-center overflow-x-auto break-words min-w-24 [&>div>label]:min-w-8 text-sm md:text-base">
+	<div hx-target="this" class="border border-gray-300 dark:border-gray-700 px-2 pt-2 rounded mt-2 bg-white dark:bg-gray-800">
+		<div class="[&>div>label]:text-xs [&>div>label]:text-gray-700 dark:[&>div>label]:text-gray-400 [&>div]:min-w-5 flex flex-row place-items-center overflow-x-auto break-words min-w-24 [&>div>label]:min-w-8 text-sm md:text-base">
 			<div class="flex-1 ps-2 pb-2">
 				<label>Name</label>
 				<div>{ category.Name }</div>
