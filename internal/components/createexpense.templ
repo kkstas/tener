@@ -19,7 +19,7 @@ templ CreateExpenseContainer(ctx context.Context, currencies []string, categorie
 				<span class="font-medium text-lg">Add expense</span>
 				<div class="w-8 h-8 ms-[5%]"></div>
 			</button>
-			<div x-show="activeAccordion==id" x-trap="activeAccordion==id" x-collapse x-cloak>
+			<div x-show="activeAccordion==id" x-collapse x-cloak>
 				<div class="p-4 pt-0">
 					<form
 						class="grid gap-2"
@@ -27,7 +27,13 @@ templ CreateExpenseContainer(ctx context.Context, currencies []string, categorie
 						hx-target="#all-expenses-list"
 						hx-swap="outerHTML"
 						x-data="{ formErrors: {} }"
-						x-effect="if (activeAccordion==id) { formErrors = {}; $el.reset(); }"
+						x-effect="
+							if (activeAccordion === id) {
+								formErrors = {};
+								$el.reset();
+								$refs.firstInput.focus();
+							}
+						"
 						hx-include="#main-date-range-picker-from, #main-date-range-picker-to"
 						@htmx:after-request.camel="
 							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
@@ -46,6 +52,7 @@ templ CreateExpenseContainer(ctx context.Context, currencies []string, categorie
 							>Name</label>
 							<input
 								x-bind:class="formErrors.name && 'border-red-500'"
+								x-ref="firstInput"
 								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-gray-200 border dark:border-gray-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-gray-800/10 dark:focus:outline-gray-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								id="create-expense-name-input"
 								type="text"
