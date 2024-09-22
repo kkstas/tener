@@ -1,0 +1,44 @@
+package server
+
+import (
+	"encoding/json"
+	"errors"
+	"net/http"
+
+	"github.com/kkstas/tjener/internal/components"
+	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tjener/pkg/validator"
+)
+
+func (app *Application) renderLoginPage(w http.ResponseWriter, r *http.Request) {
+	app.renderTempl(w, r, components.LoginPage(r.Context()))
+}
+
+func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+	password := r.FormValue("password")
+
+	if ok, _, _ := validator.IsEmail("email", email); !ok {
+		sendErrorResponse(w, http.StatusBadRequest, "invalid email", nil)
+		return
+	}
+
+	foundUser, err := app.user.FindOneByEmail(r.Context(), email)
+	if err != nil {
+		var notFoundErr *user.NotFoundError
+		if errors.As(err, &notFoundErr) {
+			sendErrorResponse(w, http.StatusNotFound, "user with that email does not exist", nil)
+			return
+		}
+		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
+		return
+	}
+
+	if !user.CheckPassword(foundUser.PasswordHash, password) {
+		sendErrorResponse(w, http.StatusUnauthorized, "invalid password", err)
+		return
+	}
+
+	w.Header().Add("content-type", "application/json")
+	_ = json.NewEncoder(w).Encode(foundUser)
+}

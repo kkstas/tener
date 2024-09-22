@@ -13,6 +13,7 @@ import (
 	"github.com/kkstas/tjener/internal/database"
 	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tjener/internal/model/user"
 	"github.com/kkstas/tjener/internal/server"
 )
 
@@ -39,8 +40,9 @@ func initApplication() *server.Application {
 
 	expenseStore := expense.NewDDBStore(tableName, client)
 	expenseCategoryStore := expensecategory.NewDDBStore(tableName, client)
+	userStore := &user.InMemoryStore{}
 
-	return server.NewApplication(expenseStore, expenseCategoryStore)
+	return server.NewApplication(expenseStore, expenseCategoryStore, userStore)
 }
 
 func initLogger() {

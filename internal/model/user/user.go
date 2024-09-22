@@ -19,15 +19,15 @@ const (
 )
 
 type User struct {
-	PK                  string   `dynamodbav:"PK"`
-	ID                  string   `dynamodbav:"SK"`
-	FirstName           string   `dynamodbav:"firstName"`
-	LastName            string   `dynamodbav:"lastName"`
-	Email               string   `dynamodbav:"Email"`
-	Vaults              []string `dynamodbav:"vaults"`
-	PasswordHash        string   `dynamodbav:"createdAt"`
-	CreatedAt           string   `dynamodbav:"createdAt"`
-	validator.Validator `dynamodbav:"-"`
+	PK                  string   `dynamodbav:"PK"           json:"-"`
+	ID                  string   `dynamodbav:"SK"           json:"id"`
+	FirstName           string   `dynamodbav:"firstName"    json:"firstName"`
+	LastName            string   `dynamodbav:"lastName"     json:"lastName"`
+	Email               string   `dynamodbav:"email"        json:"email"`
+	Vaults              []string `dynamodbav:"vaults"       json:"vaults"`
+	PasswordHash        string   `dynamodbav:"passwordHash" json:"-"`
+	CreatedAt           string   `dynamodbav:"createdAt"    json:"createdAt"`
+	validator.Validator `dynamodbav:"-" json:"-"`
 }
 
 func New(firstName, lastName, email, password string) (User, error) {

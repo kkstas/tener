@@ -9,6 +9,13 @@ type InMemoryStore struct {
 	users []User
 }
 
+func NewInMemoryStore() *InMemoryStore {
+	store := &InMemoryStore{}
+	userFC, _ := New("John", "Doe", "asdf@gmail.com", "asdf")
+	store.Create(context.Background(), userFC)
+	return store
+}
+
 func (s *InMemoryStore) Create(ctx context.Context, userFC User) (User, error) {
 	s.users = append(s.users, userFC)
 	return userFC, nil
@@ -45,13 +52,22 @@ func (s *InMemoryStore) Update(ctx context.Context, userFU User) error {
 	return nil
 }
 
-func (s *InMemoryStore) FindOne(ctx context.Context, id string) (User, error) {
+func (s *InMemoryStore) FindOneByID(ctx context.Context, id string) (User, error) {
 	for _, el := range s.users {
 		if el.ID == id {
 			return el, nil
 		}
 	}
 	return User{}, &NotFoundError{ID: id}
+}
+
+func (s *InMemoryStore) FindOneByEmail(ctx context.Context, email string) (User, error) {
+	for _, el := range s.users {
+		if el.Email == email {
+			return el, nil
+		}
+	}
+	return User{}, &NotFoundError{Email: email}
 }
 
 func (s *InMemoryStore) FindAll(ctx context.Context) ([]User, error) {

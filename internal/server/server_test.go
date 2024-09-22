@@ -12,6 +12,7 @@ import (
 
 	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tjener/internal/model/user"
 	"github.com/kkstas/tjener/internal/server"
 	u "github.com/kkstas/tjener/internal/url"
 )
@@ -136,8 +137,38 @@ func TestUpdateExpense(t *testing.T) {
 		request := httptest.NewRequest(http.MethodPut, u.Create(context.Background(), "expense", "edit", SK), payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		server.NewApplication(&store, &expensecategory.InMemoryStore{}).ServeHTTP(response, request)
+		server.NewApplication(&store, &expensecategory.InMemoryStore{}, &user.InMemoryStore{}).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
+	})
+}
+
+func TestHandleLogin(t *testing.T) {
+	t.Run("returns 400 if email is invalid", func(t *testing.T) {
+		var param = url.Values{}
+		param.Set("email", "invalid-email.com")
+		param.Set("password", "howdy")
+		var payload = bytes.NewBufferString(param.Encode())
+
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/login", payload)
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		newTestApplication().ServeHTTP(response, request)
+
+		assertStatus(t, response.Code, http.StatusBadRequest)
+	})
+
+	t.Run("returns 404 if user with that email does not exist", func(t *testing.T) {
+		var param = url.Values{}
+		param.Set("email", "idontexist@gmail.com")
+		param.Set("password", "howdy")
+		var payload = bytes.NewBufferString(param.Encode())
+
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/login", payload)
+		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		newTestApplication().ServeHTTP(response, request)
+
+		assertStatus(t, response.Code, http.StatusNotFound)
 	})
 }
 
@@ -149,5 +180,5 @@ func assertStatus(t testing.TB, got, want int) {
 }
 
 func newTestApplication() *server.Application {
-	return server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{})
+	return server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, &user.InMemoryStore{})
 }

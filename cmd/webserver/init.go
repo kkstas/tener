@@ -15,6 +15,7 @@ import (
 	"github.com/kkstas/tjener/internal/database"
 	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tjener/internal/model/user"
 	"github.com/kkstas/tjener/internal/server"
 )
 
@@ -36,8 +37,9 @@ func initApplicationAndDDB() *server.Application {
 
 	expenseStore := expense.NewDDBStore(tableName, client)
 	expenseCategoryStore := expensecategory.NewDDBStore(tableName, client)
+	userStore := user.NewInMemoryStore()
 
-	newApp := server.NewApplication(expenseStore, expenseCategoryStore)
+	newApp := server.NewApplication(expenseStore, expenseCategoryStore, userStore)
 	newApp.Handler = loggingMiddleware(newApp.Handler)
 
 	return newApp

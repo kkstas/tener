@@ -7,9 +7,10 @@ import (
 	"github.com/kkstas/tjener/assets"
 	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tjener/internal/model/user"
 )
 
-type ExpenseStore interface {
+type expenseStore interface {
 	Create(ctx context.Context, expenseFC expense.Expense) (expense.Expense, error)
 	Delete(ctx context.Context, SK string) error
 	Update(ctx context.Context, expenseFU expense.Expense) error
@@ -18,28 +19,41 @@ type ExpenseStore interface {
 	QueryByDateRange(ctx context.Context, from, to string) ([]expense.Expense, error)
 }
 
-type ExpenseCategoryStore interface {
+type expenseCategoryStore interface {
 	Create(ctx context.Context, categoryFC expensecategory.Category) error
 	Delete(ctx context.Context, name string) error
 	Query(ctx context.Context) ([]expensecategory.Category, error)
 }
 
+type userStore interface {
+	Create(ctx context.Context, userFC user.User) (user.User, error)
+	Delete(ctx context.Context, id string) error
+	FindOneByID(ctx context.Context, id string) (user.User, error)
+	FindOneByEmail(ctx context.Context, email string) (user.User, error)
+	FindAll(ctx context.Context) ([]user.User, error)
+}
+
 type Application struct {
-	expense         ExpenseStore
-	expenseCategory ExpenseCategoryStore
+	expense         expenseStore
+	expenseCategory expenseCategoryStore
+	user            userStore
 	http.Handler
 }
 
-func NewApplication(expenseStore ExpenseStore, expenseCategoryStore ExpenseCategoryStore) *Application {
+func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCategoryStore, userStore userStore) *Application {
 	app := new(Application)
 
 	app.expense = expenseStore
 	app.expenseCategory = expenseCategoryStore
+	app.user = userStore
 
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health-check", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", cacheControlMiddleware(http.FileServer(http.FS(assets.Public)))))
+
+	mux.HandleFunc("GET /login", app.renderLoginPage)
+	mux.HandleFunc("POST /login", app.handleLogin)
 
 	mux.HandleFunc("GET    /home", app.renderHomePage)
 	mux.HandleFunc("GET    /expense/all", app.renderExpenses)
