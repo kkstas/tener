@@ -57,7 +57,7 @@ func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCateg
 	mux.HandleFunc("GET /register", app.renderRegisterPage)
 	mux.HandleFunc("POST /register", app.handleRegister)
 
-	mux.HandleFunc("GET    /home", app.renderHomePage)
+	mux.HandleFunc("GET    /home", withUser(app.renderHomePage))
 	mux.HandleFunc("GET    /expense/all", app.renderExpenses)
 	mux.HandleFunc("POST   /expense/create", app.createSingleExpenseAndRenderExpenses)
 	mux.HandleFunc("PUT    /expense/edit/{SK}", app.updateSingleExpenseAndRenderExpenses)

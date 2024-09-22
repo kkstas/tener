@@ -9,9 +9,10 @@ import (
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/helpers"
 	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tjener/internal/model/user"
 )
 
-func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request) {
+func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u user.User) {
 	expenses, err := app.expense.QueryByDateRange(r.Context(), helpers.MonthAgo(), helpers.DaysAgo(0))
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)

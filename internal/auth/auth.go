@@ -14,6 +14,11 @@ import (
 	"github.com/kkstas/tjener/internal/model/user"
 )
 
+type Claims struct {
+	User user.User `json:"user"`
+	Exp  int       `json:"exp"`
+}
+
 func base64URLEncode(data interface{}) (string, error) {
 	dataJSON, err := json.Marshal(data)
 	if err != nil {
@@ -21,7 +26,6 @@ func base64URLEncode(data interface{}) (string, error) {
 	}
 
 	return base64.RawURLEncoding.EncodeToString([]byte(dataJSON)), err
-
 }
 
 func CreateToken(u user.User) (string, error) {
@@ -29,6 +33,7 @@ func CreateToken(u user.User) (string, error) {
 		"alg": "HS256",
 		"typ": "JWT",
 	})
+
 	if err != nil {
 		return "", fmt.Errorf("failed encoding header: %w", err)
 	}
@@ -68,23 +73,38 @@ func createSignature(header, payload string) (string, error) {
 	return encodedSignature, nil
 }
 
-func ValidateToken(token string) error {
+func DecodeToken(token string) (user.User, error) {
 	parts := strings.Split(token, ".")
 	if len(parts) != 3 {
-		return errors.New("invalid token structure for token" + token)
+		return user.User{}, errors.New("invalid token structure for token" + token)
 	}
 	header := parts[0]
-	claims := parts[1]
+	claimsPart := parts[1]
 	signature := parts[2]
 
-	newSignature, err := createSignature(header, claims)
+	newSignature, err := createSignature(header, claimsPart)
 	if err != nil {
-		return fmt.Errorf("error during creating signature: %w", err)
+		return user.User{}, fmt.Errorf("error during creating signature: %w", err)
 	}
 
 	if newSignature != signature {
-		return errors.New("signatures are not the same")
+		return user.User{}, errors.New("signatures are not the same")
 	}
 
-	return nil
+	claimsBytes, err := base64.RawURLEncoding.DecodeString(claimsPart)
+	if err != nil {
+		return user.User{}, fmt.Errorf("failed to decode payload: %w", err)
+	}
+
+	var claims Claims
+	err = json.Unmarshal(claimsBytes, &claims)
+	if err != nil {
+		return user.User{}, fmt.Errorf("failed to unmarshal claims: %w", err)
+	}
+
+	if time.Now().Unix() > int64(claims.Exp) {
+		return user.User{}, errors.New("token has expired")
+	}
+
+	return claims.User, nil
 }

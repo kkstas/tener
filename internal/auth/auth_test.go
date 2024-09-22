@@ -19,12 +19,12 @@ func TestCreateToken(t *testing.T) {
 		t.Fatalf("didn't expect an error but got one: %v", err)
 	}
 
-	err = auth.ValidateToken(token)
+	_, err = auth.DecodeToken(token)
 	if err != nil {
 		t.Errorf("didn't exepct an error, but got one: %v", err)
 	}
 
-	err = auth.ValidateToken("smh")
+	_, err = auth.DecodeToken("smh")
 	if err == nil {
 		t.Error("expected an error, but didn't get one")
 	}
