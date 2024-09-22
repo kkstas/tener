@@ -250,3 +250,44 @@ func TestRegister(t *testing.T) {
 		}
 	})
 }
+
+func TestLogout(t *testing.T) {
+	t.Run("overwrites token cookie and redirects to login", func(t *testing.T) {
+		response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodPost, "/logout", nil)
+
+		userStore := &user.InMemoryStore{}
+		app := server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
+
+		app.ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusSeeOther)
+
+		var cookie *http.Cookie
+		for _, c := range response.Result().Cookies() {
+			if c.Name == "token" {
+				cookie = c
+			}
+		}
+
+		if cookie == nil {
+			t.Error("expected set token cookie, but didn't find one")
+			return
+		}
+
+		if cookie.Value != "" {
+			t.Errorf("expected token cookie value to be empty string, but got %s", cookie.Value)
+		}
+
+		if !cookie.HttpOnly {
+			t.Error("expected token cookie to have set HttpOnly to true")
+		}
+		if !cookie.Secure {
+			t.Error("expected token cookie to have set Secure to true")
+		}
+
+		if cookie.SameSite != http.SameSiteLaxMode {
+			t.Errorf("expected cookie to have set SameSiteLaxMode, got %v", cookie.SameSite)
+		}
+
+	})
+}

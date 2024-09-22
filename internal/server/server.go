@@ -54,6 +54,7 @@ func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCateg
 
 	mux.HandleFunc("GET /login", app.renderLoginPage)
 	mux.HandleFunc("POST /login", app.handleLogin)
+	mux.HandleFunc("POST /logout", app.handleLogout)
 	mux.HandleFunc("GET /register", app.renderRegisterPage)
 	mux.HandleFunc("POST /register", app.handleRegister)
 

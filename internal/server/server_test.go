@@ -3,6 +3,7 @@ package server_test
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kkstas/tjener/internal/auth"
 	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/internal/model/user"
@@ -21,6 +23,7 @@ func TestHomeHandler(t *testing.T) {
 	t.Run("responds with html", func(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodGet, "/home", nil)
+		addTokenCookie(t, request)
 		newTestApplication().ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
@@ -151,4 +154,19 @@ func assertStatus(t testing.TB, got, want int) {
 
 func newTestApplication() *server.Application {
 	return server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, &user.InMemoryStore{})
+}
+
+func addTokenCookie(t testing.TB, r *http.Request) {
+	t.Helper()
+	userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
+	if err != nil {
+		t.Fatalf("didn't expect na error but got one: %v", err)
+	}
+
+	token, err := auth.CreateToken(userFC)
+	if err != nil {
+		t.Fatalf("didn't expect na error but got one: %v", err)
+	}
+
+	r.Header.Add("cookie", fmt.Sprintf("token=%s", token))
 }
