@@ -11,16 +11,16 @@ templ LoginPage(ctx context.Context) {
 		<div
 			class="
 				mx-auto max-w-md my-10 px-4 py-4
-				bg-white dark:bg-gray-800
-				border border-gray-200 dark:border-gray-700 rounded-md
+				bg-white dark:bg-zinc-800
+				border border-zinc-200 dark:border-zinc-700 rounded-md
 			"
 		>
-			<h1 class="text-4xl py-3 font-light text-center text-gray-700 dark:text-gray-300">Sign In</h1>
+			<h1 class="text-4xl py-3 font-light text-center text-zinc-700 dark:text-zinc-300">Sign In</h1>
 			<form method="POST" action={ templ.SafeURL(url.Create(ctx, "login")) }>
 				<div class="items-center pt-5">
-					<label for="login-email-input" class="w-fit pl-0.5 text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+					<label for="login-email-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>
 					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-gray-200 border dark:border-gray-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-gray-800/10 dark:focus:outline-gray-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 						id="login-email-input"
 						type="email"
 						name="email"
@@ -30,9 +30,9 @@ templ LoginPage(ctx context.Context) {
 					/>
 				</div>
 				<div class="items-center pt-4">
-					<label for="login-password-input" class="w-fit pl-0.5 text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+					<label for="login-password-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
 					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-gray-200 border dark:border-gray-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-gray-800/10 dark:focus:outline-gray-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 						id="login-password-input"
 						type="password"
 						name="password"
@@ -43,10 +43,10 @@ templ LoginPage(ctx context.Context) {
 				</div>
 				<button
 					type="submit"
-					class="mt-5 w-full flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-700 focus:shadow-outline focus:outline-none focus:outline-gray-800/10 dark:focus:outline-gray-200/30 focus:outline-1"
+					class="mt-5 w-full flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-700 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
 				>Log in</button>
 			</form>
-			<p class="text-sm text-center text-gray-600 dark:text-gray-300">Don't have an account? <a href={ templ.SafeURL(url.Create(ctx, "register")) } class="text-blue-500 dark:text-blue-400 hover:underline">Sign up</a></p>
+			<p class="text-sm text-center text-zinc-600 dark:text-zinc-300">Don't have an account? <a href={ templ.SafeURL(url.Create(ctx, "register")) } class="text-blue-500 dark:text-blue-400 hover:underline">Sign up</a></p>
 		</div>
 	}
 }
