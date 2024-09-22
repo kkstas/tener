@@ -1,4 +1,4 @@
-package model_test
+package expense_test
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/kkstas/tjener/internal/database"
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expense"
 )
 
 const (
@@ -18,7 +18,7 @@ const (
 	validDDBExpenseAmount   = 24.99
 )
 
-func TestCreateDDBExpense(t *testing.T) {
+func TestDDBCreate(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -26,7 +26,7 @@ func TestCreateDDBExpense(t *testing.T) {
 		t.Fatalf("failed creating local test ddb table: %v", err)
 	}
 	defer removeDDB()
-	store := model.NewExpenseDDBStore(tableName, client)
+	store := expense.NewDDBStore(tableName, client)
 
 	expense := createDefaultDDBExpenseHelper(t, ctx, store)
 
@@ -52,7 +52,7 @@ func TestCreateDDBExpense(t *testing.T) {
 	})
 }
 
-func TestDeleteDDBExpense(t *testing.T) {
+func TestDDBDelete(t *testing.T) {
 	t.Run("deletes existing expense", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -62,26 +62,26 @@ func TestDeleteDDBExpense(t *testing.T) {
 		}
 		defer removeDDB()
 
-		store := model.NewExpenseDDBStore(tableName, client)
-		expense := createDefaultDDBExpenseHelper(t, ctx, store)
+		store := expense.NewDDBStore(tableName, client)
+		exp := createDefaultDDBExpenseHelper(t, ctx, store)
 
-		_, err = store.FindOne(ctx, expense.SK)
+		_, err = store.FindOne(ctx, exp.SK)
 		if err != nil {
 			t.Fatalf("failed finding expense after creation: %v", err)
 		}
 
-		err = store.Delete(ctx, expense.SK)
+		err = store.Delete(ctx, exp.SK)
 		if err != nil {
 			t.Fatalf("failed deleting expense: %v", err)
 		}
 
-		_, err = store.FindOne(ctx, expense.SK)
+		_, err = store.FindOne(ctx, exp.SK)
 		if err == nil {
 			t.Fatal("expected error after trying to find deleted expense but didn't get one")
 		}
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: expense.SK})
+			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: exp.SK})
 		}
 	})
 
@@ -96,21 +96,21 @@ func TestDeleteDDBExpense(t *testing.T) {
 
 		invalidSK := "invalidSK"
 
-		store := model.NewExpenseDDBStore(tableName, client)
+		store := expense.NewDDBStore(tableName, client)
 
 		err = store.Delete(ctx, invalidSK)
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
 
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: invalidSK})
+			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: invalidSK})
 		}
 	})
 }
 
-func TestUpdateDDBExpense(t *testing.T) {
+func TestDDBUpdate(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -119,7 +119,7 @@ func TestUpdateDDBExpense(t *testing.T) {
 	}
 	defer removeDDB()
 
-	store := model.NewExpenseDDBStore(tableName, client)
+	store := expense.NewDDBStore(tableName, client)
 
 	t.Run("updates existing expense", func(t *testing.T) {
 		expense := createDefaultDDBExpenseHelper(t, ctx, store)
@@ -181,19 +181,19 @@ func TestUpdateDDBExpense(t *testing.T) {
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
 		invalidSK := "invalidSK"
 
-		err := store.Update(ctx, model.Expense{SK: invalidSK})
+		err := store.Update(ctx, expense.Expense{SK: invalidSK})
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
 
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: invalidSK})
+			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: invalidSK})
 		}
 	})
 }
 
-func TestFindOneDDBExpense(t *testing.T) {
+func TestDDBFindOne(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -202,7 +202,7 @@ func TestFindOneDDBExpense(t *testing.T) {
 	}
 	defer removeDDB()
 
-	store := model.NewExpenseDDBStore(tableName, client)
+	store := expense.NewDDBStore(tableName, client)
 
 	t.Run("finds existing expense", func(t *testing.T) {
 		expense := createDefaultDDBExpenseHelper(t, ctx, store)
@@ -221,14 +221,14 @@ func TestFindOneDDBExpense(t *testing.T) {
 			t.Fatal("expected an error but didn't get one")
 		}
 
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: invalidSK})
+			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: invalidSK})
 		}
 	})
 }
 
-func TestQueryDDBByDateRange(t *testing.T) {
+func TestDDBQueryByDateRange(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -236,12 +236,12 @@ func TestQueryDDBByDateRange(t *testing.T) {
 		t.Fatalf("failed creating local test ddb table, %v", err)
 	}
 	defer removeDDB()
-	store := model.NewExpenseDDBStore(tableName, client)
+	store := expense.NewDDBStore(tableName, client)
 
-	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-15", validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
-	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-16", validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
-	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-17", validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
-	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-18", validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
+	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-15", validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
+	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-16", validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
+	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-17", validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
+	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-18", validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
 		expenses, err := store.QueryByDateRange(ctx, "2024-01-15", "2024-01-18")
@@ -277,14 +277,14 @@ func TestQueryDDBByDateRange(t *testing.T) {
 	})
 }
 
-func createDefaultDDBExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore) model.Expense {
+func createDefaultDDBExpenseHelper(t testing.TB, ctx context.Context, store *expense.DDBStore) expense.Expense {
 	t.Helper()
-	return createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, validDDBExpenseDate, validDDBExpenseCategory, validDDBExpenseAmount, model.ValidCurrencies[0])
+	return createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, validDDBExpenseDate, validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
 }
 
-func createDDBExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseDDBStore, name, date, category string, amount float64, currency string) model.Expense {
+func createDDBExpenseHelper(t testing.TB, ctx context.Context, store *expense.DDBStore, name, date, category string, amount float64, currency string) expense.Expense {
 	t.Helper()
-	expenseFC, err := model.NewExpenseFC(name, date, category, amount, currency)
+	expenseFC, err := expense.New(name, date, category, amount, currency)
 	if err != nil {
 		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
 	}

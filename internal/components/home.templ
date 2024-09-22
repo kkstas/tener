@@ -3,10 +3,11 @@ package components
 import (
 	"context"
 
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 )
 
-templ Page(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
+templ Page(ctx context.Context, expenses []expense.Expense, currencies []string, categories []expensecategory.Category) {
 	@BaseHTML(ctx) {
 		<div
 			x-data="{

@@ -10,7 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/internal/server"
 	u "github.com/kkstas/tjener/internal/url"
 )
@@ -116,9 +117,9 @@ func TestCreateExpense(t *testing.T) {
 
 func TestUpdateExpense(t *testing.T) {
 	t.Run("allows comma and dot as a decimal separator", func(t *testing.T) {
-		store := model.ExpenseInMemoryStore{}
+		store := expense.InMemoryStore{}
 		SK := "2024-08-25::1725652252238"
-		_, err := store.Create(context.Background(), model.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"})
+		_, err := store.Create(context.Background(), expense.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"})
 		if err != nil {
 			log.Fatalf("didn't expect an error but got one: %v", err)
 		}
@@ -135,7 +136,7 @@ func TestUpdateExpense(t *testing.T) {
 		request := httptest.NewRequest(http.MethodPut, u.Create(context.Background(), "expense", "edit", SK), payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-		server.NewApplication(&store, &model.ExpenseCategoryInMemoryStore{}).ServeHTTP(response, request)
+		server.NewApplication(&store, &expensecategory.InMemoryStore{}).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
 	})
 }
@@ -148,5 +149,5 @@ func assertStatus(t testing.TB, got, want int) {
 }
 
 func newTestApplication() *server.Application {
-	return server.NewApplication(&model.ExpenseInMemoryStore{}, &model.ExpenseCategoryInMemoryStore{})
+	return server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{})
 }

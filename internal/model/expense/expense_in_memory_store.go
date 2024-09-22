@@ -1,4 +1,4 @@
-package model
+package expense
 
 import (
 	"context"
@@ -8,16 +8,16 @@ import (
 	"github.com/kkstas/tjener/internal/helpers"
 )
 
-type ExpenseInMemoryStore struct {
+type InMemoryStore struct {
 	expenses []Expense
 }
 
-func (e *ExpenseInMemoryStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
+func (e *InMemoryStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
 	e.expenses = append(e.expenses, expenseFC)
 	return expenseFC, nil
 }
 
-func (e *ExpenseInMemoryStore) Delete(ctx context.Context, SK string) error {
+func (e *InMemoryStore) Delete(ctx context.Context, SK string) error {
 	var deleted bool
 
 	e.expenses = slices.DeleteFunc(e.expenses, func(expense Expense) bool {
@@ -26,13 +26,13 @@ func (e *ExpenseInMemoryStore) Delete(ctx context.Context, SK string) error {
 	})
 
 	if !deleted {
-		return &ExpenseNotFoundError{SK: SK}
+		return &NotFoundError{SK: SK}
 	}
 
 	return nil
 }
 
-func (e *ExpenseInMemoryStore) Update(ctx context.Context, expenseFU Expense) error {
+func (e *InMemoryStore) Update(ctx context.Context, expenseFU Expense) error {
 	var found bool
 
 	for i, el := range e.expenses {
@@ -43,26 +43,26 @@ func (e *ExpenseInMemoryStore) Update(ctx context.Context, expenseFU Expense) er
 	}
 
 	if !found {
-		return &ExpenseNotFoundError{SK: expenseFU.SK}
+		return &NotFoundError{SK: expenseFU.SK}
 	}
 	return nil
 }
 
-func (e *ExpenseInMemoryStore) FindOne(ctx context.Context, SK string) (Expense, error) {
+func (e *InMemoryStore) FindOne(ctx context.Context, SK string) (Expense, error) {
 	for _, el := range e.expenses {
 		if el.SK == SK {
 			return el, nil
 		}
 	}
-	return Expense{}, &ExpenseNotFoundError{SK: SK}
+	return Expense{}, &NotFoundError{SK: SK}
 }
 
-func (e *ExpenseInMemoryStore) Query(ctx context.Context) ([]Expense, error) {
+func (e *InMemoryStore) Query(ctx context.Context) ([]Expense, error) {
 	return e.expenses, nil
 }
 
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
-func (e *ExpenseInMemoryStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
+func (e *InMemoryStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
 	daysDiff, err := helpers.DaysBetween(from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)

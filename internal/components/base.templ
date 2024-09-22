@@ -2,6 +2,7 @@ package components
 
 import (
 	"context"
+
 	"github.com/kkstas/tjener/internal/url"
 )
 
@@ -44,7 +45,7 @@ templ darkMode() {
 
 templ toggleDarkMode() {
 	<div x-data class="flex items-center justify-end space-x-2" x-effect="$store.darkMode.on; $store.darkMode.sync();">
-		<input id="thisId" type="checkbox" name="switch" class="hidden" :checked="$store.darkMode.on" />
+		<input id="thisId" type="checkbox" name="switch" class="hidden" :checked="$store.darkMode.on"/>
 		<button
 			x-ref="switchButton"
 			type="button"

@@ -6,7 +6,8 @@ import (
 	"strconv"
 
 	"github.com/kkstas/tjener/internal/helpers"
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/internal/url"
 )
 
@@ -59,7 +60,7 @@ templ ExpensesDateRangePicker(ctx context.Context) {
 	</form>
 }
 
-templ Expenses(ctx context.Context, expenses []model.Expense, currencies []string, categories []model.ExpenseCategory) {
+templ Expenses(ctx context.Context, expenses []expense.Expense, currencies []string, categories []expensecategory.Category) {
 	<div
 		class="my-3 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 divide-y divide-gray-200 dark:divide-gray-700 rounded-md"
 		id="all-expenses-list"
@@ -71,7 +72,7 @@ templ Expenses(ctx context.Context, expenses []model.Expense, currencies []strin
 	</div>
 }
 
-templ Expense(ctx context.Context, expense model.Expense, currencies []string, categories []model.ExpenseCategory) {
+templ Expense(ctx context.Context, expense expense.Expense, currencies []string, categories []expensecategory.Category) {
 	<div x-data="{ id: $id('accordion') }" class="has-[:focus]:bg-gray-100/20 dark:has-[:focus]:bg-gray-900/20 expense-element cursor-pointer">
 		<button @click="setActiveAccordion(id)" class="flex items-center focus:outline-none justify-between w-full p-4 text-left select-none">
 			<div class="flex flex-1 justify-between">
@@ -113,7 +114,7 @@ templ Expense(ctx context.Context, expense model.Expense, currencies []string, c
 	</div>
 }
 
-templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies []string, categories []model.ExpenseCategory) {
+templ ExpenseEditButton(ctx context.Context, singleExpense expense.Expense, currencies []string, categories []expensecategory.Category) {
 	<div
 		x-data="{
 			popoverOpen: false,
@@ -202,7 +203,7 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 					</div>
 					<form
 						class="grid gap-2"
-						hx-put={ url.Create(ctx, "expense", "edit", expense.SK) }
+						hx-put={ url.Create(ctx, "expense", "edit", singleExpense.SK) }
 						hx-target="#all-expenses-list"
 						hx-swap="outerHTML"
 						x-data="{ formErrors: {} }"
@@ -226,10 +227,10 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								id="edit-expense-name-input"
 								type="text"
 								name="name"
-								value={ expense.Name }
-								placeholder={ expense.Name }
-								minlength={ strconv.Itoa(model.ExpenseNameMinLength) }
-								maxlength={ strconv.Itoa(model.ExpenseNameMaxLength) }
+								value={ singleExpense.Name }
+								placeholder={ singleExpense.Name }
+								minlength={ strconv.Itoa(expense.NameMinLength) }
+								maxlength={ strconv.Itoa(expense.NameMaxLength) }
 								required
 							/>
 							<template x-for="err in formErrors.name">
@@ -250,7 +251,7 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 									class="shadow appearance-none border dark:border-gray-700 dark:bg-gray-800 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:shadow-outline focus:outline-none focus:outline-gray-800/10 dark:focus:outline-gray-300/20 focus:outline-1"
 								>
 									for _, category := range categories {
-										if expense.Category == category.Name {
+										if singleExpense.Category == category.Name {
 											<option selected>{ category.Name }</option>
 										} else {
 											<option>{ category.Name }</option>
@@ -277,8 +278,8 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								id="edit-expense-amount-input"
 								name="amount"
 								type="text"
-								placeholder={ fmt.Sprintf("%.2f %s", expense.Amount, expense.Currency) }
-								value={ fmt.Sprintf("%.2f", expense.Amount) }
+								placeholder={ fmt.Sprintf("%.2f %s", singleExpense.Amount, singleExpense.Currency) }
+								value={ fmt.Sprintf("%.2f", singleExpense.Amount) }
 								inputmode="decimal"
 								pattern="^\d+([.,]\d{1,2})?$"
 								title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
@@ -300,7 +301,7 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border dark:border-gray-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-gray-800/10 dark:focus:outline-gray-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								type="date"
 								name="date"
-								value={ expense.Date }
+								value={ singleExpense.Date }
 								required
 							/>
 							<template x-for="err in formErrors.date">
@@ -321,7 +322,7 @@ templ ExpenseEditButton(ctx context.Context, expense model.Expense, currencies [
 									name="currency"
 								>
 									for _, currency := range currencies {
-										if expense.Currency == currency {
+										if singleExpense.Currency == currency {
 											<option selected>{ currency }</option>
 										} else {
 											<option>{ currency }</option>

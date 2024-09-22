@@ -1,4 +1,4 @@
-package model
+package expense
 
 import (
 	"context"
@@ -13,13 +13,13 @@ import (
 	"github.com/kkstas/tjener/internal/helpers"
 )
 
-type ExpenseDDBStore struct {
+type DDBStore struct {
 	client    *dynamodb.Client
 	tableName string
 }
 
-func getExpenseKey(sk string) map[string]types.AttributeValue {
-	PK, err := attributevalue.Marshal(expensePK)
+func getKey(sk string) map[string]types.AttributeValue {
+	PK, err := attributevalue.Marshal(PK)
 	if err != nil {
 		panic(err)
 	}
@@ -30,14 +30,14 @@ func getExpenseKey(sk string) map[string]types.AttributeValue {
 	return map[string]types.AttributeValue{"PK": PK, "SK": SK}
 }
 
-func NewExpenseDDBStore(tableName string, client *dynamodb.Client) *ExpenseDDBStore {
-	return &ExpenseDDBStore{
+func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
+	return &DDBStore{
 		tableName: tableName,
 		client:    client,
 	}
 }
 
-func (es *ExpenseDDBStore) marshalExpense(PK, SK, name, date string, amount float64, currency, category, createdAt string) (Expense, map[string]types.AttributeValue, error) {
+func (es *DDBStore) marshal(PK, SK, name, date string, amount float64, currency, category, createdAt string) (Expense, map[string]types.AttributeValue, error) {
 	newExpense := Expense{
 		PK:        PK,
 		SK:        SK,
@@ -52,8 +52,8 @@ func (es *ExpenseDDBStore) marshalExpense(PK, SK, name, date string, amount floa
 	return newExpense, item, err
 }
 
-func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
-	newExpense, item, err := es.marshalExpense(expensePK,
+func (es *DDBStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
+	newExpense, item, err := es.marshal(PK,
 		buildSK(expenseFC.Date, expenseFC.CreatedAt),
 		expenseFC.Name,
 		expenseFC.Date,
@@ -80,11 +80,11 @@ func (es *ExpenseDDBStore) Create(ctx context.Context, expenseFC Expense) (Expen
 	return newExpense, nil
 }
 
-func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, error) {
-	expense := Expense{PK: expensePK, SK: SK}
+func (es *DDBStore) FindOne(ctx context.Context, SK string) (Expense, error) {
+	expense := Expense{PK: PK, SK: SK}
 	response, err := es.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &es.tableName,
-		Key:       getExpenseKey(SK),
+		Key:       getKey(SK),
 	})
 
 	if err != nil {
@@ -92,7 +92,7 @@ func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, err
 	}
 
 	if len(response.Item) == 0 {
-		return Expense{}, &ExpenseNotFoundError{SK: SK}
+		return Expense{}, &NotFoundError{SK: SK}
 	}
 
 	err = attributevalue.UnmarshalMap(response.Item, &expense)
@@ -103,7 +103,7 @@ func (es *ExpenseDDBStore) FindOne(ctx context.Context, SK string) (Expense, err
 	return expense, nil
 }
 
-func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) error {
+func (es *DDBStore) Update(ctx context.Context, expenseFU Expense) error {
 	foundExpense, err := es.FindOne(ctx, expenseFU.SK)
 	if err != nil {
 		return fmt.Errorf("failed to find expense for update: %w", err)
@@ -117,17 +117,17 @@ func (es *ExpenseDDBStore) Update(ctx context.Context, expenseFU Expense) error 
 	return es.updateWithNewSK(ctx, expenseFU)
 }
 
-func (es *ExpenseDDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense) error {
+func (es *DDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense) error {
 	deleteItem := types.TransactWriteItem{
 		Delete: &types.Delete{
 			TableName:           aws.String(es.tableName),
-			Key:                 getExpenseKey(expenseFU.SK),
+			Key:                 getKey(expenseFU.SK),
 			ConditionExpression: aws.String("attribute_exists(SK)"),
 		},
 	}
 
-	expense, item, err := es.marshalExpense(
-		expensePK,
+	expense, item, err := es.marshal(
+		PK,
 		buildSK(expenseFU.Date, expenseFU.CreatedAt),
 		expenseFU.Name,
 		expenseFU.Date,
@@ -157,7 +157,7 @@ func (es *ExpenseDDBStore) updateWithNewSK(ctx context.Context, expenseFU Expens
 		if errors.As(err, &transactionErr) {
 			for _, reason := range transactionErr.CancellationReasons {
 				if reason.Code != nil && *reason.Code == "ConditionalCheckFailed" {
-					return &ExpenseNotFoundError{SK: expense.SK}
+					return &NotFoundError{SK: expense.SK}
 				}
 			}
 		}
@@ -167,7 +167,7 @@ func (es *ExpenseDDBStore) updateWithNewSK(ctx context.Context, expenseFU Expens
 	return nil
 }
 
-func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Expense) error {
+func (es *DDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Expense) error {
 	update := expression.
 		Set(expression.Name("name"), expression.Value(expenseFU.Name)).
 		Set(expression.Name("category"), expression.Value(expenseFU.Category)).
@@ -182,7 +182,7 @@ func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Exp
 
 	_, err = es.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName:                 &es.tableName,
-		Key:                       getExpenseKey(expenseFU.SK),
+		Key:                       getKey(expenseFU.SK),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
 		UpdateExpression:          expr.Update(),
@@ -193,7 +193,7 @@ func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Exp
 	if err != nil {
 		var condErr *types.ConditionalCheckFailedException
 		if errors.As(err, &condErr) {
-			return &ExpenseNotFoundError{SK: expenseFU.SK}
+			return &NotFoundError{SK: expenseFU.SK}
 		}
 		return fmt.Errorf("failed to update expense: %w", err)
 	}
@@ -201,14 +201,14 @@ func (es *ExpenseDDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Exp
 	return nil
 }
 
-func (es *ExpenseDDBStore) Delete(ctx context.Context, SK string) error {
+func (es *DDBStore) Delete(ctx context.Context, SK string) error {
 	if _, err := es.FindOne(ctx, SK); err != nil {
-		return &ExpenseNotFoundError{SK: SK}
+		return &NotFoundError{SK: SK}
 	}
 
 	_, err := es.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &es.tableName,
-		Key:       getExpenseKey(SK),
+		Key:       getKey(SK),
 	})
 
 	if err != nil {
@@ -218,9 +218,9 @@ func (es *ExpenseDDBStore) Delete(ctx context.Context, SK string) error {
 	return nil
 }
 
-func (es *ExpenseDDBStore) Query(ctx context.Context) ([]Expense, error) {
+func (es *DDBStore) Query(ctx context.Context) ([]Expense, error) {
 	keyCond := expression.
-		Key("PK").Equal(expression.Value(expensePK)).
+		Key("PK").Equal(expression.Value(PK)).
 		And(expression.Key("SK").GreaterThanEqual(expression.Value(helpers.DaysAgo(31))))
 
 	exprBuilder := expression.NewBuilder()
@@ -234,11 +234,11 @@ func (es *ExpenseDDBStore) Query(ctx context.Context) ([]Expense, error) {
 		return nil, fmt.Errorf("failed to build expression for query %w", err)
 	}
 
-	return es.queryExpenses(ctx, expr)
+	return es.query(ctx, expr)
 }
 
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
-func (es *ExpenseDDBStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
+func (es *DDBStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
 	daysDiff, err := helpers.DaysBetween(from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
@@ -253,7 +253,7 @@ func (es *ExpenseDDBStore) QueryByDateRange(ctx context.Context, from, to string
 	}
 
 	keyCond := expression.
-		Key("PK").Equal(expression.Value(expensePK)).
+		Key("PK").Equal(expression.Value(PK)).
 		And(expression.Key("SK").Between(expression.Value(from), expression.Value(dayAfterTo)))
 
 	exprBuilder := expression.NewBuilder()
@@ -267,10 +267,10 @@ func (es *ExpenseDDBStore) QueryByDateRange(ctx context.Context, from, to string
 		return nil, fmt.Errorf("failed to build expression for query %w", err)
 	}
 
-	return es.queryExpenses(ctx, expr)
+	return es.query(ctx, expr)
 }
 
-func (es *ExpenseDDBStore) queryExpenses(ctx context.Context, expr expression.Expression) ([]Expense, error) {
+func (es *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Expense, error) {
 	var expenses []Expense
 
 	queryInput := dynamodb.QueryInput{

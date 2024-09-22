@@ -1,4 +1,4 @@
-package model_test
+package expensecategory_test
 
 import (
 	"context"
@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/kkstas/tjener/internal/database"
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 )
 
-func TestCreateExpenseCategory(t *testing.T) {
+func TestDDBCreate(t *testing.T) {
 	t.Run("adds category to the database", func(t *testing.T) {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
@@ -19,14 +19,14 @@ func TestCreateExpenseCategory(t *testing.T) {
 		}
 		defer removeDDB()
 
-		store := model.NewExpenseCategoryStore(tableName, client)
+		store := expensecategory.NewDDBStore(tableName, client)
 
 		categories, err := store.Query(ctx)
 		if err != nil {
 			t.Fatalf("failed querying ddb table for expense categories before putting expense category, %v", err)
 		}
 
-		categoryFC, _ := model.NewExpenseCategory("some-name")
+		categoryFC, _ := expensecategory.New("some-name")
 		err = store.Create(ctx, categoryFC)
 		if err != nil {
 			t.Fatalf("failed putting item into ddb, %v", err)
@@ -41,7 +41,7 @@ func TestCreateExpenseCategory(t *testing.T) {
 	})
 }
 
-func TestDeleteExpenseCategory(t *testing.T) {
+func TestDDBDelete(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -50,9 +50,9 @@ func TestDeleteExpenseCategory(t *testing.T) {
 	}
 	defer removeDDB()
 
-	store := model.NewExpenseCategoryStore(tableName, client)
+	store := expensecategory.NewDDBStore(tableName, client)
 
-	categoryFC, _ := model.NewExpenseCategory("some-name")
+	categoryFC, _ := expensecategory.New("some-name")
 
 	err = store.Create(ctx, categoryFC)
 	if err != nil {

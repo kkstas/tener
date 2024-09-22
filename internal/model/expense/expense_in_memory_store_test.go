@@ -1,11 +1,11 @@
-package model_test
+package expense_test
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expense"
 )
 
 const (
@@ -15,9 +15,9 @@ const (
 	validInMemoryExpenseAmount   = 24.99
 )
 
-func TestCreateInMemoryExpense(t *testing.T) {
+func TestInMemoryCreate(t *testing.T) {
 	ctx := context.Background()
-	store := &model.ExpenseInMemoryStore{}
+	store := &expense.InMemoryStore{}
 
 	expense := createDefaultInMemoryExpenseHelper(t, ctx, store)
 
@@ -27,36 +27,36 @@ func TestCreateInMemoryExpense(t *testing.T) {
 	}
 }
 
-func TestDeleteInMemoryExpense(t *testing.T) {
+func TestInMemoryDelete(t *testing.T) {
 	t.Run("deletes existing expense", func(t *testing.T) {
 		ctx := context.Background()
-		store := &model.ExpenseInMemoryStore{}
+		store := &expense.InMemoryStore{}
 
-		expense := createDefaultInMemoryExpenseHelper(t, ctx, store)
+		exp := createDefaultInMemoryExpenseHelper(t, ctx, store)
 
-		_, err := store.FindOne(ctx, expense.SK)
+		_, err := store.FindOne(ctx, exp.SK)
 		if err != nil {
 			t.Fatalf("failed finding expense after creation: %v", err)
 		}
 
-		err = store.Delete(ctx, expense.SK)
+		err = store.Delete(ctx, exp.SK)
 		if err != nil {
 			t.Fatalf("failed deleting expense: %v", err)
 		}
 
-		_, err = store.FindOne(ctx, expense.SK)
+		_, err = store.FindOne(ctx, exp.SK)
 		if err == nil {
 			t.Fatal("expected error after trying to find deleted expense but didn't get one")
 		}
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: expense.SK})
+			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: exp.SK})
 		}
 	})
 
 	t.Run("returns proper error when expense for deletion does not exist", func(t *testing.T) {
 		ctx := context.Background()
-		store := model.ExpenseInMemoryStore{}
+		store := expense.InMemoryStore{}
 		invalidSK := "invalidSK"
 
 		err := store.Delete(ctx, invalidSK)
@@ -64,16 +64,16 @@ func TestDeleteInMemoryExpense(t *testing.T) {
 			t.Fatal("expected an error but didn't get one")
 		}
 
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: invalidSK})
+			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: invalidSK})
 		}
 	})
 }
 
-func TestUpdateInMemoryExpense(t *testing.T) {
+func TestInMemoryUpdate(t *testing.T) {
 	ctx := context.Background()
-	store := &model.ExpenseInMemoryStore{}
+	store := &expense.InMemoryStore{}
 	t.Run("updates existing expense", func(t *testing.T) {
 		expense := createDefaultInMemoryExpenseHelper(t, ctx, store)
 		expense.Name = "new name"
@@ -91,21 +91,21 @@ func TestUpdateInMemoryExpense(t *testing.T) {
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
 		invalidSK := "invalidSK"
 
-		err := store.Update(ctx, model.Expense{SK: invalidSK})
+		err := store.Update(ctx, expense.Expense{SK: invalidSK})
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
 
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: invalidSK})
+			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: invalidSK})
 		}
 	})
 }
 
-func TestFindOneInMemoryExpense(t *testing.T) {
+func TestInMemoryFindOne(t *testing.T) {
 	ctx := context.Background()
-	store := &model.ExpenseInMemoryStore{}
+	store := &expense.InMemoryStore{}
 	t.Run("finds existing expense", func(t *testing.T) {
 		expense := createDefaultInMemoryExpenseHelper(t, ctx, store)
 		_, err := store.FindOne(ctx, expense.SK)
@@ -122,21 +122,21 @@ func TestFindOneInMemoryExpense(t *testing.T) {
 			t.Fatal("expected an error but didn't get one")
 		}
 
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseNotFoundError{SK: invalidSK})
+			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: invalidSK})
 		}
 	})
 }
 
-func TestQueryInMemoryByDateRange(t *testing.T) {
+func TestInMemoryQueryByDateRange(t *testing.T) {
 	ctx := context.Background()
-	store := &model.ExpenseInMemoryStore{}
+	store := &expense.InMemoryStore{}
 
-	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-15", validInMemoryExpenseCategory, validInMemoryExpenseAmount, model.ValidCurrencies[0])
-	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-16", validInMemoryExpenseCategory, validInMemoryExpenseAmount, model.ValidCurrencies[0])
-	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-17", validInMemoryExpenseCategory, validInMemoryExpenseAmount, model.ValidCurrencies[0])
-	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-18", validInMemoryExpenseCategory, validInMemoryExpenseAmount, model.ValidCurrencies[0])
+	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-15", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
+	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-16", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
+	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-17", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
+	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-18", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
 		expenses, err := store.QueryByDateRange(ctx, "2024-01-15", "2024-01-18")
@@ -172,14 +172,14 @@ func TestQueryInMemoryByDateRange(t *testing.T) {
 	})
 }
 
-func createDefaultInMemoryExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseInMemoryStore) model.Expense {
+func createDefaultInMemoryExpenseHelper(t testing.TB, ctx context.Context, store *expense.InMemoryStore) expense.Expense {
 	t.Helper()
-	return createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, validInMemoryExpenseDate, validInMemoryExpenseCategory, validInMemoryExpenseAmount, model.ValidCurrencies[0])
+	return createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, validInMemoryExpenseDate, validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
 }
 
-func createInMemoryExpenseHelper(t testing.TB, ctx context.Context, store *model.ExpenseInMemoryStore, name, date, category string, amount float64, currency string) model.Expense {
+func createInMemoryExpenseHelper(t testing.TB, ctx context.Context, store *expense.InMemoryStore, name, date, category string, amount float64, currency string) expense.Expense {
 	t.Helper()
-	expenseFC, err := model.NewExpenseFC(name, date, category, amount, currency)
+	expenseFC, err := expense.New(name, date, category, amount, currency)
 	if err != nil {
 		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
 	}

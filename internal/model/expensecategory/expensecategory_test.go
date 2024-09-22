@@ -1,26 +1,26 @@
-package model_test
+package expensecategory_test
 
 import (
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 )
 
-func TestNewExpenseCategory(t *testing.T) {
+func TestNew(t *testing.T) {
 	t.Run("returns error when expense category has invalid length", func(t *testing.T) {
-		_, err := model.NewExpenseCategory("a")
+		_, err := expensecategory.New("a")
 		if err == nil {
 			t.Error("expected error when category name is too short")
 		}
 
-		_, err = model.NewExpenseCategory(string(make([]byte, 100)))
+		_, err = expensecategory.New(string(make([]byte, 100)))
 		if err == nil {
 			t.Error("expected error when category name is too long")
 		}
 	})
 
 	t.Run("creates expense category when category name is valid", func(t *testing.T) {
-		_, err := model.NewExpenseCategory("food")
+		_, err := expensecategory.New("food")
 		if err != nil {
 			t.Errorf("didn't expect error: %v", err)
 		}

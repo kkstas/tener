@@ -8,7 +8,7 @@ import (
 
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/helpers"
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expense"
 )
 
 func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request) {
@@ -24,7 +24,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.renderTempl(w, r, components.Page(r.Context(), expenses, model.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Page(r.Context(), expenses, expense.ValidCurrencies, categories))
 }
 
 func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +50,7 @@ func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, model.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
 }
 
 func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request) {
@@ -68,13 +68,13 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	expense, err := model.NewExpenseFC(name, date, category, amount, currency)
+	exp, err := expense.New(name, date, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
-	_, err = app.expense.Create(r.Context(), expense)
+	_, err = app.expense.Create(r.Context(), exp)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return
@@ -92,7 +92,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, model.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
 }
 
 func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request) {
@@ -111,7 +111,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	expenseFU, err := model.NewExpenseFU(name, SK, date, category, amount, currency)
+	expenseFU, err := expense.NewFU(name, SK, date, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
@@ -119,7 +119,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	err = app.expense.Update(r.Context(), expenseFU)
 	if err != nil {
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if errors.As(err, &notFoundErr) {
 			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
 			return
@@ -140,7 +140,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, model.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
 }
 
 func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request) {
@@ -148,7 +148,7 @@ func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Reque
 
 	err := app.expense.Delete(r.Context(), sk)
 	if err != nil {
-		var notFoundErr *model.ExpenseNotFoundError
+		var notFoundErr *expense.NotFoundError
 		if errors.As(err, &notFoundErr) {
 			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
 			return

@@ -4,11 +4,11 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/internal/url"
 )
 
-templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCategory) {
+templ ExpenseCategoriesPage(ctx context.Context, categories []expensecategory.Category) {
 	@BaseHTML(ctx) {
 		<div class="mx-auto max-w-md">
 			<form
@@ -23,8 +23,8 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 						class="shadow appearance-none border dark:bg-gray-800 dark:border-gray-700 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 leading-tight focus:shadow-outline focus:outline-none focus:outline-gray-800/10 dark:focus:outline-gray-300/20 focus:outline-1"
 						type="text"
 						name="name"
-						minlength={ strconv.Itoa(model.ExpenseCategoryMinLength) }
-						maxlength={ strconv.Itoa(model.ExpenseCategoryMaxLength) }
+						minlength={ strconv.Itoa(expensecategory.CategoryNameMinLength) }
+						maxlength={ strconv.Itoa(expensecategory.CategoryNameMaxLength) }
 						required
 					/>
 				</div>
@@ -50,7 +50,7 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []model.ExpenseCateg
 	}
 }
 
-templ SingleExpenseCategory(ctx context.Context, category model.ExpenseCategory) {
+templ SingleExpenseCategory(ctx context.Context, category expensecategory.Category) {
 	<div hx-target="this" class="border border-gray-300 dark:border-gray-700 px-2 pt-2 rounded mt-2 bg-white dark:bg-gray-800">
 		<div class="[&>div>label]:text-xs [&>div>label]:text-gray-700 dark:[&>div>label]:text-gray-400 [&>div]:min-w-5 flex flex-row place-items-center overflow-x-auto break-words min-w-24 [&>div>label]:min-w-8 text-sm md:text-base">
 			<div class="flex-1 ps-2 pb-2">

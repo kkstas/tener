@@ -1,21 +1,21 @@
-package model_test
+package expensecategory_test
 
 import (
 	"context"
 	"errors"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 )
 
-func TestCreateInMemoryExpenseCategory(t *testing.T) {
+func TestInMemoryCreate(t *testing.T) {
 	ctx := context.Background()
 
-	store := model.ExpenseCategoryInMemoryStore{}
+	store := expensecategory.InMemoryStore{}
 
 	categories, _ := store.Query(ctx)
 
-	err := store.Create(ctx, model.ExpenseCategory{})
+	err := store.Create(ctx, expensecategory.Category{})
 	if err != nil {
 		t.Fatalf("failed creating expense category, %v", err)
 	}
@@ -29,13 +29,13 @@ func TestCreateInMemoryExpenseCategory(t *testing.T) {
 	}
 }
 
-func TestDeleteInMemoryExpenseCategory(t *testing.T) {
+func TestInMemoryDelete(t *testing.T) {
 	t.Run("deletes existing categories", func(t *testing.T) {
 		ctx := context.Background()
-		store := model.ExpenseCategoryInMemoryStore{}
+		store := expensecategory.InMemoryStore{}
 		name := "some name"
 
-		_ = store.Create(ctx, model.ExpenseCategory{Name: name})
+		_ = store.Create(ctx, expensecategory.Category{Name: name})
 
 		categories, _ := store.Query(ctx)
 		if len(categories) != 1 {
@@ -55,7 +55,7 @@ func TestDeleteInMemoryExpenseCategory(t *testing.T) {
 
 	t.Run("returns proper error when category for deletion does not exist", func(t *testing.T) {
 		ctx := context.Background()
-		store := model.ExpenseCategoryInMemoryStore{}
+		store := expensecategory.InMemoryStore{}
 		nonExistingName := "asdf"
 
 		err := store.Delete(ctx, nonExistingName)
@@ -63,9 +63,9 @@ func TestDeleteInMemoryExpenseCategory(t *testing.T) {
 			t.Fatal("expected an error but didn't get one")
 		}
 
-		var notFoundErr *model.ExpenseCategoryNotFoundError
+		var notFoundErr *expensecategory.NotFoundError
 		if !errors.As(err, &notFoundErr) {
-			t.Errorf("got %#v, want %#v", err, &model.ExpenseCategoryNotFoundError{SK: nonExistingName})
+			t.Errorf("got %#v, want %#v", err, &expensecategory.NotFoundError{SK: nonExistingName})
 		}
 	})
 }

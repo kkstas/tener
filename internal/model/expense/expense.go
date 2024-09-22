@@ -1,24 +1,23 @@
-package model
+package expense
 
 import (
 	"strings"
 	"time"
 
 	"github.com/kkstas/tjener/internal/helpers"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
 var ValidCurrencies = []string{"PLN", "EUR", "GBP", "USD", "CZK", "CHF", "NOK", "SEK", "DKK", "HUF", "CAD", "AUD", "JPY", "CNY", "TRY"}
 
 const (
-	expensePK             = "expense"
+	PK                    = "expense"
 	minQueryRangeDaysDiff = 0
 	maxQueryRangeDaysDiff = 365
 
-	ExpenseNameMinLength     = 2
-	ExpenseNameMaxLength     = 50
-	ExpenseCategoryMinLength = 2
-	ExpenseCategoryMaxLength = 50
+	NameMinLength = 2
+	NameMaxLength = 50
 )
 
 type Expense struct {
@@ -33,10 +32,10 @@ type Expense struct {
 	validator.Validator `dynamodbav:"-"`
 }
 
-func NewExpenseFC(name, date, category string, amount float64, currency string) (Expense, error) {
+func New(name, date, category string, amount float64, currency string) (Expense, error) {
 	currentTimestamp := helpers.GenerateCurrentTimestamp()
-	return validateExpense(Expense{
-		PK:        expensePK,
+	return validate(Expense{
+		PK:        PK,
 		SK:        buildSK(date, currentTimestamp),
 		Name:      strings.TrimSpace(name),
 		Date:      date,
@@ -47,9 +46,9 @@ func NewExpenseFC(name, date, category string, amount float64, currency string) 
 	})
 }
 
-func NewExpenseFU(name, SK, date, category string, amount float64, currency string) (Expense, error) {
-	return validateExpense(Expense{
-		PK:       expensePK,
+func NewFU(name, SK, date, category string, amount float64, currency string) (Expense, error) {
+	return validate(Expense{
+		PK:       PK,
 		SK:       SK,
 		Name:     strings.TrimSpace(name),
 		Date:     date,
@@ -59,9 +58,9 @@ func NewExpenseFU(name, SK, date, category string, amount float64, currency stri
 	})
 }
 
-func validateExpense(expense Expense) (Expense, error) {
-	expense.Check(validator.StringLengthBetween("name", expense.Name, ExpenseNameMinLength, ExpenseNameMaxLength))
-	expense.Check(validator.StringLengthBetween("category", expense.Category, ExpenseCategoryMinLength, ExpenseCategoryMaxLength))
+func validate(expense Expense) (Expense, error) {
+	expense.Check(validator.StringLengthBetween("name", expense.Name, NameMinLength, NameMaxLength))
+	expense.Check(validator.StringLengthBetween("category", expense.Category, expensecategory.CategoryNameMinLength, expensecategory.CategoryNameMaxLength))
 	expense.Check(validator.OneOf("currency", expense.Currency, ValidCurrencies))
 	expense.Check(validator.IsValidAmountPrecision("amount", expense.Amount))
 	expense.Check(validator.IsNonZero("amount", expense.Amount))

@@ -5,22 +5,23 @@ import (
 	"net/http"
 
 	"github.com/kkstas/tjener/assets"
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 )
 
 type ExpenseStore interface {
-	Create(ctx context.Context, expenseFC model.Expense) (model.Expense, error)
+	Create(ctx context.Context, expenseFC expense.Expense) (expense.Expense, error)
 	Delete(ctx context.Context, SK string) error
-	Update(ctx context.Context, expenseFU model.Expense) error
-	FindOne(ctx context.Context, SK string) (model.Expense, error)
-	Query(ctx context.Context) ([]model.Expense, error)
-	QueryByDateRange(ctx context.Context, from, to string) ([]model.Expense, error)
+	Update(ctx context.Context, expenseFU expense.Expense) error
+	FindOne(ctx context.Context, SK string) (expense.Expense, error)
+	Query(ctx context.Context) ([]expense.Expense, error)
+	QueryByDateRange(ctx context.Context, from, to string) ([]expense.Expense, error)
 }
 
 type ExpenseCategoryStore interface {
-	Create(ctx context.Context, categoryFC model.ExpenseCategory) error
+	Create(ctx context.Context, categoryFC expensecategory.Category) error
 	Delete(ctx context.Context, name string) error
-	Query(ctx context.Context) ([]model.ExpenseCategory, error)
+	Query(ctx context.Context) ([]expensecategory.Category, error)
 }
 
 type Application struct {

@@ -11,7 +11,8 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 
 	"github.com/kkstas/tjener/internal/database"
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/internal/server"
 )
 
@@ -36,8 +37,8 @@ func initApplication() *server.Application {
 		log.Fatal().Err(err).Msgf("DynamoDB table %q not found", tableName)
 	}
 
-	expenseStore := model.NewExpenseDDBStore(tableName, client)
-	expenseCategoryStore := model.NewExpenseCategoryStore(tableName, client)
+	expenseStore := expense.NewDDBStore(tableName, client)
+	expenseCategoryStore := expensecategory.NewDDBStore(tableName, client)
 
 	return server.NewApplication(expenseStore, expenseCategoryStore)
 }

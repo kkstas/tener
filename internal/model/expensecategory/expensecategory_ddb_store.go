@@ -1,4 +1,4 @@
-package model
+package expensecategory
 
 import (
 	"context"
@@ -12,14 +12,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-const expenseCategoryPK = "expensecategory"
+const PK = "expensecategory"
 
-type ExpenseCategoryStore struct {
+type DDBStore struct {
 	client    *dynamodb.Client
 	tableName string
 }
 
-func (c *ExpenseCategory) getKey() map[string]types.AttributeValue {
+func (c *Category) getKey() map[string]types.AttributeValue {
 	PK, err := attributevalue.Marshal(c.PK)
 	if err != nil {
 		panic(err)
@@ -31,17 +31,17 @@ func (c *ExpenseCategory) getKey() map[string]types.AttributeValue {
 	return map[string]types.AttributeValue{"PK": PK, "SK": SK}
 }
 
-func NewExpenseCategoryStore(tableName string, client *dynamodb.Client) *ExpenseCategoryStore {
-	return &ExpenseCategoryStore{
+func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
+	return &DDBStore{
 		tableName: tableName,
 		client:    client,
 	}
 }
 
-func (cs *ExpenseCategoryStore) Create(ctx context.Context, categoryFC ExpenseCategory) error {
+func (cs *DDBStore) Create(ctx context.Context, categoryFC Category) error {
 	item, err := attributevalue.MarshalMap(
-		ExpenseCategory{
-			PK:   expenseCategoryPK,
+		Category{
+			PK:   PK,
 			Name: categoryFC.Name,
 		},
 	)
@@ -57,7 +57,7 @@ func (cs *ExpenseCategoryStore) Create(ctx context.Context, categoryFC ExpenseCa
 	if err != nil {
 		var condErr *types.ConditionalCheckFailedException
 		if errors.As(err, &condErr) {
-			return &ExpenseCategoryAlreadyExistsError{Name: categoryFC.Name}
+			return &AlreadyExistsError{Name: categoryFC.Name}
 		}
 
 		return fmt.Errorf("failed to put expense category into DynamoDB: %w", err)
@@ -66,8 +66,8 @@ func (cs *ExpenseCategoryStore) Create(ctx context.Context, categoryFC ExpenseCa
 	return nil
 }
 
-func (cs *ExpenseCategoryStore) Delete(ctx context.Context, name string) error {
-	categoryFD := ExpenseCategory{PK: expenseCategoryPK, Name: name}
+func (cs *DDBStore) Delete(ctx context.Context, name string) error {
+	categoryFD := Category{PK: PK, Name: name}
 	_, err := cs.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &cs.tableName,
 		Key:       categoryFD.getKey(),
@@ -79,9 +79,9 @@ func (cs *ExpenseCategoryStore) Delete(ctx context.Context, name string) error {
 	return nil
 }
 
-func (cs *ExpenseCategoryStore) Query(ctx context.Context) ([]ExpenseCategory, error) {
+func (cs *DDBStore) Query(ctx context.Context) ([]Category, error) {
 	keyCond := expression.
-		Key("PK").Equal(expression.Value(expenseCategoryPK))
+		Key("PK").Equal(expression.Value(PK))
 
 	exprBuilder := expression.NewBuilder()
 	exprBuilder.WithKeyCondition(keyCond)
@@ -94,12 +94,12 @@ func (cs *ExpenseCategoryStore) Query(ctx context.Context) ([]ExpenseCategory, e
 		return nil, fmt.Errorf("failed to build expression for expense category query %w", err)
 	}
 
-	return cs.queryExpenseCategories(ctx, expr)
+	return cs.query(ctx, expr)
 
 }
 
-func (cs *ExpenseCategoryStore) queryExpenseCategories(ctx context.Context, expr expression.Expression) ([]ExpenseCategory, error) {
-	var categories []ExpenseCategory
+func (cs *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Category, error) {
+	var categories []Category
 
 	queryInput := dynamodb.QueryInput{
 		TableName:                 &cs.tableName,
@@ -118,7 +118,7 @@ func (cs *ExpenseCategoryStore) queryExpenseCategories(ctx context.Context, expr
 			return nil, fmt.Errorf("failed to query for expense categories: %w", err)
 		}
 
-		var resCategories []ExpenseCategory
+		var resCategories []Category
 		err = attributevalue.UnmarshalListOfMaps(response.Items, &resCategories)
 		if err != nil {
 			return categories, fmt.Errorf("failed to unmarshal query response for expense categories: %w", err)

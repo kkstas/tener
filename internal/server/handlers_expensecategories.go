@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/kkstas/tjener/internal/components"
-	"github.com/kkstas/tjener/internal/model"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 )
 
 func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *http.Request) {
@@ -21,7 +21,7 @@ func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *ht
 func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWriter, r *http.Request) {
 	name := r.FormValue("name")
 
-	categoryFC, err := model.NewExpenseCategory(name)
+	categoryFC, err := expensecategory.New(name)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
@@ -29,7 +29,7 @@ func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWrit
 
 	err = app.expenseCategory.Create(r.Context(), categoryFC)
 	if err != nil {
-		var alreadyExistsErr *model.ExpenseCategoryAlreadyExistsError
+		var alreadyExistsErr *expensecategory.AlreadyExistsError
 		if errors.As(err, &alreadyExistsErr) {
 			sendErrorResponse(w, http.StatusConflict, err.Error(), err)
 			return
