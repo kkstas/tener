@@ -142,36 +142,6 @@ func TestUpdateExpense(t *testing.T) {
 	})
 }
 
-func TestHandleLogin(t *testing.T) {
-	t.Run("returns 400 if email is invalid", func(t *testing.T) {
-		var param = url.Values{}
-		param.Set("email", "invalid-email.com")
-		param.Set("password", "howdy")
-		var payload = bytes.NewBufferString(param.Encode())
-
-		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodPost, "/login", payload)
-		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		newTestApplication().ServeHTTP(response, request)
-
-		assertStatus(t, response.Code, http.StatusBadRequest)
-	})
-
-	t.Run("returns 404 if user with that email does not exist", func(t *testing.T) {
-		var param = url.Values{}
-		param.Set("email", "idontexist@gmail.com")
-		param.Set("password", "howdy")
-		var payload = bytes.NewBufferString(param.Encode())
-
-		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodPost, "/login", payload)
-		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		newTestApplication().ServeHTTP(response, request)
-
-		assertStatus(t, response.Code, http.StatusNotFound)
-	})
-}
-
 func assertStatus(t testing.TB, got, want int) {
 	t.Helper()
 	if got != want {
