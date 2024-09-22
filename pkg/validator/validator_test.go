@@ -29,15 +29,15 @@ func TestIsNonZero(t *testing.T) {
 
 func TestIsValidAmountPrecision(t *testing.T) {
 	t.Run("returns false if amount has invalid precision", func(t *testing.T) {
-		got, _, _ := validator.IsValidAmountPrecision("name", 19.449)
+		got, _, _ := validator.IsAmountPrecision("name", 19.449)
 		if got {
 			t.Error("expected false for value with invalid precision")
 		}
-		got, _, _ = validator.IsValidAmountPrecision("name", 19.44)
+		got, _, _ = validator.IsAmountPrecision("name", 19.44)
 		if !got {
 			t.Error("expected true for value with valid precision")
 		}
-		got, _, _ = validator.IsValidAmountPrecision("name", 4423.44)
+		got, _, _ = validator.IsAmountPrecision("name", 4423.44)
 		if !got {
 			t.Error("expected true for value with valid precision")
 		}
@@ -111,7 +111,7 @@ func TestIsValidDate(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run("should return %t for date '%s'", func(t *testing.T) {
-			got, _, _ := validator.IsValidTime("date", time.DateOnly, c.val)
+			got, _, _ := validator.IsTime("date", time.DateOnly, c.val)
 			if got != c.want {
 				t.Errorf("got %t, want %t for valid date '%s'", got, c.want, c.val)
 			}
@@ -149,7 +149,7 @@ func TestIsValidEmail(t *testing.T) {
 	}
 
 	for _, c := range cases {
-		got, _, _ := validator.IsValidEmail("email", c.email)
+		got, _, _ := validator.IsEmail("email", c.email)
 		if got != c.want {
 			t.Errorf("got %t, want %t for email '%s'", got, c.want, c.email)
 		}

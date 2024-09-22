@@ -62,9 +62,9 @@ func validate(expense Expense) (Expense, error) {
 	expense.Check(validator.StringLengthBetween("name", expense.Name, NameMinLength, NameMaxLength))
 	expense.Check(validator.StringLengthBetween("category", expense.Category, expensecategory.CategoryNameMinLength, expensecategory.CategoryNameMaxLength))
 	expense.Check(validator.OneOf("currency", expense.Currency, ValidCurrencies))
-	expense.Check(validator.IsValidAmountPrecision("amount", expense.Amount))
+	expense.Check(validator.IsAmountPrecision("amount", expense.Amount))
 	expense.Check(validator.IsNonZero("amount", expense.Amount))
-	expense.Check(validator.IsValidTime("date", time.DateOnly, expense.Date))
+	expense.Check(validator.IsTime("date", time.DateOnly, expense.Date))
 
 	if err := expense.Validate(); err != nil {
 		return Expense{}, err

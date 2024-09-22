@@ -42,7 +42,7 @@ func OneOf[T comparable](name string, val T, arr []T) (bool, string, string) {
 	return slices.Contains(arr, val), name, fmt.Sprintf("must be one of %v", arr)
 }
 
-func IsValidAmountPrecision(name string, amount float64) (bool, string, string) {
+func IsAmountPrecision(name string, amount float64) (bool, string, string) {
 	if amount != roundToDecimalPlaces(amount, 2) {
 		return false, name, "must have a precision of up to 2 decimal places"
 	}
@@ -56,7 +56,7 @@ func IsNonZero(name string, amount float64) (bool, string, string) {
 	return true, "", ""
 }
 
-func IsValidTime(name, layout, dateString string) (bool, string, string) {
+func IsTime(name, layout, dateString string) (bool, string, string) {
 	_, err := time.Parse(layout, dateString)
 	if err != nil {
 		return false, name, "must be a valid date"
@@ -70,7 +70,7 @@ var (
 	validEmailDomainChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-."
 )
 
-func IsValidEmail(name, email string) (bool, string, string) {
+func IsEmail(name, email string) (bool, string, string) {
 	msg := "must be a valid email address"
 
 	if len(email) == 0 || len(email) > 254 {
