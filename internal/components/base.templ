@@ -59,12 +59,12 @@ templ toggleDarkMode() {
 		</button>
 		<label
 			@click="$refs.switchButton.click(); $refs.switchButton.focus()"
-			@keydown.k.ctrl.window.prevent.stop="$refs.switchButton.click();"
+			@keydown.d.ctrl.window.prevent.stop="$refs.switchButton.click();"
 			:id="$id('switch')"
 			:class="$store.darkMode.on ? 'text-gray-500' : 'text-gray-400'"
 			class="text-xs my-auto select-none font-mono"
 		>
-			Ctrl+K
+			Ctrl+D
 		</label>
 	</div>
 }

@@ -54,6 +54,8 @@ func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCateg
 
 	mux.HandleFunc("GET /login", app.renderLoginPage)
 	mux.HandleFunc("POST /login", app.handleLogin)
+	mux.HandleFunc("GET /register", app.renderRegisterPage)
+	mux.HandleFunc("POST /register", app.handleRegister)
 
 	mux.HandleFunc("GET    /home", app.renderHomePage)
 	mux.HandleFunc("GET    /expense/all", app.renderExpenses)

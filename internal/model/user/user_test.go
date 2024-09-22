@@ -49,6 +49,20 @@ func TestNew(t *testing.T) {
 		}
 	})
 
+	t.Run("returns error if password length is invalid", func(t *testing.T) {
+		tooShortPassword := string(make([]byte, user.PasswordMinLength-1))
+		tooLongPassword := string(make([]byte, user.PasswordMaxLength+1))
+
+		_, err := user.New(firstName, lastName, email, tooShortPassword)
+		if err == nil {
+			t.Error("expected an error for too short password but didn't get one")
+		}
+		_, err = user.New(firstName, lastName, email, tooLongPassword)
+		if err == nil {
+			t.Error("expected an error for too long password but didn't get one")
+		}
+	})
+
 	t.Run("returns error for invalid email", func(t *testing.T) {
 		invalidEmails := []string{
 			"plainaddress",

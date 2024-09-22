@@ -16,6 +16,8 @@ const (
 	FirstNameMaxLength = 64
 	LastNameMinLength  = 2
 	LastNameMaxLength  = 64
+	PasswordMinLength  = 8
+	PasswordMaxLength  = 64
 )
 
 type User struct {
@@ -39,7 +41,7 @@ func New(firstName, lastName, email, password string) (User, error) {
 		return User{}, fmt.Errorf("failed hashing password: %w", err)
 	}
 
-	return validate(User{
+	return validate(password, User{
 		PK:           pk,
 		ID:           id,
 		FirstName:    strings.TrimSpace(firstName),
@@ -51,10 +53,11 @@ func New(firstName, lastName, email, password string) (User, error) {
 	})
 }
 
-func validate(user User) (User, error) {
+func validate(password string, user User) (User, error) {
 	user.Check(validator.StringLengthBetween("firstName", user.FirstName, FirstNameMinLength, FirstNameMaxLength))
 	user.Check(validator.StringLengthBetween("lastName", user.LastName, LastNameMinLength, LastNameMaxLength))
 	user.Check(validator.IsEmail("email", user.Email))
+	user.Check(validator.StringLengthBetween("password", password, PasswordMinLength, PasswordMaxLength))
 
 	if err := user.Validate(); err != nil {
 		return User{}, err

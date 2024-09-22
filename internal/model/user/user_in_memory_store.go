@@ -9,13 +9,6 @@ type InMemoryStore struct {
 	users []User
 }
 
-func NewInMemoryStore() *InMemoryStore {
-	store := &InMemoryStore{}
-	userFC, _ := New("John", "Doe", "asdf@gmail.com", "asdf")
-	store.Create(context.Background(), userFC)
-	return store
-}
-
 func (s *InMemoryStore) Create(ctx context.Context, userFC User) (User, error) {
 	s.users = append(s.users, userFC)
 	return userFC, nil
