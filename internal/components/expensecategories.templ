@@ -9,7 +9,7 @@ import (
 )
 
 templ ExpenseCategoriesPage(ctx context.Context, categories []expensecategory.Category) {
-	@BaseHTML(ctx) {
+	@BaseHTML(ctx, true) {
 		<div class="mx-auto max-w-md">
 			<form
 				hx-post={ url.Create(ctx, "expensecategories", "create") }

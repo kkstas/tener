@@ -254,7 +254,7 @@ func TestRegister(t *testing.T) {
 func TestLogout(t *testing.T) {
 	t.Run("overwrites token cookie and redirects to login", func(t *testing.T) {
 		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodPost, "/logout", nil)
+		request := httptest.NewRequest(http.MethodGet, "/logout", nil)
 
 		userStore := &user.InMemoryStore{}
 		app := server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)

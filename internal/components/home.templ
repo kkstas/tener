@@ -8,7 +8,7 @@ import (
 )
 
 templ Page(ctx context.Context, expenses []expense.Expense, currencies []string, categories []expensecategory.Category) {
-	@BaseHTML(ctx) {
+	@BaseHTML(ctx, true) {
 		<div
 			x-data="{
 				activeAccordion: '',

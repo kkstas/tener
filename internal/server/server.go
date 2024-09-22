@@ -52,10 +52,10 @@ func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCateg
 	mux.HandleFunc("GET /health-check", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", cacheControlMiddleware(http.FileServer(http.FS(assets.Public)))))
 
-	mux.HandleFunc("GET /login", app.renderLoginPage)
+	mux.HandleFunc("GET /login", redirectIfLoggedIn(app.renderLoginPage))
 	mux.HandleFunc("POST /login", app.handleLogin)
-	mux.HandleFunc("POST /logout", app.handleLogout)
-	mux.HandleFunc("GET /register", app.renderRegisterPage)
+	mux.HandleFunc("GET /logout", app.handleLogout)
+	mux.HandleFunc("GET /register", redirectIfLoggedIn(app.renderRegisterPage))
 	mux.HandleFunc("POST /register", app.handleRegister)
 
 	mux.HandleFunc("GET    /home", withUser(app.renderHomePage))
