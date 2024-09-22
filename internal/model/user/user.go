@@ -44,7 +44,7 @@ func New(firstName, lastName, email, password string) (User, error) {
 		ID:           id,
 		FirstName:    strings.TrimSpace(firstName),
 		LastName:     strings.TrimSpace(lastName),
-		Email:        strings.TrimSpace(email),
+		Email:        email,
 		Vaults:       []string{},
 		PasswordHash: passwordHash,
 		CreatedAt:    currentTimestamp,
@@ -54,6 +54,7 @@ func New(firstName, lastName, email, password string) (User, error) {
 func validate(user User) (User, error) {
 	user.Check(validator.StringLengthBetween("firstName", user.FirstName, FirstNameMinLength, FirstNameMaxLength))
 	user.Check(validator.StringLengthBetween("lastName", user.LastName, LastNameMinLength, LastNameMaxLength))
+	user.Check(validator.IsEmail("email", user.Email))
 
 	if err := user.Validate(); err != nil {
 		return User{}, err

@@ -47,7 +47,32 @@ func TestNew(t *testing.T) {
 		if err == nil {
 			t.Error("expected an error for too long last name but didn't get one")
 		}
+	})
 
+	t.Run("returns error for invalid email", func(t *testing.T) {
+		invalidEmails := []string{
+			"plainaddress",
+			"@missinglocalpart.com",
+			"user@.domain.com",
+			"user@domain..com",
+			"user@domain",
+			"user@domain.c",
+			"user@domain..com",
+			"user@ domain.com",
+			"user@domain .com",
+			"user@domain.com ",
+			" user@domain.com",
+			"user@@domain.com",
+			"userdomain.com",
+			"user@domain.com..",
+			"user@domaincom.",
+		}
+		for _, c := range invalidEmails {
+			_, err := user.New(firstName, lastName, c, password)
+			if err == nil {
+				t.Errorf("expected an error for invalid email %s but didn't get one", c)
+			}
+		}
 	})
 }
 
