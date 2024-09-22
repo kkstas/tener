@@ -65,6 +65,62 @@ func IsValidTime(name, layout, dateString string) (bool, string, string) {
 	return true, "", ""
 }
 
+var (
+	validEmailLocalChars  = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$%&'*+-/=?^_`{|}~."
+	validEmailDomainChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-."
+)
+
+func IsValidEmail(name, email string) (bool, string, string) {
+	msg := "must be a valid email address"
+
+	if len(email) == 0 || len(email) > 254 {
+		return false, name, msg
+	}
+
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return false, name, msg
+	}
+	local, domain := parts[0], parts[1]
+
+	if len(local) == 0 || len(local) > 64 {
+		return false, name, msg
+	}
+	if local[0] == '.' || local[len(local)-1] == '.' {
+		return false, name, msg
+	}
+	if strings.Contains(local, "..") {
+		return false, name, msg
+	}
+	for _, char := range local {
+		if !strings.ContainsRune(validEmailLocalChars, char) {
+			return false, name, msg
+		}
+	}
+
+	if len(domain) == 0 || len(domain) > 255 {
+		return false, name, msg
+	}
+	if strings.Count(domain, ".") < 1 || domain[0] == '.' || domain[len(domain)-1] == '.' {
+		return false, name, msg
+	}
+	if strings.Contains(domain, "..") {
+		return false, name, msg
+	}
+	domainParts := strings.Split(domain, ".")
+	if len(domainParts[1]) < 2 {
+		return false, name, msg
+	}
+
+	for _, char := range domain {
+		if !strings.ContainsRune(validEmailDomainChars, char) {
+			return false, name, msg
+		}
+	}
+
+	return true, "", ""
+}
+
 func roundToDecimalPlaces(num float64, precision int) float64 {
 	output := math.Pow(10, float64(precision))
 	return math.Round(num*output) / output

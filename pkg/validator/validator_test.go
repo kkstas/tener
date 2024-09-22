@@ -119,6 +119,43 @@ func TestIsValidDate(t *testing.T) {
 	}
 }
 
+func TestIsValidEmail(t *testing.T) {
+	cases := []struct {
+		email string
+		want  bool
+	}{
+		{"example@example.com", true},
+		{"user.name+tag@domain.co", true},
+		{"user@sub.domain.com", true},
+		{"user@domain.co.in", true},
+		{"firstname.lastname@example.com", true},
+		{"email@123.123.123.123", true},
+
+		{"plainaddress", false},
+		{"@missinglocalpart.com", false},
+		{"user@.domain.com", false},
+		{"user@domain..com", false},
+		{"user@domain", false},
+		{"user@domain.c", false},
+		{"user@domain..com", false},
+		{"user@ domain.com", false},
+		{"user@domain .com", false},
+		{"user@domain.com ", false},
+		{" user@domain.com", false},
+		{"user@@domain.com", false},
+		{"userdomain.com", false},
+		{"user@domain.com..", false},
+		{"user@domaincom.", false},
+	}
+
+	for _, c := range cases {
+		got, _, _ := validator.IsValidEmail("email", c.email)
+		if got != c.want {
+			t.Errorf("got %t, want %t for email '%s'", got, c.want, c.email)
+		}
+	}
+}
+
 func TestCheck(t *testing.T) {
 	t.Run("returns map of errors when check's first parameter is false", func(t *testing.T) {
 		someStruct := TestStruct{}
