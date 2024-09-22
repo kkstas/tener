@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"testing"
 
 	"github.com/kkstas/tjener/internal/model/expense"
@@ -22,7 +23,8 @@ const (
 )
 
 func TestLogin(t *testing.T) {
-	t.Run("redirects if email and password are valid", func(t *testing.T) {
+	t.Run("redirects and creates token cookie if email and password are valid", func(t *testing.T) {
+		os.Setenv("TOKEN_SECRET", "gHg8v3-XKj9XO8M-6gpjzW0n1xn7UZTBICIY1FcjyPw")
 		email := "john.doe@gmail.com"
 		password := "newPassword123!"
 
@@ -49,6 +51,30 @@ func TestLogin(t *testing.T) {
 
 		app.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusFound)
+
+		var cookie *http.Cookie
+		for _, c := range response.Result().Cookies() {
+			if c.Name == "token" && c.Value != "" {
+				cookie = c
+			}
+		}
+
+		if cookie == nil {
+			t.Error("expected set token cookie, but didn't find one")
+			return
+		}
+
+		if !cookie.HttpOnly {
+			t.Error("expected token cookie to have set HttpOnly to true")
+		}
+		if !cookie.Secure {
+			t.Error("expected token cookie to have set Secure to true")
+		}
+
+		if cookie.SameSite != http.SameSiteLaxMode {
+			t.Errorf("expected cookie to have set SameSiteLaxMode, got %v", cookie.SameSite)
+		}
+
 	})
 
 	t.Run("returns 401 if password is invalid", func(t *testing.T) {

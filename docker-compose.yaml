@@ -9,11 +9,12 @@ services:
       - "8080:8080"
     command: ["air", "-c", "build/.air.toml"]
     environment:
-     AWS_REGION: 'localhost'
-     AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
-     AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
-     AWS_ENDPOINT_URL_DYNAMODB: 'http://dynamodb-local-tjener:8000'
-     DDB_TABLE_NAME: 'some-table'
+      AWS_REGION: 'localhost'
+      AWS_ACCESS_KEY_ID: 'DUMMYIDEXAMPLE'
+      AWS_SECRET_ACCESS_KEY: 'DUMMYEXAMPLEKEY'
+      AWS_ENDPOINT_URL_DYNAMODB: 'http://dynamodb-local-tjener:8000'
+      DDB_TABLE_NAME: 'some-table'
+      TOKEN_SECRET: 'w-kN3KN7WlzWc7gz6Mk12Paz7VjsImAx6A8PMjc08so'
     depends_on:
       dynamodb-local-tjener:
         condition: service_healthy

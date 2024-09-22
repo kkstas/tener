@@ -4,7 +4,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/kkstas/tjener/internal/auth"
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/model/user"
 	"github.com/kkstas/tjener/internal/url"
@@ -39,6 +41,21 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 		sendErrorResponse(w, http.StatusUnauthorized, "invalid password", err)
 		return
 	}
+
+	token, err := auth.CreateToken(foundUser)
+	if err != nil {
+		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
+		return
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    token,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   true,
+	})
 
 	http.Redirect(w, r, url.Create(r.Context(), "home"), http.StatusFound)
 }
