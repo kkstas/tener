@@ -37,7 +37,7 @@ func initApplicationAndDDB() *server.Application {
 
 	expenseStore := expense.NewDDBStore(tableName, client)
 	expenseCategoryStore := expensecategory.NewDDBStore(tableName, client)
-	userStore := &user.InMemoryStore{}
+	userStore := user.NewDDBStore(tableName, client)
 
 	newApp := server.NewApplication(expenseStore, expenseCategoryStore, userStore)
 	newApp.Handler = loggingMiddleware(newApp.Handler)

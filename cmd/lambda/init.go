@@ -40,7 +40,7 @@ func initApplication() *server.Application {
 
 	expenseStore := expense.NewDDBStore(tableName, client)
 	expenseCategoryStore := expensecategory.NewDDBStore(tableName, client)
-	userStore := &user.InMemoryStore{}
+	userStore := user.NewDDBStore(tableName, client)
 
 	return server.NewApplication(expenseStore, expenseCategoryStore, userStore)
 }
