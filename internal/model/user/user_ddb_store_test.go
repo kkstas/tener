@@ -153,6 +153,53 @@ func TestDDBFindOneByID(t *testing.T) {
 	})
 }
 
+func TestDDBDelete(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
+	if err != nil {
+		t.Fatalf("failed creating local test ddb table, %v", err)
+	}
+	defer removeDDB()
+	store := user.NewDDBStore(tableName, client)
+
+	t.Run("returns NotFoundError when there is no user with that ID", func(t *testing.T) {
+		err := store.Delete(ctx, "invalidID")
+
+		if err == nil {
+			t.Error("expected an error but didn't get one")
+		}
+
+		var notFoundErr *user.NotFoundError
+		if ok := errors.As(err, &notFoundErr); !ok {
+			t.Errorf("expected NotFoundError thrown, but instead got: %#v", err)
+		}
+	})
+
+	t.Run("deletes created user", func(t *testing.T) {
+		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertNoError(t, err)
+
+		createdUser, err := store.Create(ctx, userFC)
+		assertNoError(t, err)
+
+		_, err = store.FindOneByID(ctx, createdUser.ID)
+		assertNoError(t, err)
+
+		err = store.Delete(ctx, createdUser.ID)
+		assertNoError(t, err)
+
+		_, err = store.FindOneByID(ctx, createdUser.ID)
+		if err == nil {
+			t.Error("expected an error but didn't get one")
+		}
+		var notFoundErr *user.NotFoundError
+		if ok := errors.As(err, &notFoundErr); !ok {
+			t.Errorf("expected NotFoundError thrown, but instead got: %#v", err)
+		}
+	})
+}
+
 func assertNoError(t testing.TB, err error) {
 	t.Helper()
 

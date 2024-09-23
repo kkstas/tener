@@ -148,6 +148,23 @@ func (s *DDBStore) checkEmailExists(ctx context.Context, email string) (bool, er
 	return len(result.Items) > 0, nil
 }
 
+func (s *DDBStore) Delete(ctx context.Context, id string) error {
+	if _, err := s.FindOneByID(ctx, id); err != nil {
+		return &NotFoundError{ID: id}
+	}
+
+	_, err := s.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: &s.tableName,
+		Key:       getKey(id),
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to delete user with ID=%q from table: %w", id, err)
+	}
+
+	return nil
+}
+
 func (s *DDBStore) FindAll(ctx context.Context) ([]User, error) {
 	keyCond := expression.
 		Key("PK").Equal(expression.Value(userPK))

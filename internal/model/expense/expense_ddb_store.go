@@ -212,7 +212,7 @@ func (es *DDBStore) Delete(ctx context.Context, sk string) error {
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to delete expense with SK=%q from the table: %w", sk, err)
+		return fmt.Errorf("failed to delete expense with SK=%q from table: %w", sk, err)
 	}
 
 	return nil

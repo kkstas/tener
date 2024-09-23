@@ -73,7 +73,7 @@ func (cs *DDBStore) Delete(ctx context.Context, name string) error {
 		Key:       categoryFD.getKey(),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to delete expense category with name=%q from the table: %w", name, err)
+		return fmt.Errorf("failed to delete expense category with name=%q from table: %w", name, err)
 	}
 
 	return nil
