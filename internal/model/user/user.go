@@ -26,6 +26,7 @@ type User struct {
 	FirstName           string   `dynamodbav:"firstName"    json:"firstName"`
 	LastName            string   `dynamodbav:"lastName"     json:"lastName"`
 	Email               string   `dynamodbav:"email"        json:"email"`
+	ActiveVault         string   `dynamodbav:"activeVault"  json:"activeVault"`
 	Vaults              []string `dynamodbav:"vaults"       json:"vaults"`
 	PasswordHash        string   `dynamodbav:"passwordHash" json:"-"`
 	CreatedAt           string   `dynamodbav:"createdAt"    json:"createdAt"`

@@ -31,7 +31,8 @@ func (s *DDBStore) marshal(pk, id, firstName, lastName, email, passwordHash, cre
 		FirstName:    firstName,
 		LastName:     lastName,
 		Email:        email,
-		Vaults:       []string{},
+		ActiveVault:  "c0ecc672-1ff0-4366-8682-2f8faeda6aec",
+		Vaults:       []string{"c0ecc672-1ff0-4366-8682-2f8faeda6aec"},
 		PasswordHash: passwordHash,
 		CreatedAt:    createdAt,
 	}
