@@ -19,7 +19,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	categories, err := app.expenseCategory.Query(r.Context())
+	categories, err := app.expenseCategory.FindAll(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
@@ -45,7 +45,7 @@ func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	categories, err := app.expenseCategory.Query(r.Context())
+	categories, err := app.expenseCategory.FindAll(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
@@ -87,7 +87,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	categories, err := app.expenseCategory.Query(r.Context())
+	categories, err := app.expenseCategory.FindAll(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
@@ -135,7 +135,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	categories, err := app.expenseCategory.Query(r.Context())
+	categories, err := app.expenseCategory.FindAll(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return

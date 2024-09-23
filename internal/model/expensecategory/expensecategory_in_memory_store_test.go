@@ -13,13 +13,13 @@ func TestInMemoryCreate(t *testing.T) {
 
 	store := expensecategory.InMemoryStore{}
 
-	categories, _ := store.Query(ctx)
+	categories, _ := store.FindAll(ctx)
 
 	err := store.Create(ctx, expensecategory.Category{})
 	if err != nil {
 		t.Fatalf("failed creating expense category, %v", err)
 	}
-	newCategories, err := store.Query(ctx)
+	newCategories, err := store.FindAll(ctx)
 
 	if err != nil {
 		t.Fatalf("failed querying for expense categories after creating one, %v", err)
@@ -37,7 +37,7 @@ func TestInMemoryDelete(t *testing.T) {
 
 		_ = store.Create(ctx, expensecategory.Category{Name: name})
 
-		categories, _ := store.Query(ctx)
+		categories, _ := store.FindAll(ctx)
 		if len(categories) != 1 {
 			t.Fatalf("expected one category saved in the store, got %#v", categories)
 		}
@@ -47,7 +47,7 @@ func TestInMemoryDelete(t *testing.T) {
 			t.Fatalf("didn't expect an error while deleting category but got one: %v", err)
 		}
 
-		categories, _ = store.Query(ctx)
+		categories, _ = store.FindAll(ctx)
 		if len(categories) != 0 {
 			t.Errorf("expected 0 categories after deleting, got %d", len(categories))
 		}

@@ -19,7 +19,7 @@ type DDBStore struct {
 }
 
 func getKey(sk string) map[string]types.AttributeValue {
-	PK, err := attributevalue.Marshal(PK)
+	PK, err := attributevalue.Marshal(pk)
 	if err != nil {
 		panic(err)
 	}
@@ -37,10 +37,10 @@ func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
 	}
 }
 
-func (es *DDBStore) marshal(PK, SK, name, date string, amount float64, currency, category, createdAt string) (Expense, map[string]types.AttributeValue, error) {
+func (es *DDBStore) marshal(pk, sk, name, date string, amount float64, currency, category, createdAt string) (Expense, map[string]types.AttributeValue, error) {
 	newExpense := Expense{
-		PK:        PK,
-		SK:        SK,
+		PK:        pk,
+		SK:        sk,
 		Name:      name,
 		Date:      date,
 		Amount:    amount,
@@ -53,7 +53,7 @@ func (es *DDBStore) marshal(PK, SK, name, date string, amount float64, currency,
 }
 
 func (es *DDBStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
-	newExpense, item, err := es.marshal(PK,
+	newExpense, item, err := es.marshal(pk,
 		buildSK(expenseFC.Date, expenseFC.CreatedAt),
 		expenseFC.Name,
 		expenseFC.Date,
@@ -80,19 +80,19 @@ func (es *DDBStore) Create(ctx context.Context, expenseFC Expense) (Expense, err
 	return newExpense, nil
 }
 
-func (es *DDBStore) FindOne(ctx context.Context, SK string) (Expense, error) {
-	expense := Expense{PK: PK, SK: SK}
+func (es *DDBStore) FindOne(ctx context.Context, sk string) (Expense, error) {
+	expense := Expense{PK: pk, SK: sk}
 	response, err := es.client.GetItem(ctx, &dynamodb.GetItemInput{
 		TableName: &es.tableName,
-		Key:       getKey(SK),
+		Key:       getKey(sk),
 	})
 
 	if err != nil {
-		return Expense{}, fmt.Errorf("GetItem DynamoDB operation failed for SK='%s': %w", SK, err)
+		return Expense{}, fmt.Errorf("GetItem DynamoDB operation failed for SK='%s': %w", sk, err)
 	}
 
 	if len(response.Item) == 0 {
-		return Expense{}, &NotFoundError{SK: SK}
+		return Expense{}, &NotFoundError{SK: sk}
 	}
 
 	err = attributevalue.UnmarshalMap(response.Item, &expense)
@@ -127,7 +127,7 @@ func (es *DDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense) erro
 	}
 
 	expense, item, err := es.marshal(
-		PK,
+		pk,
 		buildSK(expenseFU.Date, expenseFU.CreatedAt),
 		expenseFU.Name,
 		expenseFU.Date,
@@ -201,18 +201,18 @@ func (es *DDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Expense) e
 	return nil
 }
 
-func (es *DDBStore) Delete(ctx context.Context, SK string) error {
-	if _, err := es.FindOne(ctx, SK); err != nil {
-		return &NotFoundError{SK: SK}
+func (es *DDBStore) Delete(ctx context.Context, sk string) error {
+	if _, err := es.FindOne(ctx, sk); err != nil {
+		return &NotFoundError{SK: sk}
 	}
 
 	_, err := es.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &es.tableName,
-		Key:       getKey(SK),
+		Key:       getKey(sk),
 	})
 
 	if err != nil {
-		return fmt.Errorf("failed to delete expense with SK=%q from the table: %w", SK, err)
+		return fmt.Errorf("failed to delete expense with SK=%q from the table: %w", sk, err)
 	}
 
 	return nil
@@ -220,7 +220,7 @@ func (es *DDBStore) Delete(ctx context.Context, SK string) error {
 
 func (es *DDBStore) Query(ctx context.Context) ([]Expense, error) {
 	keyCond := expression.
-		Key("PK").Equal(expression.Value(PK)).
+		Key("PK").Equal(expression.Value(pk)).
 		And(expression.Key("SK").GreaterThanEqual(expression.Value(helpers.DaysAgo(31))))
 
 	exprBuilder := expression.NewBuilder()
@@ -253,7 +253,7 @@ func (es *DDBStore) QueryByDateRange(ctx context.Context, from, to string) ([]Ex
 	}
 
 	keyCond := expression.
-		Key("PK").Equal(expression.Value(PK)).
+		Key("PK").Equal(expression.Value(pk)).
 		And(expression.Key("SK").Between(expression.Value(from), expression.Value(dayAfterTo)))
 
 	exprBuilder := expression.NewBuilder()

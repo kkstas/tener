@@ -9,7 +9,7 @@ import (
 )
 
 func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *http.Request) {
-	categories, err := app.expenseCategory.Query(r.Context())
+	categories, err := app.expenseCategory.FindAll(r.Context())
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return

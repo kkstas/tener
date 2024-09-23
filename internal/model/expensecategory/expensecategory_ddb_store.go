@@ -79,7 +79,7 @@ func (cs *DDBStore) Delete(ctx context.Context, name string) error {
 	return nil
 }
 
-func (cs *DDBStore) Query(ctx context.Context) ([]Category, error) {
+func (cs *DDBStore) FindAll(ctx context.Context) ([]Category, error) {
 	keyCond := expression.
 		Key("PK").Equal(expression.Value(PK))
 

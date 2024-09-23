@@ -22,7 +22,7 @@ type expenseStore interface {
 type expenseCategoryStore interface {
 	Create(ctx context.Context, categoryFC expensecategory.Category) error
 	Delete(ctx context.Context, name string) error
-	Query(ctx context.Context) ([]expensecategory.Category, error)
+	FindAll(ctx context.Context) ([]expensecategory.Category, error)
 }
 
 type userStore interface {

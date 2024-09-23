@@ -29,6 +29,6 @@ func (e *InMemoryStore) Delete(ctx context.Context, SK string) error {
 	return nil
 }
 
-func (e *InMemoryStore) Query(ctx context.Context) ([]Category, error) {
+func (e *InMemoryStore) FindAll(ctx context.Context) ([]Category, error) {
 	return e.categories, nil
 }

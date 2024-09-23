@@ -12,7 +12,7 @@ import (
 var ValidCurrencies = []string{"PLN", "EUR", "GBP", "USD", "CZK", "CHF", "NOK", "SEK", "DKK", "HUF", "CAD", "AUD", "JPY", "CNY", "TRY"}
 
 const (
-	PK                    = "expense"
+	pk                    = "expense"
 	minQueryRangeDaysDiff = 0
 	maxQueryRangeDaysDiff = 365
 
@@ -35,7 +35,7 @@ type Expense struct {
 func New(name, date, category string, amount float64, currency string) (Expense, error) {
 	currentTimestamp := helpers.GenerateCurrentTimestamp()
 	return validate(Expense{
-		PK:        PK,
+		PK:        pk,
 		SK:        buildSK(date, currentTimestamp),
 		Name:      strings.TrimSpace(name),
 		Date:      date,
@@ -46,10 +46,10 @@ func New(name, date, category string, amount float64, currency string) (Expense,
 	})
 }
 
-func NewFU(name, SK, date, category string, amount float64, currency string) (Expense, error) {
+func NewFU(name, sk, date, category string, amount float64, currency string) (Expense, error) {
 	return validate(Expense{
-		PK:       PK,
-		SK:       SK,
+		PK:       pk,
+		SK:       sk,
 		Name:     strings.TrimSpace(name),
 		Date:     date,
 		Category: strings.TrimSpace(category),

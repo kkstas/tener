@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	pk                 = "user"
+	userPK             = "user"
 	FirstNameMinLength = 2
 	FirstNameMaxLength = 64
 	LastNameMinLength  = 2
@@ -42,7 +42,7 @@ func New(firstName, lastName, email, password string) (User, error) {
 	}
 
 	return validate(password, User{
-		PK:           pk,
+		PK:           userPK,
 		ID:           id,
 		FirstName:    strings.TrimSpace(firstName),
 		LastName:     strings.TrimSpace(lastName),
