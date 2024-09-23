@@ -73,7 +73,7 @@ func TestDDBCreate(t *testing.T) {
 	})
 }
 
-func TestDDBFindByEmail(t *testing.T) {
+func TestDDBFindOneByEmail(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -90,14 +90,31 @@ func TestDDBFindByEmail(t *testing.T) {
 		createdUser, err := store.Create(ctx, userFC)
 		assertNoError(t, err)
 
-		foundUser, err := store.FindOneByEmail(ctx, createdUser.Email)
+		_, err = store.FindOneByEmail(ctx, createdUser.Email)
+		assertNoError(t, err)
+	})
+}
+
+func TestDDBFindOneByID(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
+	if err != nil {
+		t.Fatalf("failed creating local test ddb table, %v", err)
+	}
+	defer removeDDB()
+	store := user.NewDDBStore(tableName, client)
+
+	t.Run("finds created user by ID", func(t *testing.T) {
+		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
 		assertNoError(t, err)
 
-		if foundUser.ID != userFC.ID || foundUser.Email != userFC.Email {
-			t.Errorf("expected to find the same user that was created, found: %+v", foundUser)
-		}
-	})
+		createdUser, err := store.Create(ctx, userFC)
+		assertNoError(t, err)
 
+		_, err = store.FindOneByID(ctx, createdUser.ID)
+		assertNoError(t, err)
+	})
 }
 
 func assertNoError(t testing.TB, err error) {

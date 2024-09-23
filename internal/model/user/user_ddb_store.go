@@ -75,6 +75,56 @@ func (s *DDBStore) Create(ctx context.Context, userFC User) (User, error) {
 	return newUser, nil
 }
 
+func (s *DDBStore) FindOneByEmail(ctx context.Context, email string) (User, error) {
+	result, err := s.client.Query(ctx, &dynamodb.QueryInput{
+		TableName:              &s.tableName,
+		IndexName:              aws.String("email-index"),
+		KeyConditionExpression: aws.String("email = :email"),
+		ExpressionAttributeValues: map[string]types.AttributeValue{
+			":email": &types.AttributeValueMemberS{Value: email},
+		},
+		Limit: aws.Int32(1),
+	})
+
+	if err != nil {
+		return User{}, fmt.Errorf("failed to query GSI for email: %w", err)
+	}
+
+	if len(result.Items) == 0 {
+		return User{}, fmt.Errorf("user with email %s not found", email)
+	}
+
+	var user User
+	err = attributevalue.UnmarshalMap(result.Items[0], &user)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to unmarshal user data: %w", err)
+	}
+
+	return user, nil
+}
+
+func (s *DDBStore) FindOneByID(ctx context.Context, id string) (User, error) {
+	response, err := s.client.GetItem(ctx, &dynamodb.GetItemInput{
+		TableName: &s.tableName,
+		Key:       getKey(id),
+	})
+
+	if err != nil {
+		return User{}, fmt.Errorf("GetItem DynamoDB operation failed for user ID='%s': %w", id, err)
+	}
+
+	if len(response.Item) == 0 {
+		return User{}, fmt.Errorf("user not found")
+	}
+
+	var foundUser User
+	err = attributevalue.UnmarshalMap(response.Item, &foundUser)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to unmarshal expense: %w", err)
+	}
+	return foundUser, nil
+}
+
 func (s *DDBStore) checkEmailExists(ctx context.Context, email string) (bool, error) {
 	result, err := s.client.Query(ctx, &dynamodb.QueryInput{
 		TableName:              &s.tableName,
@@ -143,30 +193,14 @@ func (s *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Use
 	return users, nil
 }
 
-func (s *DDBStore) FindOneByEmail(ctx context.Context, email string) (User, error) {
-	result, err := s.client.Query(ctx, &dynamodb.QueryInput{
-		TableName:              &s.tableName,
-		IndexName:              aws.String("email-index"),
-		KeyConditionExpression: aws.String("email = :email"),
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":email": &types.AttributeValueMemberS{Value: email},
-		},
-		Limit: aws.Int32(1),
-	})
-
+func getKey(sk string) map[string]types.AttributeValue {
+	PK, err := attributevalue.Marshal(userPK)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to query GSI for email: %w", err)
+		panic(err)
 	}
-
-	if len(result.Items) == 0 {
-		return User{}, fmt.Errorf("user with email %s not found", email)
-	}
-
-	var user User
-	err = attributevalue.UnmarshalMap(result.Items[0], &user)
+	SK, err := attributevalue.Marshal(sk)
 	if err != nil {
-		return User{}, fmt.Errorf("failed to unmarshal user data: %w", err)
+		panic(err)
 	}
-
-	return user, nil
+	return map[string]types.AttributeValue{"PK": PK, "SK": SK}
 }
