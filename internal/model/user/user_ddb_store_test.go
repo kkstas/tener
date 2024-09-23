@@ -2,6 +2,7 @@ package user_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -37,7 +38,7 @@ func TestDDBCreate(t *testing.T) {
 		}
 	})
 
-	t.Run("does not create new user if email is already taken", func(t *testing.T) {
+	t.Run("does not create new user if user with that email already exists", func(t *testing.T) {
 		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
 		assertNoError(t, err)
 
@@ -51,6 +52,11 @@ func TestDDBCreate(t *testing.T) {
 
 		if err == nil {
 			t.Error("expected an error but didn't get one")
+		}
+
+		var alreadyExistsErr *user.AlreadyExistsError
+		if ok := errors.As(err, &alreadyExistsErr); !ok {
+			t.Errorf("expected AlreadyExistsError thrown, but instead got: %#v", err)
 		}
 	})
 
@@ -69,6 +75,10 @@ func TestDDBCreate(t *testing.T) {
 
 		if err == nil {
 			t.Error("expected an error but didn't get one")
+		}
+		var alreadyExistsErr *user.AlreadyExistsError
+		if ok := errors.As(err, &alreadyExistsErr); !ok {
+			t.Errorf("expected AlreadyExistsError thrown, but instead got: %#v", err)
 		}
 	})
 }
@@ -93,6 +103,19 @@ func TestDDBFindOneByEmail(t *testing.T) {
 		_, err = store.FindOneByEmail(ctx, createdUser.Email)
 		assertNoError(t, err)
 	})
+
+	t.Run("returns NotFoundError if user with that email does not exist", func(t *testing.T) {
+		_, err = store.FindOneByEmail(ctx, "invalidemail@email.com")
+
+		if err == nil {
+			t.Error("expected an error but didn't get one")
+		}
+
+		var notFoundErr *user.NotFoundError
+		if ok := errors.As(err, &notFoundErr); !ok {
+			t.Errorf("expected NotFoundError thrown, but instead got: %#v", err)
+		}
+	})
 }
 
 func TestDDBFindOneByID(t *testing.T) {
@@ -114,6 +137,19 @@ func TestDDBFindOneByID(t *testing.T) {
 
 		_, err = store.FindOneByID(ctx, createdUser.ID)
 		assertNoError(t, err)
+	})
+
+	t.Run("returns NotFoundError if user with that ID does not exist", func(t *testing.T) {
+		_, err = store.FindOneByID(ctx, "invalidID")
+
+		if err == nil {
+			t.Error("expected an error but didn't get one")
+		}
+
+		var notFoundErr *user.NotFoundError
+		if ok := errors.As(err, &notFoundErr); !ok {
+			t.Errorf("expected NotFoundError thrown, but instead got: %#v", err)
+		}
 	})
 }
 

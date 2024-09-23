@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -45,7 +46,7 @@ func (s *DDBStore) Create(ctx context.Context, userFC User) (User, error) {
 	}
 
 	if emailExists {
-		return User{}, fmt.Errorf("email already in use")
+		return User{}, &AlreadyExistsError{Email: userFC.Email}
 	}
 
 	newUser, item, err := s.marshal(
@@ -69,6 +70,10 @@ func (s *DDBStore) Create(ctx context.Context, userFC User) (User, error) {
 	})
 
 	if err != nil {
+		var condErr *types.ConditionalCheckFailedException
+		if errors.As(err, &condErr) {
+			return User{}, &AlreadyExistsError{ID: newUser.ID}
+		}
 		return User{}, fmt.Errorf("failed to put item into DynamoDB: %w", err)
 	}
 
@@ -91,7 +96,7 @@ func (s *DDBStore) FindOneByEmail(ctx context.Context, email string) (User, erro
 	}
 
 	if len(result.Items) == 0 {
-		return User{}, fmt.Errorf("user with email %s not found", email)
+		return User{}, &NotFoundError{Email: email}
 	}
 
 	var user User
@@ -114,7 +119,7 @@ func (s *DDBStore) FindOneByID(ctx context.Context, id string) (User, error) {
 	}
 
 	if len(response.Item) == 0 {
-		return User{}, fmt.Errorf("user not found")
+		return User{}, &NotFoundError{ID: id}
 	}
 
 	var foundUser User
