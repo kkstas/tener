@@ -95,7 +95,6 @@ func (cs *DDBStore) FindAll(ctx context.Context) ([]Category, error) {
 	}
 
 	return cs.query(ctx, expr)
-
 }
 
 func (cs *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Category, error) {

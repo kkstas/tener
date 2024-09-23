@@ -149,7 +149,7 @@ func TestInMemoryFindOneByEmail(t *testing.T) {
 }
 func createDefaultInMemoryUserHelper(t testing.TB, ctx context.Context, store *user.InMemoryStore) user.User {
 	t.Helper()
-	return createInMemoryUserHelper(t, ctx, store, firstName, lastName, email, password)
+	return createInMemoryUserHelper(t, ctx, store, validFirstName, validLastName, validEmail, validPassword)
 }
 
 func createInMemoryUserHelper(t testing.TB, ctx context.Context, store *user.InMemoryStore, firstName, lastName, email, password string) user.User {
