@@ -50,6 +50,10 @@ func CreateDDBTable(ctx context.Context, client *dynamodb.Client, tableName stri
 				AttributeName: aws.String("SK"),
 				AttributeType: types.ScalarAttributeTypeS,
 			},
+			{
+				AttributeName: aws.String("email"),
+				AttributeType: types.ScalarAttributeTypeS,
+			},
 		},
 		KeySchema: []types.KeySchemaElement{
 			{
@@ -59,6 +63,24 @@ func CreateDDBTable(ctx context.Context, client *dynamodb.Client, tableName stri
 			{
 				AttributeName: aws.String("SK"),
 				KeyType:       types.KeyTypeRange,
+			},
+		},
+		GlobalSecondaryIndexes: []types.GlobalSecondaryIndex{
+			{
+				IndexName: aws.String("email-index"),
+				KeySchema: []types.KeySchemaElement{
+					{
+						AttributeName: aws.String("email"),
+						KeyType:       types.KeyTypeHash,
+					},
+				},
+				Projection: &types.Projection{
+					ProjectionType: types.ProjectionTypeAll,
+				},
+				ProvisionedThroughput: &types.ProvisionedThroughput{
+					ReadCapacityUnits:  aws.Int64(2),
+					WriteCapacityUnits: aws.Int64(2),
+				},
 			},
 		},
 		TableName: aws.String(tableName),
