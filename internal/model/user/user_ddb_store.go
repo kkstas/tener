@@ -65,7 +65,7 @@ func (s *DDBStore) Create(ctx context.Context, userFC User) (User, error) {
 	_, err = s.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName:           &s.tableName,
 		Item:                item,
-		ConditionExpression: aws.String("attribute_not_exists(ID)"),
+		ConditionExpression: aws.String("attribute_not_exists(SK)"),
 	})
 
 	if err != nil {

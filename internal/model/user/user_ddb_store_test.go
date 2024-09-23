@@ -53,6 +53,24 @@ func TestDDBCreate(t *testing.T) {
 			t.Error("expected an error but didn't get one")
 		}
 	})
+
+	t.Run("does not create new user if user with that ID already exists", func(t *testing.T) {
+		userFC, err := user.New(validFirstName, validLastName, "john847234doe@email.de", validPassword)
+		assertNoError(t, err)
+
+		_, err = store.Create(ctx, userFC)
+		assertNoError(t, err)
+
+		secondUserFC, err := user.New(validFirstName, validLastName, "doe123842doe@email.eu", validPassword)
+		assertNoError(t, err)
+		secondUserFC.ID = userFC.ID
+
+		_, err = store.Create(ctx, secondUserFC)
+
+		if err == nil {
+			t.Error("expected an error but didn't get one")
+		}
+	})
 }
 
 func TestDDBFindByEmail(t *testing.T) {
