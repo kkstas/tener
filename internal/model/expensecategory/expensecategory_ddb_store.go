@@ -12,15 +12,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 )
 
-const PK = "expensecategory"
+const pkPrefix = "expensecategory"
 
 type DDBStore struct {
 	client    *dynamodb.Client
 	tableName string
 }
 
-func (c *Category) getKey() map[string]types.AttributeValue {
-	PK, err := attributevalue.Marshal(c.PK)
+func (c *Category) getKey(vaultID string) map[string]types.AttributeValue {
+	PK, err := attributevalue.Marshal(buildPK(vaultID))
 	if err != nil {
 		panic(err)
 	}
@@ -38,10 +38,11 @@ func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
 	}
 }
 
-func (cs *DDBStore) Create(ctx context.Context, categoryFC Category) error {
+func (cs *DDBStore) Create(ctx context.Context, categoryFC Category, vaultID string) error {
+	pk := buildPK(vaultID)
 	item, err := attributevalue.MarshalMap(
 		Category{
-			PK:   PK,
+			PK:   pk,
 			Name: categoryFC.Name,
 		},
 	)
@@ -57,7 +58,7 @@ func (cs *DDBStore) Create(ctx context.Context, categoryFC Category) error {
 	if err != nil {
 		var condErr *types.ConditionalCheckFailedException
 		if errors.As(err, &condErr) {
-			return &AlreadyExistsError{Name: categoryFC.Name}
+			return &AlreadyExistsError{PK: pk, Name: categoryFC.Name}
 		}
 
 		return fmt.Errorf("failed to put expense category into DynamoDB: %w", err)
@@ -66,22 +67,22 @@ func (cs *DDBStore) Create(ctx context.Context, categoryFC Category) error {
 	return nil
 }
 
-func (cs *DDBStore) Delete(ctx context.Context, name string) error {
-	categoryFD := Category{PK: PK, Name: name}
+func (cs *DDBStore) Delete(ctx context.Context, name, vaultID string) error {
+	categoryFD := Category{Name: name}
 	_, err := cs.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &cs.tableName,
-		Key:       categoryFD.getKey(),
+		Key:       categoryFD.getKey(vaultID),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to delete expense category with name=%q from table: %w", name, err)
+		return fmt.Errorf("failed to delete expense category with PK='%s' name='%s' from table: %w", buildPK(vaultID), name, err)
 	}
 
 	return nil
 }
 
-func (cs *DDBStore) FindAll(ctx context.Context) ([]Category, error) {
-	keyCond := expression.
-		Key("PK").Equal(expression.Value(PK))
+func (cs *DDBStore) FindAll(ctx context.Context, vaultID string) ([]Category, error) {
+	pk := buildPK(vaultID)
+	keyCond := expression.Key("PK").Equal(expression.Value(pk))
 
 	exprBuilder := expression.NewBuilder()
 	exprBuilder.WithKeyCondition(keyCond)

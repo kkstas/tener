@@ -19,9 +19,9 @@ type expenseStore interface {
 }
 
 type expenseCategoryStore interface {
-	Create(ctx context.Context, categoryFC expensecategory.Category) error
-	Delete(ctx context.Context, name string) error
-	FindAll(ctx context.Context) ([]expensecategory.Category, error)
+	Create(ctx context.Context, categoryFC expensecategory.Category, vaultID string) error
+	Delete(ctx context.Context, name, vaultID string) error
+	FindAll(ctx context.Context, vaultID string) ([]expensecategory.Category, error)
 }
 
 type userStore interface {
@@ -63,9 +63,9 @@ func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCateg
 	mux.HandleFunc("PUT    /expense/edit/{SK}", withUser(app.updateSingleExpenseAndRenderExpenses))
 	mux.HandleFunc("DELETE /expense/{SK}", withUser(app.deleteSingleExpense))
 
-	mux.HandleFunc("GET    /expensecategories", app.renderExpenseCategoriesPage)
-	mux.HandleFunc("POST   /expensecategories/create", app.createAndRenderSingleExpenseCategory)
-	mux.HandleFunc("DELETE /expensecategories/{name}", app.deleteSingleExpenseCategory)
+	mux.HandleFunc("GET    /expensecategories", withUser(app.renderExpenseCategoriesPage))
+	mux.HandleFunc("POST   /expensecategories/create", withUser(app.createAndRenderSingleExpenseCategory))
+	mux.HandleFunc("DELETE /expensecategories/{name}", withUser(app.deleteSingleExpenseCategory))
 
 	app.Handler = secureHeaders(mux)
 

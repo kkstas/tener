@@ -6,10 +6,11 @@ import (
 
 	"github.com/kkstas/tjener/internal/components"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tjener/internal/model/user"
 )
 
-func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *http.Request) {
-	categories, err := app.expenseCategory.FindAll(r.Context())
+func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *http.Request, u user.User) {
+	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
@@ -18,7 +19,7 @@ func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *ht
 	app.renderTempl(w, r, components.ExpenseCategoriesPage(r.Context(), categories))
 }
 
-func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWriter, r *http.Request) {
+func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWriter, r *http.Request, u user.User) {
 	name := r.FormValue("name")
 
 	categoryFC, err := expensecategory.New(name)
@@ -27,7 +28,7 @@ func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWrit
 		return
 	}
 
-	err = app.expenseCategory.Create(r.Context(), categoryFC)
+	err = app.expenseCategory.Create(r.Context(), categoryFC, u.ActiveVault)
 	if err != nil {
 		var alreadyExistsErr *expensecategory.AlreadyExistsError
 		if errors.As(err, &alreadyExistsErr) {
@@ -42,10 +43,10 @@ func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWrit
 	app.renderTempl(w, r, components.SingleExpenseCategory(r.Context(), categoryFC))
 }
 
-func (app *Application) deleteSingleExpenseCategory(w http.ResponseWriter, r *http.Request) {
+func (app *Application) deleteSingleExpenseCategory(w http.ResponseWriter, r *http.Request, u user.User) {
 	name := r.PathValue("name")
 
-	err := app.expenseCategory.Delete(r.Context(), name)
+	err := app.expenseCategory.Delete(r.Context(), name, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "deleting item failed: "+err.Error(), err)
 		return

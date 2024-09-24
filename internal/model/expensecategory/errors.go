@@ -5,11 +5,12 @@ import (
 )
 
 type AlreadyExistsError struct {
+	PK   string
 	Name string
 }
 
 func (e *AlreadyExistsError) Error() string {
-	return fmt.Sprintf("expense category '%s' already exists", e.Name)
+	return fmt.Sprintf("expense category '%s' '%s' already exists", e.PK, e.Name)
 }
 
 type NotFoundError struct {

@@ -21,17 +21,17 @@ func TestDDBCreate(t *testing.T) {
 
 		store := expensecategory.NewDDBStore(tableName, client)
 
-		categories, err := store.FindAll(ctx)
+		categories, err := store.FindAll(ctx, "activeVaultID")
 		if err != nil {
 			t.Fatalf("failed querying ddb table for expense categories before putting expense category, %v", err)
 		}
 
 		categoryFC, _ := expensecategory.New("some-name")
-		err = store.Create(ctx, categoryFC)
+		err = store.Create(ctx, categoryFC, "activeVaultID")
 		if err != nil {
 			t.Fatalf("failed putting item into ddb, %v", err)
 		}
-		newCategories, err := store.FindAll(ctx)
+		newCategories, err := store.FindAll(ctx, "activeVaultID")
 		if err != nil {
 			t.Fatalf("failed querying ddb table for expense categories after putting expense category, %v", err)
 		}
@@ -54,22 +54,22 @@ func TestDDBDelete(t *testing.T) {
 
 	categoryFC, _ := expensecategory.New("some-name")
 
-	err = store.Create(ctx, categoryFC)
+	err = store.Create(ctx, categoryFC, "activeVaultID")
 	if err != nil {
 		t.Fatalf("failed putting item into ddb, %v", err)
 	}
 
-	categories, err := store.FindAll(ctx)
+	categories, err := store.FindAll(ctx, "activeVaultID")
 	if err != nil {
 		t.Fatalf("failed querying ddb table for expense categories before deleting one, %v", err)
 	}
 
-	err = store.Delete(ctx, categoryFC.Name)
+	err = store.Delete(ctx, categoryFC.Name, "activeVaultID")
 	if err != nil {
 		t.Fatalf("failed deleting expense category: %v", err)
 	}
 
-	newCategories, err := store.FindAll(ctx)
+	newCategories, err := store.FindAll(ctx, "activeVaultID")
 	if err != nil {
 		t.Fatalf("failed querying ddb table for expense categories after deleting one, %v", err)
 	}

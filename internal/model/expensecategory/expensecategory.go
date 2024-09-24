@@ -17,7 +17,6 @@ type Category struct {
 
 func New(name string) (Category, error) {
 	category := Category{
-		PK:   PK,
 		Name: name,
 	}
 	category.Check(validator.StringLengthBetween("name", name, CategoryNameMinLength, CategoryNameMaxLength))
