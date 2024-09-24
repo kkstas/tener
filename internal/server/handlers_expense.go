@@ -13,7 +13,7 @@ import (
 )
 
 func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u user.User) {
-	expenses, err := app.expense.QueryByDateRange(r.Context(), helpers.MonthAgo(), helpers.DaysAgo(0))
+	expenses, err := app.expense.Query(r.Context(), helpers.MonthAgo(), helpers.DaysAgo(0), u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
@@ -28,7 +28,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 	app.renderTempl(w, r, components.Page(r.Context(), expenses, expense.ValidCurrencies, categories))
 }
 
-func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request) {
+func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
 	from := r.URL.Query().Get("from")
 	to := r.URL.Query().Get("to")
 
@@ -39,7 +39,7 @@ func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request) {
 		to = helpers.DaysAgo(0)
 	}
 
-	expenses, err := app.expense.QueryByDateRange(r.Context(), from, to)
+	expenses, err := app.expense.Query(r.Context(), from, to, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
@@ -54,7 +54,7 @@ func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request) {
 	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
 }
 
-func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request) {
+func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
 	from, to := queryDatesRange(r)
 
 	category := r.FormValue("category")
@@ -75,13 +75,13 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	_, err = app.expense.Create(r.Context(), exp)
+	_, err = app.expense.Create(r.Context(), exp, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return
 	}
 
-	expenses, err := app.expense.QueryByDateRange(r.Context(), from, to)
+	expenses, err := app.expense.Query(r.Context(), from, to, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
@@ -96,7 +96,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
 }
 
-func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request) {
+func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
 	from, to := queryDatesRange(r)
 
 	SK := r.PathValue("SK")
@@ -112,13 +112,13 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	expenseFU, err := expense.NewFU(name, SK, date, category, amount, currency)
+	expenseFU, err := expense.NewFU(SK, name, date, category, amount, currency)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
-	err = app.expense.Update(r.Context(), expenseFU)
+	err = app.expense.Update(r.Context(), expenseFU, u.ActiveVault)
 	if err != nil {
 		var notFoundErr *expense.NotFoundError
 		if errors.As(err, &notFoundErr) {
@@ -129,7 +129,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	expenses, err := app.expense.QueryByDateRange(r.Context(), from, to)
+	expenses, err := app.expense.Query(r.Context(), from, to, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
@@ -144,10 +144,10 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
 }
 
-func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request) {
+func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request, u user.User) {
 	sk := r.PathValue("SK")
 
-	err := app.expense.Delete(r.Context(), sk)
+	err := app.expense.Delete(r.Context(), sk, u.ActiveVault)
 	if err != nil {
 		var notFoundErr *expense.NotFoundError
 		if errors.As(err, &notFoundErr) {

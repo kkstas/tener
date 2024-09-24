@@ -64,6 +64,7 @@ func TestCreateExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", nil)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		addTokenCookie(t, request)
 		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
@@ -79,6 +80,7 @@ func TestCreateExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		addTokenCookie(t, request)
 		newTestApplication().ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusBadRequest)
@@ -96,6 +98,7 @@ func TestCreateExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		addTokenCookie(t, request)
 
 		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
@@ -113,6 +116,7 @@ func TestCreateExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		addTokenCookie(t, request)
 
 		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
@@ -123,7 +127,7 @@ func TestUpdateExpense(t *testing.T) {
 	t.Run("allows comma and dot as a decimal separator", func(t *testing.T) {
 		store := expense.InMemoryStore{}
 		SK := "2024-08-25::1725652252238"
-		_, err := store.Create(context.Background(), expense.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"})
+		_, err := store.Create(context.Background(), expense.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"}, "activeVaultID")
 		if err != nil {
 			log.Fatalf("didn't expect an error but got one: %v", err)
 		}
@@ -139,6 +143,7 @@ func TestUpdateExpense(t *testing.T) {
 		response := httptest.NewRecorder()
 		request := httptest.NewRequest(http.MethodPut, u.Create(context.Background(), "expense", "edit", SK), payload)
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		addTokenCookie(t, request)
 
 		server.NewApplication(&store, &expensecategory.InMemoryStore{}, &user.InMemoryStore{}).ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)

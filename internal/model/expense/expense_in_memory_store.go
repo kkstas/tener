@@ -12,12 +12,12 @@ type InMemoryStore struct {
 	expenses []Expense
 }
 
-func (e *InMemoryStore) Create(ctx context.Context, expenseFC Expense) (Expense, error) {
+func (e *InMemoryStore) Create(ctx context.Context, expenseFC Expense, vaultID string) (Expense, error) {
 	e.expenses = append(e.expenses, expenseFC)
 	return expenseFC, nil
 }
 
-func (e *InMemoryStore) Delete(ctx context.Context, SK string) error {
+func (e *InMemoryStore) Delete(ctx context.Context, SK, vaultID string) error {
 	var deleted bool
 
 	e.expenses = slices.DeleteFunc(e.expenses, func(expense Expense) bool {
@@ -32,7 +32,7 @@ func (e *InMemoryStore) Delete(ctx context.Context, SK string) error {
 	return nil
 }
 
-func (e *InMemoryStore) Update(ctx context.Context, expenseFU Expense) error {
+func (e *InMemoryStore) Update(ctx context.Context, expenseFU Expense, vaultID string) error {
 	var found bool
 
 	for i, el := range e.expenses {
@@ -48,7 +48,7 @@ func (e *InMemoryStore) Update(ctx context.Context, expenseFU Expense) error {
 	return nil
 }
 
-func (e *InMemoryStore) FindOne(ctx context.Context, SK string) (Expense, error) {
+func (e *InMemoryStore) FindOne(ctx context.Context, SK, vaultID string) (Expense, error) {
 	for _, el := range e.expenses {
 		if el.SK == SK {
 			return el, nil
@@ -57,12 +57,8 @@ func (e *InMemoryStore) FindOne(ctx context.Context, SK string) (Expense, error)
 	return Expense{}, &NotFoundError{SK: SK}
 }
 
-func (e *InMemoryStore) Query(ctx context.Context) ([]Expense, error) {
-	return e.expenses, nil
-}
-
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
-func (e *InMemoryStore) QueryByDateRange(ctx context.Context, from, to string) ([]Expense, error) {
+func (e *InMemoryStore) Query(ctx context.Context, from, to, vaultID string) ([]Expense, error) {
 	daysDiff, err := helpers.DaysBetween(from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)

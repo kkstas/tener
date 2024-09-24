@@ -21,7 +21,7 @@ func TestInMemoryCreate(t *testing.T) {
 
 	expense := createDefaultInMemoryExpenseHelper(t, ctx, store)
 
-	_, err := store.FindOne(ctx, expense.SK)
+	_, err := store.FindOne(ctx, expense.SK, "activeVaultID")
 	if err != nil {
 		t.Errorf("didn't expect an error but got one: %v", err)
 	}
@@ -34,17 +34,17 @@ func TestInMemoryDelete(t *testing.T) {
 
 		exp := createDefaultInMemoryExpenseHelper(t, ctx, store)
 
-		_, err := store.FindOne(ctx, exp.SK)
+		_, err := store.FindOne(ctx, exp.SK, "activeVaultID")
 		if err != nil {
 			t.Fatalf("failed finding expense after creation: %v", err)
 		}
 
-		err = store.Delete(ctx, exp.SK)
+		err = store.Delete(ctx, exp.SK, "activeVaultID")
 		if err != nil {
 			t.Fatalf("failed deleting expense: %v", err)
 		}
 
-		_, err = store.FindOne(ctx, exp.SK)
+		_, err = store.FindOne(ctx, exp.SK, "activeVaultID")
 		if err == nil {
 			t.Fatal("expected error after trying to find deleted expense but didn't get one")
 		}
@@ -59,7 +59,7 @@ func TestInMemoryDelete(t *testing.T) {
 		store := expense.InMemoryStore{}
 		invalidSK := "invalidSK"
 
-		err := store.Delete(ctx, invalidSK)
+		err := store.Delete(ctx, invalidSK, "activeVaultID")
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
@@ -77,11 +77,11 @@ func TestInMemoryUpdate(t *testing.T) {
 	t.Run("updates existing expense", func(t *testing.T) {
 		expense := createDefaultInMemoryExpenseHelper(t, ctx, store)
 		expense.Name = "new name"
-		err := store.Update(ctx, expense)
+		err := store.Update(ctx, expense, "activeVaultID")
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
-		newExpense, _ := store.FindOne(ctx, expense.SK)
+		newExpense, _ := store.FindOne(ctx, expense.SK, "activeVaultID")
 
 		if newExpense.Name != expense.Name {
 			t.Error("expense update failed")
@@ -91,7 +91,7 @@ func TestInMemoryUpdate(t *testing.T) {
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
 		invalidSK := "invalidSK"
 
-		err := store.Update(ctx, expense.Expense{SK: invalidSK})
+		err := store.Update(ctx, expense.Expense{SK: invalidSK}, "activeVaultID")
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
@@ -108,7 +108,7 @@ func TestInMemoryFindOne(t *testing.T) {
 	store := &expense.InMemoryStore{}
 	t.Run("finds existing expense", func(t *testing.T) {
 		expense := createDefaultInMemoryExpenseHelper(t, ctx, store)
-		_, err := store.FindOne(ctx, expense.SK)
+		_, err := store.FindOne(ctx, expense.SK, "activeVaultID")
 		if err != nil {
 			t.Errorf("didn't expect an error while finding expense but got one: %v", err)
 		}
@@ -117,7 +117,7 @@ func TestInMemoryFindOne(t *testing.T) {
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
 		invalidSK := "invalidSK"
 
-		_, err := store.FindOne(ctx, invalidSK)
+		_, err := store.FindOne(ctx, invalidSK, "activeVaultID")
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
@@ -129,7 +129,7 @@ func TestInMemoryFindOne(t *testing.T) {
 	})
 }
 
-func TestInMemoryQueryByDateRange(t *testing.T) {
+func TestInMemoryQuery(t *testing.T) {
 	ctx := context.Background()
 	store := &expense.InMemoryStore{}
 
@@ -139,7 +139,7 @@ func TestInMemoryQueryByDateRange(t *testing.T) {
 	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-18", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
-		expenses, err := store.QueryByDateRange(ctx, "2024-01-15", "2024-01-18")
+		expenses, err := store.Query(ctx, "2024-01-15", "2024-01-18", "activeVaultID")
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -147,7 +147,7 @@ func TestInMemoryQueryByDateRange(t *testing.T) {
 			t.Errorf("expected 4 expenses returned, got %d", len(expenses))
 		}
 
-		expenses, err = store.QueryByDateRange(ctx, "2024-01-15", "2024-01-16")
+		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-16", "activeVaultID")
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -155,7 +155,7 @@ func TestInMemoryQueryByDateRange(t *testing.T) {
 			t.Errorf("expected 2 expenses returned, got %d", len(expenses))
 		}
 
-		expenses, err = store.QueryByDateRange(ctx, "2024-01-15", "2024-01-15")
+		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-15", "activeVaultID")
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -165,7 +165,7 @@ func TestInMemoryQueryByDateRange(t *testing.T) {
 	})
 
 	t.Run("returns error when date range is above one year", func(t *testing.T) {
-		_, err := store.QueryByDateRange(ctx, "2023-01-01", "2024-01-02")
+		_, err := store.Query(ctx, "2023-01-01", "2024-01-02", "activeVaultID")
 		if err == nil {
 			t.Error("expected and error but didn't get one")
 		}
@@ -183,7 +183,7 @@ func createInMemoryExpenseHelper(t testing.TB, ctx context.Context, store *expen
 	if err != nil {
 		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
 	}
-	expense, err := store.Create(ctx, expenseFC)
+	expense, err := store.Create(ctx, expenseFC, "activeVaultID")
 	if err != nil {
 		t.Fatalf("didn't expect an error while putting expense into in memory store but got one: %v", err)
 	}

@@ -11,12 +11,11 @@ import (
 )
 
 type expenseStore interface {
-	Create(ctx context.Context, expenseFC expense.Expense) (expense.Expense, error)
-	Delete(ctx context.Context, SK string) error
-	Update(ctx context.Context, expenseFU expense.Expense) error
-	FindOne(ctx context.Context, SK string) (expense.Expense, error)
-	Query(ctx context.Context) ([]expense.Expense, error)
-	QueryByDateRange(ctx context.Context, from, to string) ([]expense.Expense, error)
+	Create(ctx context.Context, expenseFC expense.Expense, vaultID string) (expense.Expense, error)
+	Delete(ctx context.Context, SK, vaultID string) error
+	Update(ctx context.Context, expenseFU expense.Expense, vaultID string) error
+	FindOne(ctx context.Context, SK, vaultID string) (expense.Expense, error)
+	Query(ctx context.Context, from, to, vaultID string) ([]expense.Expense, error)
 }
 
 type expenseCategoryStore interface {
@@ -59,10 +58,10 @@ func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCateg
 	mux.HandleFunc("POST /register", app.handleRegister)
 
 	mux.HandleFunc("GET    /home", withUser(app.renderHomePage))
-	mux.HandleFunc("GET    /expense/all", app.renderExpenses)
-	mux.HandleFunc("POST   /expense/create", app.createSingleExpenseAndRenderExpenses)
-	mux.HandleFunc("PUT    /expense/edit/{SK}", app.updateSingleExpenseAndRenderExpenses)
-	mux.HandleFunc("DELETE /expense/{SK}", app.deleteSingleExpense)
+	mux.HandleFunc("GET    /expense/all", withUser(app.renderExpenses))
+	mux.HandleFunc("POST   /expense/create", withUser(app.createSingleExpenseAndRenderExpenses))
+	mux.HandleFunc("PUT    /expense/edit/{SK}", withUser(app.updateSingleExpenseAndRenderExpenses))
+	mux.HandleFunc("DELETE /expense/{SK}", withUser(app.deleteSingleExpense))
 
 	mux.HandleFunc("GET    /expensecategories", app.renderExpenseCategoriesPage)
 	mux.HandleFunc("POST   /expensecategories/create", app.createAndRenderSingleExpenseCategory)
