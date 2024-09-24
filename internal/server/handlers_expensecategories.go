@@ -16,7 +16,7 @@ func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *ht
 		return
 	}
 
-	app.renderTempl(w, r, components.ExpenseCategoriesPage(r.Context(), categories))
+	app.renderTempl(w, r, components.ExpenseCategoriesPage(r.Context(), categories, u))
 }
 
 func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWriter, r *http.Request, u user.User) {

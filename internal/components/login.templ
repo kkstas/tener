@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/kkstas/tjener/internal/url"
+	"github.com/kkstas/tjener/internal/model/user"
 )
 
 templ LoginPage(ctx context.Context) {
-	@BaseHTML(ctx, false) {
+	@BaseHTML(ctx, false, user.User{}) {
 		<div
 			class="
 				mx-auto max-w-md my-10 px-4 py-4

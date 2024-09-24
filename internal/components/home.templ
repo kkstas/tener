@@ -5,10 +5,11 @@ import (
 
 	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tjener/internal/model/user"
 )
 
-templ Page(ctx context.Context, expenses []expense.Expense, currencies []string, categories []expensecategory.Category) {
-	@BaseHTML(ctx, true) {
+templ Page(ctx context.Context, expenses []expense.Expense, currencies []string, categories []expensecategory.Category, u user.User) {
+	@BaseHTML(ctx, true, u) {
 		<div
 			x-data="{
 				activeAccordion: '',

@@ -5,11 +5,12 @@ import (
 	"strconv"
 
 	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tjener/internal/model/user"
 	"github.com/kkstas/tjener/internal/url"
 )
 
-templ ExpenseCategoriesPage(ctx context.Context, categories []expensecategory.Category) {
-	@BaseHTML(ctx, true) {
+templ ExpenseCategoriesPage(ctx context.Context, categories []expensecategory.Category, u user.User) {
+	@BaseHTML(ctx, true, u) {
 		<div class="mx-auto max-w-md">
 			<form
 				hx-post={ url.Create(ctx, "expensecategories", "create") }

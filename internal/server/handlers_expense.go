@@ -25,7 +25,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	app.renderTempl(w, r, components.Page(r.Context(), expenses, expense.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Page(r.Context(), expenses, expense.ValidCurrencies, categories, u))
 }
 
 func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {

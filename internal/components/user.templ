@@ -1,0 +1,95 @@
+package components
+
+import "context"
+import "github.com/kkstas/tjener/internal/model/user"
+import "github.com/kkstas/tjener/internal/url"
+
+templ userDisabledCard(ctx context.Context, u user.User) {
+	<div
+		class="
+				inline-flex items-center justify-start
+				h-12 py-2 pl-3 pr-12 w-full
+				bg-white dark:bg-zinc-800
+				text-neutral-700 dark:text-zinc-100 text-sm font-medium transition-colors
+				border rounded-md dark:border-zinc-800
+				focus:outline-none
+				disabled:opacity-50
+				disabled:pointer-events-none
+			"
+	>
+		<svg class="size-6 stroke-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="inherit">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
+		</svg>
+		<span class="flex flex-col items-start flex-shrink-0 h-full ml-2 leading-none translate-y-px">
+			<span>{ u.FirstName } { u.LastName }</span>
+			<span class="text-xs font-light text-neutral-400">{ u.Email }</span>
+		</span>
+	</div>
+}
+
+templ UserCard(ctx context.Context, u user.User) {
+	<div
+		x-data="{
+			dropdownOpen: false
+		}"
+		class="relative"
+	>
+		<button
+			@click="dropdownOpen=true"
+			class="
+				inline-flex items-center justify-center
+				h-12 py-2 pl-3 pr-12
+				bg-white dark:bg-zinc-800 hover:bg-neutral-100 dark:hover:bg-zinc-700 active:bg-white dark:active:bg-zinc-800 focus:bg-white dark:focus:bg-zinc-800
+				text-neutral-700 dark:text-zinc-100 text-sm font-medium transition-colors
+				border rounded-md dark:border-zinc-800
+				focus:outline-none
+				disabled:opacity-50
+				disabled:pointer-events-none
+			"
+		>
+			<svg class="size-6 stroke-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="inherit">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
+			</svg>
+			<span class="flex flex-col items-start flex-shrink-0 h-full ml-2 leading-none translate-y-px">
+				<span>{ u.FirstName } { u.LastName }</span>
+				<span class="text-xs font-light text-neutral-400">{ u.Email }</span>
+			</span>
+			<svg class="absolute right-0 w-5 h-5 mr-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"></path></svg>
+		</button>
+		<div
+			x-show="dropdownOpen"
+			@click.away="dropdownOpen=false"
+			x-transition:enter="ease-out duration-200"
+			x-transition:enter-start="-translate-y-2"
+			x-transition:enter-end="translate-y-0"
+			class="absolute top-0 z-50 w-56 mt-12 -translate-x-1/2 left-1/2"
+			x-cloak
+		>
+			<div
+				class="p-1 mt-1
+					bg-white dark:bg-zinc-800
+					border rounded-md shadow-md border-neutral-200/70 dark:border-zinc-800
+					text-neutral-700 dark:text-zinc-200
+				"
+			>
+				<a href="#_" class="relative flex cursor-default select-none hover:bg-neutral-100 dark:hover:bg-zinc-700 items-center rounded px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50" data-disabled>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+					<span>Profile</span>
+				</a>
+				<a href="#_" class="relative flex cursor-default select-none hover:bg-neutral-100 dark:hover:bg-zinc-700 items-center rounded px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50" data-disabled>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+					<span>Settings</span>
+				</a>
+				<a href="#_" class="relative flex cursor-default select-none hover:bg-neutral-100 dark:hover:bg-zinc-700 items-center rounded px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50" data-disabled>
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"></path></svg>
+					<span>API</span>
+				</a>
+				<div class="h-px my-1 -mx-1 bg-neutral-200"></div>
+				<a href={ templ.SafeURL(url.Create(ctx, "logout")) } class="relative flex cursor-default select-none hover:bg-neutral-100 dark:hover:bg-zinc-700 items-center rounded px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" x2="9" y1="12" y2="12"></line></svg>
+					<span>Log out</span>
+				</a>
+			</div>
+		</div>
+	</div>
+}
