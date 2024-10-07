@@ -152,7 +152,15 @@ func createDefaultInMemoryUserHelper(t testing.TB, ctx context.Context, store *u
 	return createInMemoryUserHelper(t, ctx, store, validFirstName, validLastName, validEmail, validPassword)
 }
 
-func createInMemoryUserHelper(t testing.TB, ctx context.Context, store *user.InMemoryStore, firstName, lastName, email, password string) user.User {
+func createInMemoryUserHelper(
+	t testing.TB,
+	ctx context.Context,
+	store *user.InMemoryStore,
+	firstName string,
+	lastName string,
+	email string,
+	password string,
+) user.User {
 	t.Helper()
 	newUser, err := user.New(firstName, lastName, email, password)
 	if err != nil {

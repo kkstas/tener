@@ -65,7 +65,12 @@ func (e *InMemoryStore) Query(ctx context.Context, from, to, vaultID string) ([]
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
 	}
 	if daysDiff < minQueryRangeDaysDiff || daysDiff > maxQueryRangeDaysDiff {
-		return nil, fmt.Errorf("invalid difference between 'from' and 'to' date; got=%d, max=%d, min=%d", daysDiff, minQueryRangeDaysDiff, maxQueryRangeDaysDiff)
+		return nil, fmt.Errorf(
+			"invalid difference between 'from' and 'to' date; got=%d, max=%d, min=%d",
+			daysDiff,
+			minQueryRangeDaysDiff,
+			maxQueryRangeDaysDiff,
+		)
 	}
 
 	var expenses []Expense

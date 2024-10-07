@@ -238,10 +238,42 @@ func TestDDBQuery(t *testing.T) {
 	defer removeDDB()
 	store := expense.NewDDBStore(tableName, client)
 
-	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-15", validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
-	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-16", validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
-	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-17", validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
-	createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, "2024-01-18", validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
+	createDDBExpenseHelper(t,
+		ctx,
+		store,
+		validDDBExpenseName,
+		"2024-01-15",
+		validDDBExpenseCategory,
+		validDDBExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
+	createDDBExpenseHelper(t,
+		ctx,
+		store,
+		validDDBExpenseName,
+		"2024-01-16",
+		validDDBExpenseCategory,
+		validDDBExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
+	createDDBExpenseHelper(t,
+		ctx,
+		store,
+		validDDBExpenseName,
+		"2024-01-17",
+		validDDBExpenseCategory,
+		validDDBExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
+	createDDBExpenseHelper(t,
+		ctx,
+		store,
+		validDDBExpenseName,
+		"2024-01-18",
+		validDDBExpenseCategory,
+		validDDBExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
 		expenses, err := store.Query(ctx, "2024-01-15", "2024-01-18", "activeVaultID")
@@ -279,10 +311,28 @@ func TestDDBQuery(t *testing.T) {
 
 func createDefaultDDBExpenseHelper(t testing.TB, ctx context.Context, store *expense.DDBStore) expense.Expense {
 	t.Helper()
-	return createDDBExpenseHelper(t, ctx, store, validDDBExpenseName, validDDBExpenseDate, validDDBExpenseCategory, validDDBExpenseAmount, expense.ValidCurrencies[0])
+	return createDDBExpenseHelper(
+		t,
+		ctx,
+		store,
+		validDDBExpenseName,
+		validDDBExpenseDate,
+		validDDBExpenseCategory,
+		validDDBExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
 }
 
-func createDDBExpenseHelper(t testing.TB, ctx context.Context, store *expense.DDBStore, name, date, category string, amount float64, currency string) expense.Expense {
+func createDDBExpenseHelper(
+	t testing.TB,
+	ctx context.Context,
+	store *expense.DDBStore,
+	name,
+	date,
+	category string,
+	amount float64,
+	currency string,
+) expense.Expense {
 	t.Helper()
 	expenseFC, err := expense.New(name, date, category, amount, currency)
 	if err != nil {

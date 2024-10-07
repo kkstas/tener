@@ -59,7 +59,12 @@ func NewFU(sk, name, date, category string, amount float64, currency string) (Ex
 
 func validate(expense Expense) (Expense, error) {
 	expense.Check(validator.StringLengthBetween("name", expense.Name, NameMinLength, NameMaxLength))
-	expense.Check(validator.StringLengthBetween("category", expense.Category, expensecategory.CategoryNameMinLength, expensecategory.CategoryNameMaxLength))
+	expense.Check(validator.StringLengthBetween(
+		"category",
+		expense.Category,
+		expensecategory.CategoryNameMinLength,
+		expensecategory.CategoryNameMaxLength,
+	))
 	expense.Check(validator.OneOf("currency", expense.Currency, ValidCurrencies))
 	expense.Check(validator.IsAmountPrecision("amount", expense.Amount))
 	expense.Check(validator.IsNonZero("amount", expense.Amount))

@@ -37,7 +37,17 @@ func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
 	}
 }
 
-func (es *DDBStore) marshal(pk, sk, name, date string, amount float64, currency, category, createdAt, userID string) (Expense, map[string]types.AttributeValue, error) {
+func (es *DDBStore) marshal(
+	pk string,
+	sk string,
+	name string,
+	date string,
+	amount float64,
+	currency string,
+	category string,
+	createdAt string,
+	userID string,
+) (Expense, map[string]types.AttributeValue, error) {
 	newExpense := Expense{
 		PK:        pk,
 		SK:        sk,
@@ -230,7 +240,12 @@ func (es *DDBStore) Query(ctx context.Context, from, to, vaultID string) ([]Expe
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
 	}
 	if daysDiff < minQueryRangeDaysDiff || daysDiff > maxQueryRangeDaysDiff {
-		return nil, fmt.Errorf("invalid difference between 'from' and 'to' date; got=%d, max=%d, min=%d", daysDiff, minQueryRangeDaysDiff, maxQueryRangeDaysDiff)
+		return nil, fmt.Errorf(
+			"invalid difference between 'from' and 'to' date; got=%d, max=%d, min=%d",
+			daysDiff,
+			minQueryRangeDaysDiff,
+			maxQueryRangeDaysDiff,
+		)
 	}
 
 	dayAfterTo, err := helpers.NextDay(to)

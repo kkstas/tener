@@ -24,7 +24,15 @@ func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
 	}
 }
 
-func (s *DDBStore) marshal(pk, id, firstName, lastName, email, passwordHash, createdAt string) (User, map[string]types.AttributeValue, error) {
+func (s *DDBStore) marshal(
+	pk string,
+	id string,
+	firstName string,
+	lastName string,
+	email string,
+	passwordHash string,
+	createdAt string,
+) (User, map[string]types.AttributeValue, error) {
 	newUser := User{
 		PK:           pk,
 		ID:           id,

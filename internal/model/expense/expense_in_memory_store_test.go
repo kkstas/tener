@@ -133,10 +133,46 @@ func TestInMemoryQuery(t *testing.T) {
 	ctx := context.Background()
 	store := &expense.InMemoryStore{}
 
-	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-15", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
-	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-16", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
-	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-17", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
-	createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, "2024-01-18", validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
+	createInMemoryExpenseHelper(
+		t,
+		ctx,
+		store,
+		validInMemoryExpenseName,
+		"2024-01-15",
+		validInMemoryExpenseCategory,
+		validInMemoryExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
+	createInMemoryExpenseHelper(
+		t,
+		ctx,
+		store,
+		validInMemoryExpenseName,
+		"2024-01-16",
+		validInMemoryExpenseCategory,
+		validInMemoryExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
+	createInMemoryExpenseHelper(
+		t,
+		ctx,
+		store,
+		validInMemoryExpenseName,
+		"2024-01-17",
+		validInMemoryExpenseCategory,
+		validInMemoryExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
+	createInMemoryExpenseHelper(
+		t,
+		ctx,
+		store,
+		validInMemoryExpenseName,
+		"2024-01-18",
+		validInMemoryExpenseCategory,
+		validInMemoryExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
 		expenses, err := store.Query(ctx, "2024-01-15", "2024-01-18", "activeVaultID")
@@ -174,10 +210,28 @@ func TestInMemoryQuery(t *testing.T) {
 
 func createDefaultInMemoryExpenseHelper(t testing.TB, ctx context.Context, store *expense.InMemoryStore) expense.Expense {
 	t.Helper()
-	return createInMemoryExpenseHelper(t, ctx, store, validInMemoryExpenseName, validInMemoryExpenseDate, validInMemoryExpenseCategory, validInMemoryExpenseAmount, expense.ValidCurrencies[0])
+	return createInMemoryExpenseHelper(
+		t,
+		ctx,
+		store,
+		validInMemoryExpenseName,
+		validInMemoryExpenseDate,
+		validInMemoryExpenseCategory,
+		validInMemoryExpenseAmount,
+		expense.ValidCurrencies[0],
+	)
 }
 
-func createInMemoryExpenseHelper(t testing.TB, ctx context.Context, store *expense.InMemoryStore, name, date, category string, amount float64, currency string) expense.Expense {
+func createInMemoryExpenseHelper(
+	t testing.TB,
+	ctx context.Context,
+	store *expense.InMemoryStore,
+	name,
+	date,
+	category string,
+	amount float64,
+	currency string,
+) expense.Expense {
 	t.Helper()
 	expenseFC, err := expense.New(name, date, category, amount, currency)
 	if err != nil {
