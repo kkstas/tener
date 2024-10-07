@@ -38,12 +38,13 @@ func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
 	}
 }
 
-func (cs *DDBStore) Create(ctx context.Context, categoryFC Category, vaultID string) error {
+func (cs *DDBStore) Create(ctx context.Context, categoryFC Category, userID, vaultID string) error {
 	pk := buildPK(vaultID)
 	item, err := attributevalue.MarshalMap(
 		Category{
-			PK:   pk,
-			Name: categoryFC.Name,
+			PK:        pk,
+			Name:      categoryFC.Name,
+			CreatedBy: userID,
 		},
 	)
 	if err != nil {

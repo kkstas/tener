@@ -28,7 +28,7 @@ func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWrit
 		return
 	}
 
-	err = app.expenseCategory.Create(r.Context(), categoryFC, u.ActiveVault)
+	err = app.expenseCategory.Create(r.Context(), categoryFC, u.ID, u.ActiveVault)
 	if err != nil {
 		var alreadyExistsErr *expensecategory.AlreadyExistsError
 		if errors.As(err, &alreadyExistsErr) {

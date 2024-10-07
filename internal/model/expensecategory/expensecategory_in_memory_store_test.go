@@ -15,7 +15,7 @@ func TestInMemoryCreate(t *testing.T) {
 
 	categories, _ := store.FindAll(ctx, "activeVaultID")
 
-	err := store.Create(ctx, expensecategory.Category{}, "activeVaultID")
+	err := store.Create(ctx, expensecategory.Category{}, "userID", "activeVaultID")
 	if err != nil {
 		t.Fatalf("failed creating expense category, %v", err)
 	}
@@ -35,7 +35,7 @@ func TestInMemoryDelete(t *testing.T) {
 		store := expensecategory.InMemoryStore{}
 		name := "some name"
 
-		_ = store.Create(ctx, expensecategory.Category{Name: name}, "activeVaultID")
+		_ = store.Create(ctx, expensecategory.Category{Name: name}, "userID", "activeVaultID")
 
 		categories, _ := store.FindAll(ctx, "activeVaultID")
 		if len(categories) != 1 {

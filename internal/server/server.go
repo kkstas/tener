@@ -19,7 +19,7 @@ type expenseStore interface {
 }
 
 type expenseCategoryStore interface {
-	Create(ctx context.Context, categoryFC expensecategory.Category, vaultID string) error
+	Create(ctx context.Context, categoryFC expensecategory.Category, userID, vaultID string) error
 	Delete(ctx context.Context, name, vaultID string) error
 	FindAll(ctx context.Context, vaultID string) ([]expensecategory.Category, error)
 }

@@ -9,7 +9,8 @@ type InMemoryStore struct {
 	categories []Category
 }
 
-func (e *InMemoryStore) Create(ctx context.Context, categoryFC Category, vaultID string) error {
+func (e *InMemoryStore) Create(ctx context.Context, categoryFC Category, userID, vaultID string) error {
+	categoryFC.CreatedBy = userID
 	e.categories = append(e.categories, categoryFC)
 	return nil
 }

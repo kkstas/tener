@@ -12,6 +12,7 @@ const (
 type Category struct {
 	PK                  string `dynamodbav:"PK"`
 	Name                string `dynamodbav:"SK"`
+	CreatedBy           string `dynamodbav:"createdBy"`
 	validator.Validator `dynamodbav:"-"`
 }
 

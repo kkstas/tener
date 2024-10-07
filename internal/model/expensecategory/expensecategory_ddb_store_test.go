@@ -27,7 +27,7 @@ func TestDDBCreate(t *testing.T) {
 		}
 
 		categoryFC, _ := expensecategory.New("some-name")
-		err = store.Create(ctx, categoryFC, "activeVaultID")
+		err = store.Create(ctx, categoryFC, "userID", "activeVaultID")
 		if err != nil {
 			t.Fatalf("failed putting item into ddb, %v", err)
 		}
@@ -54,7 +54,7 @@ func TestDDBDelete(t *testing.T) {
 
 	categoryFC, _ := expensecategory.New("some-name")
 
-	err = store.Create(ctx, categoryFC, "activeVaultID")
+	err = store.Create(ctx, categoryFC, "userID", "activeVaultID")
 	if err != nil {
 		t.Fatalf("failed putting item into ddb, %v", err)
 	}
