@@ -154,7 +154,7 @@ func TestRegister(t *testing.T) {
 		app := server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 		app.ServeHTTP(response, request)
 
-		assertStatus(t, response.Code, http.StatusFound)
+		assertStatus(t, response.Code, http.StatusOK)
 
 		users, err := userStore.FindAll(context.Background())
 		if err != nil {

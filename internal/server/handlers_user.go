@@ -2,7 +2,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -74,8 +73,7 @@ func (app *Application) handleRegister(w http.ResponseWriter, r *http.Request) {
 	confirmPassword := r.FormValue("confirmPassword")
 
 	if password != confirmPassword {
-		w.WriteHeader(http.StatusBadRequest)
-		fmt.Fprint(w, `{"message":"passwords do not match"}`)
+		sendFormErrorResponse(w, http.StatusBadRequest, map[string][]string{"confirmPassword": {"passwords do not match"}})
 		return
 	}
 
@@ -99,9 +97,12 @@ func (app *Application) handleRegister(w http.ResponseWriter, r *http.Request) {
 	_, err = app.user.Create(r.Context(), userFC)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
+		return
 	}
 
-	http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusFound)
+	w.Header().Set("HX-Redirect", url.Create(r.Context(), "login"))
+	http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusOK)
+	return
 }
 
 func (app *Application) handleLogout(w http.ResponseWriter, r *http.Request) {

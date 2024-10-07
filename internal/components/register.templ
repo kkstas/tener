@@ -23,8 +23,14 @@ templ RegisterPage(ctx context.Context) {
 					[&>div>label]:w-fit [&>div>label]:pl-0.5 [&>div>label]:text-sm [&>div>label]:font-medium [&>div>label]:text-zinc-700 [&>div>label]:dark:text-zinc-300
 					[&>div]:items-center [&>div]:pt-4
 				"
-				method="POST"
-				action={ templ.SafeURL(url.Create(ctx, "register")) }
+				hx-post={ url.Create(ctx, "register") }
+				x-data="{ formErrors: {} }"
+				@htmx:after-request.camel="
+						if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
+							formErrors = JSON.parse(event.detail.xhr.response);
+							return;
+						}
+					"
 			>
 				<div>
 					<label for="register-first-name-input">First name</label>
@@ -37,6 +43,9 @@ templ RegisterPage(ctx context.Context) {
 						maxlength={ strconv.Itoa(user.FirstNameMaxLength) }
 						required
 					/>
+					<template x-for="err in formErrors.firstName">
+						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+					</template>
 				</div>
 				<div>
 					<label for="register-last-name-input">Last name</label>
@@ -49,6 +58,9 @@ templ RegisterPage(ctx context.Context) {
 						maxlength={ strconv.Itoa(user.LastNameMaxLength) }
 						required
 					/>
+					<template x-for="err in formErrors.lastName">
+						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+					</template>
 				</div>
 				<div>
 					<label for="register-email-input">Email</label>
@@ -61,6 +73,9 @@ templ RegisterPage(ctx context.Context) {
 						maxlength="254"
 						required
 					/>
+					<template x-for="err in formErrors.email">
+						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+					</template>
 				</div>
 				<div>
 					<label for="register-password-input">Password</label>
@@ -73,6 +88,9 @@ templ RegisterPage(ctx context.Context) {
 						maxlength="254"
 						required
 					/>
+					<template x-for="err in formErrors.password">
+						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+					</template>
 				</div>
 				<div>
 					<label for="register-confirm-password-input">Confirm Password</label>
@@ -85,6 +103,9 @@ templ RegisterPage(ctx context.Context) {
 						maxlength="254"
 						required
 					/>
+					<template x-for="err in formErrors.confirmPassword">
+						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+					</template>
 				</div>
 				<button
 					type="submit"
