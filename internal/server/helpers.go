@@ -36,6 +36,12 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, message string, er
 	fmt.Fprintf(w, `{"message":%q}`, message)
 }
 
+func sendFormErrorResponse(w http.ResponseWriter, statusCode int, messages map[string][]string) {
+	w.Header().Add("content-type", "application/json")
+	w.WriteHeader(statusCode)
+	_ = json.NewEncoder(w).Encode(messages)
+}
+
 func queryDatesRange(r *http.Request) (from, to string) {
 	from = r.FormValue("from")
 	to = r.FormValue("to")

@@ -22,7 +22,7 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 
 	if ok, _, _ := validator.IsEmail("email", email); !ok {
-		sendErrorResponse(w, http.StatusBadRequest, "invalid email", nil)
+		sendFormErrorResponse(w, http.StatusBadRequest, map[string][]string{"email": {"invalid email"}})
 		return
 	}
 
@@ -30,7 +30,7 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		var notFoundErr *user.NotFoundError
 		if errors.As(err, &notFoundErr) {
-			sendErrorResponse(w, http.StatusNotFound, "user with that email does not exist", nil)
+			sendFormErrorResponse(w, http.StatusNotFound, map[string][]string{"email": {"user with that email does not exist"}})
 			return
 		}
 		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
@@ -38,7 +38,7 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !user.CheckPassword(foundUser.PasswordHash, password) {
-		sendErrorResponse(w, http.StatusUnauthorized, "invalid password", err)
+		sendFormErrorResponse(w, http.StatusUnauthorized, map[string][]string{"password": {"invalid password"}})
 		return
 	}
 
@@ -57,7 +57,9 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 		Secure:   true,
 	})
 
-	http.Redirect(w, r, url.Create(r.Context(), "home"), http.StatusFound)
+	w.Header().Set("HX-Redirect", url.Create(r.Context(), "home"))
+	http.Redirect(w, r, url.Create(r.Context(), "home"), http.StatusOK)
+	return
 }
 
 func (app *Application) renderRegisterPage(w http.ResponseWriter, r *http.Request) {

@@ -50,7 +50,7 @@ func TestLogin(t *testing.T) {
 		}
 
 		app.ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusFound)
+		assertStatus(t, response.Code, http.StatusOK)
 
 		var cookie *http.Cookie
 		for _, c := range response.Result().Cookies() {

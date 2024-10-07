@@ -17,8 +17,17 @@ templ LoginPage(ctx context.Context) {
 			"
 		>
 			<h1 class="text-4xl py-3 font-light text-center text-zinc-700 dark:text-zinc-300">Sign In</h1>
-			<form method="POST" action={ templ.SafeURL(url.Create(ctx, "login")) }>
-				<div class="items-center pt-5">
+			<form
+				hx-post={ url.Create(ctx, "login") }
+				x-data="{ formErrors: {} }"
+				@htmx:after-request.camel="
+						if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
+							formErrors = JSON.parse(event.detail.xhr.response);
+							return;
+						}
+					"
+			>
+				<div class="items-center pt-5 pb-4">
 					<label for="login-email-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>
 					<input
 						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
@@ -29,8 +38,11 @@ templ LoginPage(ctx context.Context) {
 						maxlength="999"
 						required
 					/>
+					<template x-for="err in formErrors.email">
+						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+					</template>
 				</div>
-				<div class="items-center pt-4">
+				<div class="items-center pt-0">
 					<label for="login-password-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
 					<input
 						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
@@ -41,6 +53,9 @@ templ LoginPage(ctx context.Context) {
 						maxlength="999"
 						required
 					/>
+					<template x-for="err in formErrors.password">
+						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+					</template>
 				</div>
 				<button
 					type="submit"
