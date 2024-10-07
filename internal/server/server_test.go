@@ -127,7 +127,14 @@ func TestUpdateExpense(t *testing.T) {
 	t.Run("allows comma and dot as a decimal separator", func(t *testing.T) {
 		store := expense.InMemoryStore{}
 		SK := "2024-08-25::1725652252238"
-		_, err := store.Create(context.Background(), expense.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"}, "activeVaultID")
+
+		_, err := store.Create(
+			context.Background(),
+			expense.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"},
+			"userID",
+			"activeVaultID",
+		)
+
 		if err != nil {
 			log.Fatalf("didn't expect an error but got one: %v", err)
 		}

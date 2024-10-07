@@ -29,6 +29,7 @@ type Expense struct {
 	Amount              float64 `dynamodbav:"amount"`
 	Currency            string  `dynamodbav:"currency"`
 	CreatedAt           string  `dynamodbav:"createdAt"`
+	CreatedBy           string  `dynamodbav:"createdBy"`
 	validator.Validator `dynamodbav:"-"`
 }
 

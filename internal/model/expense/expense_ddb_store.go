@@ -37,7 +37,7 @@ func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
 	}
 }
 
-func (es *DDBStore) marshal(pk, sk, name, date string, amount float64, currency, category, createdAt string) (Expense, map[string]types.AttributeValue, error) {
+func (es *DDBStore) marshal(pk, sk, name, date string, amount float64, currency, category, createdAt, userID string) (Expense, map[string]types.AttributeValue, error) {
 	newExpense := Expense{
 		PK:        pk,
 		SK:        sk,
@@ -47,12 +47,13 @@ func (es *DDBStore) marshal(pk, sk, name, date string, amount float64, currency,
 		Currency:  currency,
 		Category:  category,
 		CreatedAt: createdAt,
+		CreatedBy: userID,
 	}
 	item, err := attributevalue.MarshalMap(newExpense)
 	return newExpense, item, err
 }
 
-func (es *DDBStore) Create(ctx context.Context, expenseFC Expense, vaultID string) (Expense, error) {
+func (es *DDBStore) Create(ctx context.Context, expenseFC Expense, userID, vaultID string) (Expense, error) {
 	newExpense, item, err := es.marshal(
 		buildPK(vaultID),
 		expenseFC.SK,
@@ -62,6 +63,7 @@ func (es *DDBStore) Create(ctx context.Context, expenseFC Expense, vaultID strin
 		expenseFC.Currency,
 		expenseFC.Category,
 		expenseFC.CreatedAt,
+		userID,
 	)
 
 	if err != nil {
@@ -111,6 +113,7 @@ func (es *DDBStore) Update(ctx context.Context, expenseFU Expense, vaultID strin
 	}
 
 	expenseFU.CreatedAt = foundExpense.CreatedAt
+	expenseFU.CreatedBy = foundExpense.CreatedBy
 
 	if expenseFU.SK == buildSK(expenseFU.Date, foundExpense.CreatedAt) {
 		return es.updateWithoutNewSK(ctx, expenseFU, vaultID)
@@ -136,6 +139,7 @@ func (es *DDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense, vaul
 		expenseFU.Currency,
 		expenseFU.Category,
 		expenseFU.CreatedAt,
+		expenseFU.CreatedBy,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to marshal expense: %w", err)

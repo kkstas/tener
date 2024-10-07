@@ -75,7 +75,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	_, err = app.expense.Create(r.Context(), exp, u.ActiveVault)
+	_, err = app.expense.Create(r.Context(), exp, u.ID, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return

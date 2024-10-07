@@ -12,7 +12,8 @@ type InMemoryStore struct {
 	expenses []Expense
 }
 
-func (e *InMemoryStore) Create(ctx context.Context, expenseFC Expense, vaultID string) (Expense, error) {
+func (e *InMemoryStore) Create(ctx context.Context, expenseFC Expense, userID, vaultID string) (Expense, error) {
+	expenseFC.CreatedBy = userID
 	e.expenses = append(e.expenses, expenseFC)
 	return expenseFC, nil
 }

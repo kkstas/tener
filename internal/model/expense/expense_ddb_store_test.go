@@ -288,7 +288,7 @@ func createDDBExpenseHelper(t testing.TB, ctx context.Context, store *expense.DD
 	if err != nil {
 		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
 	}
-	expense, err := store.Create(ctx, expenseFC, "activeVaultID")
+	expense, err := store.Create(ctx, expenseFC, "userID", "activeVaultID")
 	if err != nil {
 		t.Fatalf("didn't expect an error while putting expense into DDB but got one: %v", err)
 	}

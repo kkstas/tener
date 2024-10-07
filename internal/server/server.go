@@ -11,7 +11,7 @@ import (
 )
 
 type expenseStore interface {
-	Create(ctx context.Context, expenseFC expense.Expense, vaultID string) (expense.Expense, error)
+	Create(ctx context.Context, expenseFC expense.Expense, userID, vaultID string) (expense.Expense, error)
 	Delete(ctx context.Context, SK, vaultID string) error
 	Update(ctx context.Context, expenseFU expense.Expense, vaultID string) error
 	FindOne(ctx context.Context, SK, vaultID string) (expense.Expense, error)
