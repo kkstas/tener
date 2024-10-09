@@ -9,7 +9,7 @@ import (
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
-var ValidCurrencies = []string{"PLN", "EUR", "GBP", "USD", "CZK", "CHF", "NOK", "SEK", "DKK", "HUF", "CAD", "AUD", "JPY", "CNY", "TRY"}
+var PaymentMethods = []string{"cash", "credit card", "debit card"}
 
 const (
 	pkPrefix              = "expense"
@@ -27,33 +27,33 @@ type Expense struct {
 	Date                string  `dynamodbav:"date"`
 	Category            string  `dynamodbav:"category"`
 	Amount              float64 `dynamodbav:"amount"`
-	Currency            string  `dynamodbav:"currency"`
+	PaymentMethod       string  `dynamodbav:"paymentMethod"`
 	CreatedAt           string  `dynamodbav:"createdAt"`
 	CreatedBy           string  `dynamodbav:"createdBy"`
 	validator.Validator `dynamodbav:"-"`
 }
 
-func New(name, date, category string, amount float64, currency string) (Expense, error) {
+func New(name, date, category string, amount float64, paymentMethod string) (Expense, error) {
 	currentTimestamp := helpers.GenerateCurrentTimestamp()
 	return validate(Expense{
-		SK:        buildSK(date, currentTimestamp),
-		Name:      strings.TrimSpace(name),
-		Date:      date,
-		Category:  strings.TrimSpace(category),
-		Amount:    amount,
-		Currency:  strings.TrimSpace(currency),
-		CreatedAt: currentTimestamp,
+		SK:            buildSK(date, currentTimestamp),
+		Name:          strings.TrimSpace(name),
+		Date:          date,
+		Category:      strings.TrimSpace(category),
+		Amount:        amount,
+		PaymentMethod: paymentMethod,
+		CreatedAt:     currentTimestamp,
 	})
 }
 
-func NewFU(sk, name, date, category string, amount float64, currency string) (Expense, error) {
+func NewFU(sk, name, date, category string, amount float64, paymentMethod string) (Expense, error) {
 	return validate(Expense{
-		SK:       sk,
-		Name:     strings.TrimSpace(name),
-		Date:     date,
-		Category: strings.TrimSpace(category),
-		Amount:   amount,
-		Currency: strings.TrimSpace(currency),
+		SK:            sk,
+		Name:          strings.TrimSpace(name),
+		Date:          date,
+		Category:      strings.TrimSpace(category),
+		Amount:        amount,
+		PaymentMethod: paymentMethod,
 	})
 }
 
@@ -65,7 +65,7 @@ func validate(expense Expense) (Expense, error) {
 		expensecategory.CategoryNameMinLength,
 		expensecategory.CategoryNameMaxLength,
 	))
-	expense.Check(validator.OneOf("currency", expense.Currency, ValidCurrencies))
+	expense.Check(validator.OneOf("paymentMethod", expense.PaymentMethod, PaymentMethods))
 	expense.Check(validator.IsAmountPrecision("amount", expense.Amount))
 	expense.Check(validator.IsNonZero("amount", expense.Amount))
 	expense.Check(validator.IsTime("date", time.DateOnly, expense.Date))

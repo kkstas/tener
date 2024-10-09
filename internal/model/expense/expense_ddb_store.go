@@ -43,21 +43,21 @@ func (es *DDBStore) marshal(
 	name string,
 	date string,
 	amount float64,
-	currency string,
+	paymentMethod string,
 	category string,
 	createdAt string,
 	userID string,
 ) (Expense, map[string]types.AttributeValue, error) {
 	newExpense := Expense{
-		PK:        pk,
-		SK:        sk,
-		Name:      name,
-		Date:      date,
-		Amount:    amount,
-		Currency:  currency,
-		Category:  category,
-		CreatedAt: createdAt,
-		CreatedBy: userID,
+		PK:            pk,
+		SK:            sk,
+		Name:          name,
+		Date:          date,
+		Amount:        amount,
+		PaymentMethod: paymentMethod,
+		Category:      category,
+		CreatedAt:     createdAt,
+		CreatedBy:     userID,
 	}
 	item, err := attributevalue.MarshalMap(newExpense)
 	return newExpense, item, err
@@ -70,7 +70,7 @@ func (es *DDBStore) Create(ctx context.Context, expenseFC Expense, userID, vault
 		expenseFC.Name,
 		expenseFC.Date,
 		expenseFC.Amount,
-		expenseFC.Currency,
+		expenseFC.PaymentMethod,
 		expenseFC.Category,
 		expenseFC.CreatedAt,
 		userID,
@@ -146,7 +146,7 @@ func (es *DDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense, vaul
 		expenseFU.Name,
 		expenseFU.Date,
 		expenseFU.Amount,
-		expenseFU.Currency,
+		expenseFU.PaymentMethod,
 		expenseFU.Category,
 		expenseFU.CreatedAt,
 		expenseFU.CreatedBy,
@@ -187,7 +187,7 @@ func (es *DDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Expense, v
 		Set(expression.Name("name"), expression.Value(expenseFU.Name)).
 		Set(expression.Name("category"), expression.Value(expenseFU.Category)).
 		Set(expression.Name("amount"), expression.Value(expenseFU.Amount)).
-		Set(expression.Name("currency"), expression.Value(expenseFU.Currency))
+		Set(expression.Name("paymentMethod"), expression.Value(expenseFU.PaymentMethod))
 
 	expr, err := expression.NewBuilder().WithUpdate(update).Build()
 

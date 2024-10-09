@@ -71,7 +71,7 @@ func TestCreateExpense(t *testing.T) {
 
 	t.Run("returns 400 if amount is not valid float64", func(t *testing.T) {
 		var param = url.Values{}
-		param.Set("currency", "PLN")
+		param.Set("paymentMethod", expense.PaymentMethods[0])
 		param.Set("amount", "1.9d9")
 		param.Set("category", "food")
 		param.Set("date", "2024-01-01")
@@ -88,7 +88,7 @@ func TestCreateExpense(t *testing.T) {
 
 	t.Run("returns 200 with html", func(t *testing.T) {
 		var param = url.Values{}
-		param.Set("currency", "PLN")
+		param.Set("paymentMethod", expense.PaymentMethods[0])
 		param.Set("amount", "1.99")
 		param.Set("category", "food")
 		param.Set("name", "some name")
@@ -106,7 +106,7 @@ func TestCreateExpense(t *testing.T) {
 
 	t.Run("allows comma and dot as a decimal separator", func(t *testing.T) {
 		var param = url.Values{}
-		param.Set("currency", "PLN")
+		param.Set("paymentMethod", expense.PaymentMethods[0])
 		param.Set("amount", "24,95")
 		param.Set("category", "food")
 		param.Set("name", "some name")
@@ -130,7 +130,7 @@ func TestUpdateExpense(t *testing.T) {
 
 		_, err := store.Create(
 			context.Background(),
-			expense.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", Currency: "PLN"},
+			expense.Expense{PK: "expense", SK: SK, Name: "name", Amount: 18.24, Category: "food", PaymentMethod: expense.PaymentMethods[0]},
 			"userID",
 			"activeVaultID",
 		)
@@ -140,7 +140,7 @@ func TestUpdateExpense(t *testing.T) {
 		}
 
 		var param = url.Values{}
-		param.Set("currency", "PLN")
+		param.Set("paymentMethod", expense.PaymentMethods[0])
 		param.Set("amount", "24,95")
 		param.Set("category", "food")
 		param.Set("name", "some name")

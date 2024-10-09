@@ -25,7 +25,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	app.renderTempl(w, r, components.Page(r.Context(), expenses, expense.ValidCurrencies, categories, u))
+	app.renderTempl(w, r, components.Page(r.Context(), expenses, expense.PaymentMethods, categories, u))
 }
 
 func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
@@ -51,14 +51,14 @@ func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories))
 }
 
 func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
 	from, to := queryDatesRange(r)
 
 	category := r.FormValue("category")
-	currency := r.FormValue("currency")
+	paymentMethod := r.FormValue("paymentMethod")
 	date := r.FormValue("date")
 	name := r.FormValue("name")
 	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
@@ -69,7 +69,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	exp, err := expense.New(name, date, category, amount, currency)
+	exp, err := expense.New(name, date, category, amount, paymentMethod)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
@@ -93,7 +93,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories))
 }
 
 func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
@@ -101,7 +101,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	SK := r.PathValue("SK")
 	category := strings.TrimSpace(r.FormValue("category"))
-	currency := strings.TrimSpace(r.FormValue("currency"))
+	paymentMethod := strings.TrimSpace(r.FormValue("paymentMethod"))
 	date := r.FormValue("date")
 	name := strings.TrimSpace(r.FormValue("name"))
 	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
@@ -112,7 +112,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	expenseFU, err := expense.NewFU(SK, name, date, category, amount, currency)
+	expenseFU, err := expense.NewFU(SK, name, date, category, amount, paymentMethod)
 	if err != nil {
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
@@ -141,7 +141,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.ValidCurrencies, categories))
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories))
 }
 
 func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request, u user.User) {

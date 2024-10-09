@@ -141,7 +141,7 @@ func TestInMemoryQuery(t *testing.T) {
 		"2024-01-15",
 		validInMemoryExpenseCategory,
 		validInMemoryExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 	createInMemoryExpenseHelper(
 		t,
@@ -151,7 +151,7 @@ func TestInMemoryQuery(t *testing.T) {
 		"2024-01-16",
 		validInMemoryExpenseCategory,
 		validInMemoryExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 	createInMemoryExpenseHelper(
 		t,
@@ -161,7 +161,7 @@ func TestInMemoryQuery(t *testing.T) {
 		"2024-01-17",
 		validInMemoryExpenseCategory,
 		validInMemoryExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 	createInMemoryExpenseHelper(
 		t,
@@ -171,7 +171,7 @@ func TestInMemoryQuery(t *testing.T) {
 		"2024-01-18",
 		validInMemoryExpenseCategory,
 		validInMemoryExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
@@ -218,7 +218,7 @@ func createDefaultInMemoryExpenseHelper(t testing.TB, ctx context.Context, store
 		validInMemoryExpenseDate,
 		validInMemoryExpenseCategory,
 		validInMemoryExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 }
 
@@ -230,10 +230,10 @@ func createInMemoryExpenseHelper(
 	date,
 	category string,
 	amount float64,
-	currency string,
+	paymentMethod string,
 ) expense.Expense {
 	t.Helper()
-	expenseFC, err := expense.New(name, date, category, amount, currency)
+	expenseFC, err := expense.New(name, date, category, amount, paymentMethod)
 	if err != nil {
 		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
 	}

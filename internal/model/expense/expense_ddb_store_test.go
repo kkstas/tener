@@ -245,7 +245,7 @@ func TestDDBQuery(t *testing.T) {
 		"2024-01-15",
 		validDDBExpenseCategory,
 		validDDBExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 	createDDBExpenseHelper(t,
 		ctx,
@@ -254,7 +254,7 @@ func TestDDBQuery(t *testing.T) {
 		"2024-01-16",
 		validDDBExpenseCategory,
 		validDDBExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 	createDDBExpenseHelper(t,
 		ctx,
@@ -263,7 +263,7 @@ func TestDDBQuery(t *testing.T) {
 		"2024-01-17",
 		validDDBExpenseCategory,
 		validDDBExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 	createDDBExpenseHelper(t,
 		ctx,
@@ -272,7 +272,7 @@ func TestDDBQuery(t *testing.T) {
 		"2024-01-18",
 		validDDBExpenseCategory,
 		validDDBExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
@@ -319,7 +319,7 @@ func createDefaultDDBExpenseHelper(t testing.TB, ctx context.Context, store *exp
 		validDDBExpenseDate,
 		validDDBExpenseCategory,
 		validDDBExpenseAmount,
-		expense.ValidCurrencies[0],
+		expense.PaymentMethods[0],
 	)
 }
 
@@ -331,10 +331,10 @@ func createDDBExpenseHelper(
 	date,
 	category string,
 	amount float64,
-	currency string,
+	paymentMethod string,
 ) expense.Expense {
 	t.Helper()
-	expenseFC, err := expense.New(name, date, category, amount, currency)
+	expenseFC, err := expense.New(name, date, category, amount, paymentMethod)
 	if err != nil {
 		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
 	}
