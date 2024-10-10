@@ -9,7 +9,7 @@ import (
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
-var PaymentMethods = []string{"cash", "credit card", "debit card"}
+var PaymentMethods = []string{"Cash", "Credit Card", "Debit Card"}
 
 const (
 	pkPrefix              = "expense"
