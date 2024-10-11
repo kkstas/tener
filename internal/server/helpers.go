@@ -11,6 +11,8 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/kkstas/tjener/internal/helpers"
+	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/pkg/validator"
 )
 
@@ -54,6 +56,30 @@ func queryDatesRange(r *http.Request) (from, to string) {
 		to = helpers.DaysAgo(0)
 	}
 	return from, to
+}
+
+func extractUserIDs(expenses []expense.Expense, categories []expensecategory.Category) []string {
+	uniqueUserIDs := make(map[string]bool)
+
+	if len(expenses) > 0 {
+		for _, expense := range expenses {
+			uniqueUserIDs[expense.CreatedBy] = true
+		}
+	}
+
+	if len(categories) > 0 {
+		for _, category := range categories {
+			uniqueUserIDs[category.CreatedBy] = true
+		}
+	}
+
+	userIDs := make([]string, 0, len(uniqueUserIDs))
+
+	for key := range uniqueUserIDs {
+		userIDs = append(userIDs, key)
+	}
+
+	return userIDs
 }
 
 func clearTokenCookie(w http.ResponseWriter) {
