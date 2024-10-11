@@ -194,7 +194,7 @@ func (s *DDBStore) FindAll(ctx context.Context) ([]User, error) {
 
 func (s *DDBStore) FindAllByIDs(ctx context.Context, ids []string) (map[string]User, error) {
 	if len(ids) == 0 {
-		return nil, errors.New("received no user IDs to find")
+		return nil, nil
 	}
 
 	var keys []map[string]types.AttributeValue

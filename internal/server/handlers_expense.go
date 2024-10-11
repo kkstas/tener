@@ -36,13 +36,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 
 	app.renderTempl(
 		w, r,
-		components.Page(
-			r.Context(),
-			expenses,
-			expense.PaymentMethods,
-			categories,
-			u,
-			users),
+		components.Page(r.Context(), expenses, expense.PaymentMethods, categories, u, users),
 	)
 }
 
@@ -137,12 +131,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	app.renderTempl(
 		w, r,
-		components.Expenses(
-			r.Context(),
-			expenses,
-			expense.PaymentMethods,
-			categories,
-			users),
+		components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users),
 	)
 }
 
@@ -211,9 +200,8 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	app.renderTempl(
 		w, r,
-		components.Expenses(
-			r.Context(),
-			expenses, expense.PaymentMethods, categories, users))
+		components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users),
+	)
 }
 
 func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request, u user.User) {

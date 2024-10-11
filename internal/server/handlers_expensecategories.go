@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/kkstas/tjener/internal/components"
+	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/internal/model/user"
 )
@@ -16,7 +17,15 @@ func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *ht
 		return
 	}
 
-	app.renderTempl(w, r, components.ExpenseCategoriesPage(r.Context(), categories, u))
+	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs([]expense.Expense{}, categories))
+	if err != nil {
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to find matching users for expenses & expense categories: "+err.Error(),
+			err)
+		return
+	}
+	app.renderTempl(w, r, components.ExpenseCategoriesPage(r.Context(), categories, u, users))
 }
 
 func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWriter, r *http.Request, u user.User) {
@@ -40,7 +49,7 @@ func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWrit
 		return
 	}
 
-	app.renderTempl(w, r, components.SingleExpenseCategory(r.Context(), categoryFC))
+	app.renderTempl(w, r, components.SingleExpenseCategory(r.Context(), categoryFC, u))
 }
 
 func (app *Application) deleteSingleExpenseCategory(w http.ResponseWriter, r *http.Request, u user.User) {

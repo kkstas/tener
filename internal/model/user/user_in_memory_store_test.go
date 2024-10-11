@@ -144,10 +144,10 @@ func TestInMemoryFindAllByIDs(t *testing.T) {
 		}
 	})
 
-	t.Run("returns error if received empty user ID slice", func(t *testing.T) {
+	t.Run("returns no error if received empty user ID slice", func(t *testing.T) {
 		_, err := store.FindAllByIDs(ctx, []string{})
-		if err == nil {
-			t.Error("expected an error but didn't get one")
+		if err != nil {
+			t.Error("didn't expect an error but got one")
 		}
 	})
 }

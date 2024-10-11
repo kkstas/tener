@@ -2,6 +2,7 @@ package components
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/kkstas/tjener/internal/model/expensecategory"
@@ -9,7 +10,7 @@ import (
 	"github.com/kkstas/tjener/internal/url"
 )
 
-templ ExpenseCategoriesPage(ctx context.Context, categories []expensecategory.Category, u user.User) {
+templ ExpenseCategoriesPage(ctx context.Context, categories []expensecategory.Category, u user.User, users map[string]user.User) {
 	@BaseHTML(ctx, true, u) {
 		<div class="mx-auto max-w-md">
 			<form
@@ -44,15 +45,15 @@ templ ExpenseCategoriesPage(ctx context.Context, categories []expensecategory.Ca
 			<h1 class="text-center mt-5 text-md font-medium">All expense categories</h1>
 			<div id="expensecategorieslist">
 				for _, category := range categories {
-					@SingleExpenseCategory(ctx, category)
+					@SingleExpenseCategory(ctx, category, users[category.CreatedBy])
 				}
 			</div>
 		</div>
 	}
 }
 
-templ SingleExpenseCategory(ctx context.Context, category expensecategory.Category) {
-	<div hx-target="this" class="border border-zinc-300 dark:border-zinc-700 px-2 pt-2 rounded mt-2 bg-white dark:bg-zinc-800">
+templ SingleExpenseCategory(ctx context.Context, category expensecategory.Category, usr user.User) {
+	<div hx-target="this" title={ fmt.Sprintf("Created by %s %s", usr.FirstName, usr.LastName) } class="border border-zinc-300 dark:border-zinc-700 px-2 pt-2 rounded mt-2 bg-white dark:bg-zinc-800">
 		<div class="[&>div>label]:text-xs [&>div>label]:text-zinc-700 dark:[&>div>label]:text-zinc-400 [&>div]:min-w-5 flex flex-row place-items-center overflow-x-auto break-words min-w-24 [&>div>label]:min-w-8 text-sm md:text-base">
 			<div class="flex-1 ps-2 pb-2">
 				<label>Name</label>
