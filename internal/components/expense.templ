@@ -8,6 +8,7 @@ import (
 	"github.com/kkstas/tjener/internal/helpers"
 	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tjener/internal/model/user"
 	"github.com/kkstas/tjener/internal/url"
 )
 
@@ -60,20 +61,20 @@ templ ExpensesDateRangePicker(ctx context.Context) {
 	</form>
 }
 
-templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category) {
+templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, users map[string]user.User) {
 	<div
 		class="my-3 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md"
 		id="all-expenses-list"
 		hx-include="#main-date-range-picker-from, #main-date-range-picker-to"
 	>
 		for i := len(expenses) - 1; i >= 0; i-- {
-			@Expense(ctx, expenses[i], paymentMethods, categories)
+			@Expense(ctx, expenses[i], paymentMethods, categories, users[expenses[i].CreatedBy])
 		}
 	</div>
 }
 
-templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string, categories []expensecategory.Category) {
-	<div x-data="{ id: $id('accordion') }" class="has-[:focus]:bg-zinc-100/20 dark:has-[:focus]:bg-zinc-900/20 expense-element cursor-pointer">
+templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string, categories []expensecategory.Category, usr user.User) {
+	<div x-data="{ id: $id('accordion') }" title={ fmt.Sprintf("Created by %s %s", usr.FirstName, usr.LastName) } class="has-[:focus]:bg-zinc-100/20 dark:has-[:focus]:bg-zinc-900/20 expense-element cursor-pointer">
 		<button @click="setActiveAccordion(id)" class="flex items-center focus:outline-none justify-between w-full p-4 text-left select-none">
 			<div class="flex flex-1 justify-between">
 				<div class="flex flex-col justify-between">

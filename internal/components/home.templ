@@ -8,7 +8,7 @@ import (
 	"github.com/kkstas/tjener/internal/model/user"
 )
 
-templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, u user.User) {
+templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, u user.User, users map[string]user.User) {
 	@BaseHTML(ctx, true, u) {
 		<div
 			x-data="{
@@ -22,7 +22,7 @@ templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 		>
 			@CreateExpenseContainer(ctx, paymentMethods, categories)
 			@ExpensesDateRangePicker(ctx)
-			@Expenses(ctx, expenses, paymentMethods, categories)
+			@Expenses(ctx, expenses, paymentMethods, categories, users)
 		</div>
 	}
 }

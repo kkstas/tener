@@ -30,6 +30,7 @@ type userStore interface {
 	FindOneByID(ctx context.Context, id string) (user.User, error)
 	FindOneByEmail(ctx context.Context, email string) (user.User, error)
 	FindAll(ctx context.Context) ([]user.User, error)
+	FindAllByIDs(ctx context.Context, ids []string) (map[string]user.User, error)
 }
 
 type Application struct {

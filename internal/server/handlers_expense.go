@@ -25,7 +25,25 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	app.renderTempl(w, r, components.Page(r.Context(), expenses, expense.PaymentMethods, categories, u))
+	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
+	if err != nil {
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to find matching users for expenses & expense categories: "+err.Error(),
+			err)
+		return
+	}
+
+	app.renderTempl(
+		w, r,
+		components.Page(
+			r.Context(),
+			expenses,
+			expense.PaymentMethods,
+			categories,
+			u,
+			users),
+	)
 }
 
 func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
@@ -47,11 +65,23 @@ func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u
 
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to query expense categories: "+err.Error(),
+			err)
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories))
+	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
+	if err != nil {
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to find matching users for expenses & expense categories: "+err.Error(),
+			err)
+		return
+	}
+
+	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users))
 }
 
 func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
@@ -89,11 +119,31 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to query expense categories: "+err.Error(),
+			err)
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories))
+	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
+	if err != nil {
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to find matching users for expenses & expense categories: "+err.Error(),
+			err)
+		return
+	}
+
+	app.renderTempl(
+		w, r,
+		components.Expenses(
+			r.Context(),
+			expenses,
+			expense.PaymentMethods,
+			categories,
+			users),
+	)
 }
 
 func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
@@ -125,23 +175,45 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
 			return
 		}
-		sendErrorResponse(w, http.StatusInternalServerError, "error while putting item: "+err.Error(), err)
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"error while putting item: "+err.Error(),
+			err)
 		return
 	}
 
 	expenses, err := app.expense.Query(r.Context(), from, to, u.ActiveVault)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to query items: "+err.Error(),
+			err)
 		return
 	}
 
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to query expense categories: "+err.Error(),
+			err)
 		return
 	}
 
-	app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories))
+	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
+	if err != nil {
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to find matching users for expenses & expense categories: "+err.Error(),
+			err)
+		return
+	}
+
+	app.renderTempl(
+		w, r,
+		components.Expenses(
+			r.Context(),
+			expenses, expense.PaymentMethods, categories, users))
 }
 
 func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request, u user.User) {
@@ -154,7 +226,10 @@ func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Reque
 			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
 			return
 		}
-		sendErrorResponse(w, http.StatusInternalServerError, "error while deleting item: "+err.Error(), err)
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"error while deleting item: "+err.Error(),
+			err)
 		return
 	}
 
