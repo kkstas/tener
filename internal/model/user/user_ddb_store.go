@@ -192,6 +192,47 @@ func (s *DDBStore) FindAll(ctx context.Context) ([]User, error) {
 	return s.query(ctx, expr)
 }
 
+func (s *DDBStore) FindAllByIDs(ctx context.Context, ids []string) (map[string]User, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("received no user IDs to find")
+	}
+
+	var keys []map[string]types.AttributeValue
+
+	for _, id := range ids {
+		keys = append(keys, getKey(id))
+	}
+
+	input := &dynamodb.BatchGetItemInput{
+		RequestItems: map[string]types.KeysAndAttributes{
+			s.tableName: {
+				Keys: keys,
+			},
+		},
+	}
+
+	output, err := s.client.BatchGetItem(ctx, input)
+	if err != nil {
+		return nil, err
+	}
+
+	users := make(map[string]User)
+
+	for _, response := range output.Responses {
+		for _, item := range response {
+			var user User
+			err = attributevalue.UnmarshalMap(item, &user)
+			if err != nil {
+				return nil, fmt.Errorf("failed to unmarshal user data: %w", err)
+			}
+			users[user.ID] = user
+		}
+	}
+
+	return users, nil
+
+}
+
 func (s *DDBStore) query(ctx context.Context, expr expression.Expression) ([]User, error) {
 	var users []User
 

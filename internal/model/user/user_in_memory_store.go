@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"slices"
 )
 
@@ -61,6 +62,23 @@ func (s *InMemoryStore) FindOneByEmail(ctx context.Context, email string) (User,
 		}
 	}
 	return User{}, &NotFoundError{Email: email}
+}
+
+func (s *InMemoryStore) FindAllByIDs(ctx context.Context, ids []string) (map[string]User, error) {
+	if len(ids) == 0 {
+		return nil, errors.New("received no user IDs to find")
+	}
+
+	result := make(map[string]User)
+
+	for _, id := range ids {
+		user, err := s.FindOneByID(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+		result[user.ID] = user
+	}
+	return result, nil
 }
 
 func (s *InMemoryStore) FindAll(ctx context.Context) ([]User, error) {

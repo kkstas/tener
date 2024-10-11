@@ -153,6 +153,43 @@ func TestDDBFindOneByID(t *testing.T) {
 	})
 }
 
+func TestDDBFindAllByIDs(t *testing.T) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
+	if err != nil {
+		t.Fatalf("failed creating local test ddb table, %v", err)
+	}
+	defer removeDDB()
+	store := user.NewDDBStore(tableName, client)
+
+	t.Run("finds users by IDs", func(t *testing.T) {
+		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertNoError(t, err)
+		createdUser, err := store.Create(ctx, userFC)
+		assertNoError(t, err)
+
+		userFC2, err := user.New(validFirstName, validLastName, "howdy@howdy.com", validPassword)
+		assertNoError(t, err)
+		createdUser2, err := store.Create(ctx, userFC2)
+		assertNoError(t, err)
+
+		res, err := store.FindAllByIDs(ctx, []string{createdUser.ID, createdUser2.ID})
+		assertNoError(t, err)
+
+		if len(res) != 2 {
+			t.Errorf("expected response length of 2, got %d", len(res))
+		}
+	})
+
+	t.Run("returns error if received empty user ID slice", func(t *testing.T) {
+		_, err := store.FindAllByIDs(ctx, []string{})
+		if err == nil {
+			t.Error("expected an error but didn't get one")
+		}
+	})
+}
+
 func TestDDBDelete(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
