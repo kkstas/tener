@@ -57,15 +57,15 @@ func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCateg
 	mux.HandleFunc("GET /register", redirectIfLoggedIn(app.renderRegisterPage))
 	mux.HandleFunc("POST /register", app.handleRegister)
 
-	mux.HandleFunc("GET    /home", withUser(app.renderHomePage))
-	mux.HandleFunc("GET    /expense/all", withUser(app.renderExpenses))
-	mux.HandleFunc("POST   /expense/create", withUser(app.createSingleExpenseAndRenderExpenses))
-	mux.HandleFunc("PUT    /expense/edit/{SK}", withUser(app.updateSingleExpenseAndRenderExpenses))
-	mux.HandleFunc("DELETE /expense/{SK}", withUser(app.deleteSingleExpense))
+	mux.HandleFunc("GET    /home", app.withUser(app.renderHomePage))
+	mux.HandleFunc("GET    /expense/all", app.withUser(app.renderExpenses))
+	mux.HandleFunc("POST   /expense/create", app.withUser(app.createSingleExpenseAndRenderExpenses))
+	mux.HandleFunc("PUT    /expense/edit/{SK}", app.withUser(app.updateSingleExpenseAndRenderExpenses))
+	mux.HandleFunc("DELETE /expense/{SK}", app.withUser(app.deleteSingleExpense))
 
-	mux.HandleFunc("GET    /expensecategories", withUser(app.renderExpenseCategoriesPage))
-	mux.HandleFunc("POST   /expensecategories/create", withUser(app.createAndRenderSingleExpenseCategory))
-	mux.HandleFunc("DELETE /expensecategories/{name}", withUser(app.deleteSingleExpenseCategory))
+	mux.HandleFunc("GET    /expensecategories", app.withUser(app.renderExpenseCategoriesPage))
+	mux.HandleFunc("POST   /expensecategories/create", app.withUser(app.createAndRenderSingleExpenseCategory))
+	mux.HandleFunc("DELETE /expensecategories/{name}", app.withUser(app.deleteSingleExpenseCategory))
 
 	app.Handler = secureHeaders(mux)
 

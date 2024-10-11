@@ -39,20 +39,22 @@ func redirectIfLoggedIn(next http.HandlerFunc) http.HandlerFunc {
 	})
 }
 
-func withUser(fn func(http.ResponseWriter, *http.Request, user.User)) http.HandlerFunc {
+func (app *Application) withUser(fn func(http.ResponseWriter, *http.Request, user.User)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		token, err := r.Cookie("token")
-		if err != nil {
+		if err != nil || token.Value == "" {
+			clearTokenCookie(w)
 			http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusFound)
 			return
 		}
 
-		foundUser, err := auth.DecodeToken(token.Value)
+		cookieUser, err := auth.DecodeToken(token.Value)
 		if err != nil {
+			clearTokenCookie(w)
 			http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusFound)
 			return
 		}
 
-		fn(w, r, foundUser)
+		fn(w, r, cookieUser)
 	}
 }

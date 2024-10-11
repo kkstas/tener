@@ -106,14 +106,6 @@ func (app *Application) handleRegister(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Application) handleLogout(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{
-		Name:     "token",
-		Value:    "",
-		Expires:  time.Now().Add(-1 * time.Hour),
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-		Secure:   true,
-	})
-
+	clearTokenCookie(w)
 	http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusSeeOther)
 }

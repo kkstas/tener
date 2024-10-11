@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/rs/zerolog/log"
@@ -53,4 +54,15 @@ func queryDatesRange(r *http.Request) (from, to string) {
 		to = helpers.DaysAgo(0)
 	}
 	return from, to
+}
+
+func clearTokenCookie(w http.ResponseWriter) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "token",
+		Value:    "",
+		Expires:  time.Now().Add(-1 * time.Hour),
+		HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+		Secure:   true,
+	})
 }
