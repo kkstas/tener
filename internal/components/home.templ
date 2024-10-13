@@ -20,8 +20,8 @@ templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 				document.querySelector('#main-date-range-picker')._flatpickr.close();
 			"
 		>
+			@ExpenseSummary(ctx)
 			@CreateExpenseContainer(ctx, paymentMethods, categories)
-			@ExpensesDateRangePicker(ctx)
 			@Expenses(ctx, expenses, paymentMethods, categories, users)
 		</div>
 	}

@@ -12,45 +12,56 @@ import (
 	"github.com/kkstas/tjener/internal/url"
 )
 
-templ ExpensesDateRangePicker(ctx context.Context) {
+templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 	<form
 		hx-get={ url.Create(ctx, "expense", "all") }
 		hx-target="#all-expenses-list"
-		hx-trigger="change[target.value.includes(' to ')] from:#main-date-range-picker"
+		hx-trigger="change[target._flatpickr.selectedDates.length === 2] from:#main-date-range-picker"
 		hx-swap="outerHTML"
-		class="relative w-full max-w-md mx-auto flex justify-end px-3 mb-0"
+		class="mt-auto mb-1 w-60 text-neutral-600 dark:text-neutral-300"
 	>
 		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.MonthAgo() }/>
 		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
 		<div
 			tabindex="0"
-			class="flatpickr flex group focus:outline-none"
+			class="
+					flatpickr flex group
+					group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
+					rounded-md
+					bg-neutral-50 dark:bg-neutral-900/50
+				"
 			@keydown.enter="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
+			@click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
 			@keydown.escape.stop="document.querySelector('#main-date-range-picker')._flatpickr.close();"
 		>
 			<input
 				tabindex="-1"
 				id="main-date-range-picker"
-				class="bg-white w-48 text-sm text-center border rounded shadow-sm cursor-pointer group-hover:bg-neutral-100 dark:group-hover:bg-zinc-700 dark:bg-zinc-800 border-neutral-200/70 dark:border-zinc-700 focus:outline-none focus:shadow-outline group-focus-visible:shadow-outline group-focus-visible:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 group-focus-visible:outline-zinc-800/10 dark:group-focus-visible:outline-zinc-300/20 focus:outline-1 group-focus-visible:outline-1"
+				class="
+					w-full appearance-none rounded-md
+					border border-transparent bg-transparent
+					px-4 py-2 text-xs
+					focus-visible:outline-none
+				"
 			/>
-			<a
-				class="ms-1 my-auto opacity-80 group-hover:opacity-80 group-focus:opacity-100 cursor-pointer shadow-sm"
-				onclick="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
-				title="toggle"
-			><svg width="18" height="18" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg></a>
+			<svg class="my-auto me-3" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg>
 		</div>
 		<script>
+			function dateToISODateString(date) {
+				return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+			}
+
 			flatpickr("#main-date-range-picker", {
 				mode: "range",
 				dateFormat: "Y-m-d",
 				defaultDate: [document.getElementById("main-date-range-picker-from").value, document.getElementById("main-date-range-picker-to").value],
+				altInput: true,
+				altFormat: "j M",
+				maxDate: "today",
 				onClose: function(selectedDates, dateStr, instance) {
 					instance.input.blur();
 				},
 				onChange: function(selectedDates, dateStr, instance) {
-					function dateToISODateString(date) {
-						return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-					}
 					if (selectedDates.length === 2) {
 						document.getElementById("main-date-range-picker-from").value = dateToISODateString(selectedDates[0]);
 						document.getElementById("main-date-range-picker-to").value = dateToISODateString(selectedDates[1]);
@@ -59,6 +70,29 @@ templ ExpensesDateRangePicker(ctx context.Context) {
 			});
 		</script>
 	</form>
+}
+
+templ ExpenseSummary(ctx context.Context) {
+	<div
+		class="
+			my-10 relative w-full max-w-md mx-auto
+			text-sm font-normal
+			bg-white dark:bg-zinc-800
+			bg-gradient-to-tr from-zinc-800 to-zinc-900
+			rounded-md
+			flex align-middle justify-center
+			p-4
+		"
+	>
+		<div class="focus:outline-none flex flex-col w-full text-left select-none">
+			<div>Total expenses</div>
+			<div class="pt-2">
+				<span class="text-5xl font-bold" id="total-expenses-integer-part">4825</span>
+				<span>,<span id="total-expenses-decimal-part">99</span> PLN</span>
+			</div>
+		</div>
+		@ExpenseSummaryDateRangePicker(ctx)
+	</div>
 }
 
 templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, users map[string]user.User) {
@@ -70,6 +104,22 @@ templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods [
 		for i := len(expenses) - 1; i >= 0; i-- {
 			@Expense(ctx, expenses[i], paymentMethods, categories, users[expenses[i].CreatedBy])
 		}
+		<script>
+			function calcTotalExpenses() {
+				const amountInputs = document.getElementById('all-expenses-list').querySelectorAll('input[name="amount"]');
+				let total = 0;
+				amountInputs.forEach(input => {
+					const val = parseFloat(input.value);
+					if (!isNaN(val)) {
+						total += val;
+					}
+				});
+				const [integerPart, decimalPart] = total.toFixed(2).split('.');
+				document.getElementById("total-expenses-integer-part").innerText = integerPart;
+				document.getElementById("total-expenses-decimal-part").innerText = decimalPart;
+			}
+			calcTotalExpenses();
+		</script>
 	</div>
 }
 
@@ -129,6 +179,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 					hx-delete={ url.Create(ctx, "expense", exp.SK) }
 					hx-swap="delete"
 					hx-confirm={ "Are you sure you want to delete this expense?\n\nName: " + exp.Name + "\nCategory: " + exp.Category + "\nAmount: " + fmt.Sprintf("%.2f %s", exp.Amount, "PLN") }
+					@htmx:after-request.camel="calcTotalExpenses();"
 				>
 					Delete	
 				</button>
