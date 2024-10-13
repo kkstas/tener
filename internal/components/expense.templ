@@ -18,18 +18,16 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 		hx-target="#all-expenses-list"
 		hx-trigger="change[target._flatpickr.selectedDates.length === 2] from:#main-date-range-picker"
 		hx-swap="outerHTML"
-		class="mt-auto mb-1 w-60 text-neutral-600 dark:text-neutral-300"
+		class="mt-auto mb-1 w-60 text-neutral-600 dark:text-neutral-300 cursor-pointer"
 	>
 		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.MonthAgo() }/>
 		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
 		<div
 			tabindex="0"
-			class="
-					flatpickr flex group
-					group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
-					rounded-md
-					bg-neutral-50 dark:bg-neutral-900/50
-				"
+			class="flatpickr flex group
+				group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
+				rounded-md
+				bg-neutral-50 dark:bg-neutral-900/50"
 			@keydown.enter="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
 			@click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
 			@keydown.escape.stop="document.querySelector('#main-date-range-picker')._flatpickr.close();"
@@ -37,12 +35,11 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 			<input
 				tabindex="-1"
 				id="main-date-range-picker"
-				class="
+				class="cursor-pointer
 					w-full appearance-none rounded-md
 					border border-transparent bg-transparent
 					px-4 py-2 text-xs
-					focus-visible:outline-none
-				"
+					focus-visible:outline-none"
 			/>
 			<svg class="my-auto me-3" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg>
 		</div>
@@ -78,15 +75,14 @@ templ ExpenseSummary(ctx context.Context) {
 			my-10 relative w-full max-w-md mx-auto
 			text-sm font-normal
 			bg-white dark:bg-zinc-800
-			bg-gradient-to-tr from-zinc-800 to-zinc-900
-			rounded-md
 			flex align-middle justify-center
 			p-4
+			border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md
 		"
 	>
 		<div class="focus:outline-none flex flex-col w-full text-left select-none">
 			<div>Total expenses</div>
-			<div class="pt-2">
+			<div class="pt-2 dark:text-zinc-200 text-zinc-800 font-medium">
 				<span class="text-5xl font-bold" id="total-expenses-integer-part">4825</span>
 				<span>,<span id="total-expenses-decimal-part">99</span> PLN</span>
 			</div>
