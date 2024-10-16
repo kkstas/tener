@@ -13,7 +13,7 @@ import (
 )
 
 func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u user.User) {
-	expenses, err := app.expense.Query(r.Context(), helpers.MonthAgo(), helpers.DaysAgo(0), u.ActiveVault)
+	expenses, err := app.expense.Query(r.Context(), helpers.MonthAgo(), helpers.DaysAgo(0), []string{}, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
@@ -41,17 +41,9 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 }
 
 func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
-	from := r.URL.Query().Get("from")
-	to := r.URL.Query().Get("to")
+	from, to, selectedCategories := queryFilters(r)
 
-	if from == "" {
-		from = helpers.MonthAgo()
-	}
-	if to == "" {
-		to = helpers.DaysAgo(0)
-	}
-
-	expenses, err := app.expense.Query(r.Context(), from, to, u.ActiveVault)
+	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
@@ -79,7 +71,7 @@ func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u
 }
 
 func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
-	from, to := queryDatesRange(r)
+	from, to, selectedCategories := queryFilters(r)
 
 	category := r.FormValue("category")
 	paymentMethod := r.FormValue("paymentMethod")
@@ -105,7 +97,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	expenses, err := app.expense.Query(r.Context(), from, to, u.ActiveVault)
+	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
@@ -136,7 +128,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 }
 
 func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) {
-	from, to := queryDatesRange(r)
+	from, to, selectedCategories := queryFilters(r)
 
 	SK := r.PathValue("SK")
 	category := strings.TrimSpace(r.FormValue("category"))
@@ -171,7 +163,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
-	expenses, err := app.expense.Query(r.Context(), from, to, u.ActiveVault)
+	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w,
 			http.StatusInternalServerError,

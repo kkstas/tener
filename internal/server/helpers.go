@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/a-h/templ"
@@ -45,7 +46,7 @@ func sendFormErrorResponse(w http.ResponseWriter, statusCode int, messages map[s
 	_ = json.NewEncoder(w).Encode(messages)
 }
 
-func queryDatesRange(r *http.Request) (from, to string) {
+func queryFilters(r *http.Request) (from, to string, selectedCategories []string) {
 	from = r.FormValue("from")
 	to = r.FormValue("to")
 
@@ -55,7 +56,13 @@ func queryDatesRange(r *http.Request) (from, to string) {
 	if to == "" {
 		to = helpers.DaysAgo(0)
 	}
-	return from, to
+
+	categories := r.FormValue("categories")
+	if categories != "" {
+		selectedCategories = strings.Split(categories, ",")
+	}
+
+	return from, to, selectedCategories
 }
 
 func extractUserIDs(expenses []expense.Expense, categories []expensecategory.Category) []string {

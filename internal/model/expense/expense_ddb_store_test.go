@@ -276,7 +276,7 @@ func TestDDBQuery(t *testing.T) {
 	)
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
-		expenses, err := store.Query(ctx, "2024-01-15", "2024-01-18", "activeVaultID")
+		expenses, err := store.Query(ctx, "2024-01-15", "2024-01-18", []string{}, "activeVaultID")
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -284,7 +284,7 @@ func TestDDBQuery(t *testing.T) {
 			t.Errorf("expected 4 expenses returned, got %d", len(expenses))
 		}
 
-		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-16", "activeVaultID")
+		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-16", []string{}, "activeVaultID")
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -292,7 +292,7 @@ func TestDDBQuery(t *testing.T) {
 			t.Errorf("expected 2 expenses returned, got %d", len(expenses))
 		}
 
-		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-15", "activeVaultID")
+		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-15", []string{}, "activeVaultID")
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -302,7 +302,7 @@ func TestDDBQuery(t *testing.T) {
 	})
 
 	t.Run("returns error when date range is above one year", func(t *testing.T) {
-		_, err := store.Query(ctx, "2023-01-01", "2024-01-02", "activeVaultID")
+		_, err := store.Query(ctx, "2023-01-01", "2024-01-02", []string{}, "activeVaultID")
 		if err == nil {
 			t.Error("expected and error but didn't get one")
 		}

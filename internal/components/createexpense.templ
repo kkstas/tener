@@ -35,7 +35,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 								$refs.firstInput.focus();
 							}
 						"
-						hx-include="#main-date-range-picker-from, #main-date-range-picker-to"
+						hx-include="#main-date-range-picker-from, #main-date-range-picker-to, #categories"
 						@htmx:after-request.camel="
 							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
 								formErrors = JSON.parse(event.detail.xhr.response);

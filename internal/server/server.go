@@ -15,7 +15,7 @@ type expenseStore interface {
 	Delete(ctx context.Context, SK, vaultID string) error
 	Update(ctx context.Context, expenseFU expense.Expense, vaultID string) error
 	FindOne(ctx context.Context, SK, vaultID string) (expense.Expense, error)
-	Query(ctx context.Context, from, to, vaultID string) ([]expense.Expense, error)
+	Query(ctx context.Context, from, to string, categories []string, vaultID string) ([]expense.Expense, error)
 }
 
 type expenseCategoryStore interface {

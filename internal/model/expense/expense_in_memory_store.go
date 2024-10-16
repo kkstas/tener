@@ -59,7 +59,7 @@ func (e *InMemoryStore) FindOne(ctx context.Context, SK, vaultID string) (Expens
 }
 
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
-func (e *InMemoryStore) Query(ctx context.Context, from, to, vaultID string) ([]Expense, error) {
+func (e *InMemoryStore) Query(ctx context.Context, from, to string, categories []string, vaultID string) ([]Expense, error) {
 	daysDiff, err := helpers.DaysBetween(from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
@@ -84,7 +84,15 @@ func (e *InMemoryStore) Query(ctx context.Context, from, to, vaultID string) ([]
 		if err != nil {
 			return nil, fmt.Errorf("failed to get number of days between 'expense.Date' and 'to for expense: %+v: %w", expense, err)
 		}
-		if daysAfterFrom >= 0 && daysBeforeTo >= 0 {
+
+		hasQueriedCategory := true
+
+		if len(categories) > 0 {
+			slices.Contains(categories, expense.Category)
+			hasQueriedCategory = true
+		}
+
+		if daysAfterFrom >= 0 && daysBeforeTo >= 0 && hasQueriedCategory {
 			expenses = append(expenses, expense)
 		}
 	}

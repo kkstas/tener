@@ -234,7 +234,7 @@ func (es *DDBStore) Delete(ctx context.Context, sk, vaultID string) error {
 }
 
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
-func (es *DDBStore) Query(ctx context.Context, from, to, vaultID string) ([]Expense, error) {
+func (es *DDBStore) Query(ctx context.Context, from, to string, categories []string, vaultID string) ([]Expense, error) {
 	daysDiff, err := helpers.DaysBetween(from, to)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get number of days between 'from' and 'to' date: %w", err)
@@ -257,12 +257,17 @@ func (es *DDBStore) Query(ctx context.Context, from, to, vaultID string) ([]Expe
 		Key("PK").Equal(expression.Value(buildPK(vaultID))).
 		And(expression.Key("SK").Between(expression.Value(from), expression.Value(dayAfterTo)))
 
-	exprBuilder := expression.NewBuilder()
-	exprBuilder.WithKeyCondition(keyCond)
+	exprBuilder := expression.NewBuilder().WithKeyCondition(keyCond)
 
-	expr, err := expression.NewBuilder().
-		WithKeyCondition(keyCond).
-		Build()
+	if len(categories) > 0 {
+		categoryCondition := expression.Name("category").In(expression.Value(categories[0]))
+		for _, category := range categories[1:] {
+			categoryCondition = categoryCondition.Or(expression.Name("category").In(expression.Value(category)))
+		}
+		exprBuilder = exprBuilder.WithFilter(categoryCondition)
+	}
+
+	expr, err := exprBuilder.Build()
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to build expression for query %w", err)
