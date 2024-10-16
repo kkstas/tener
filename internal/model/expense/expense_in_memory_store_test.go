@@ -9,10 +9,11 @@ import (
 )
 
 const (
-	validInMemoryExpenseName     = "Some name"
-	validInMemoryExpenseDate     = "2024-09-07"
-	validInMemoryExpenseCategory = "Some category"
-	validInMemoryExpenseAmount   = 24.99
+	validInMemoryExpenseName      = "Some name"
+	validInMemoryExpenseDate      = "2024-09-07"
+	validInMemoryExpenseCategory  = "Some category"
+	validInMemoryExpenseCategory2 = "Other category"
+	validInMemoryExpenseAmount    = 24.99
 )
 
 func TestInMemoryCreate(t *testing.T) {
@@ -149,7 +150,7 @@ func TestInMemoryQuery(t *testing.T) {
 		store,
 		validInMemoryExpenseName,
 		"2024-01-16",
-		validInMemoryExpenseCategory,
+		validInMemoryExpenseCategory2,
 		validInMemoryExpenseAmount,
 		expense.PaymentMethods[0],
 	)
@@ -159,7 +160,7 @@ func TestInMemoryQuery(t *testing.T) {
 		store,
 		validInMemoryExpenseName,
 		"2024-01-17",
-		validInMemoryExpenseCategory,
+		validInMemoryExpenseCategory2,
 		validInMemoryExpenseAmount,
 		expense.PaymentMethods[0],
 	)
@@ -204,6 +205,36 @@ func TestInMemoryQuery(t *testing.T) {
 		_, err := store.Query(ctx, "2023-01-01", "2024-01-02", []string{}, "activeVaultID")
 		if err == nil {
 			t.Error("expected and error but didn't get one")
+		}
+	})
+
+	t.Run("returns expenses with filtered categories", func(t *testing.T) {
+		expenses, err := store.Query(ctx,
+			"2024-01-15",
+			"2024-01-18",
+			[]string{validInMemoryExpenseCategory, validInMemoryExpenseCategory2},
+			"activeVaultID")
+		if err != nil {
+			t.Fatalf("didn't expect an error while querying, but got one: %v", err)
+		}
+		got := len(expenses)
+		want := 4
+		if got != want {
+			t.Errorf("expected %d expenses returned, got %d", want, got)
+		}
+
+		expenses, err = store.Query(ctx,
+			"2024-01-15",
+			"2024-01-18",
+			[]string{validInMemoryExpenseCategory},
+			"activeVaultID")
+		if err != nil {
+			t.Fatalf("didn't expect an error while querying, but got one: %v", err)
+		}
+		got = len(expenses)
+		want = 2
+		if got != want {
+			t.Errorf("expected %d expenses returned, got %d", want, got)
 		}
 	})
 }

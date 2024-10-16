@@ -12,10 +12,11 @@ import (
 )
 
 const (
-	validDDBExpenseName     = "Some name"
-	validDDBExpenseDate     = "2024-09-07"
-	validDDBExpenseCategory = "Some category"
-	validDDBExpenseAmount   = 24.99
+	validDDBExpenseName      = "Some name"
+	validDDBExpenseDate      = "2024-09-07"
+	validDDBExpenseCategory  = "Some category"
+	validDDBExpenseCategory2 = "Other category"
+	validDDBExpenseAmount    = 24.99
 )
 
 func TestDDBCreate(t *testing.T) {
@@ -252,7 +253,7 @@ func TestDDBQuery(t *testing.T) {
 		store,
 		validDDBExpenseName,
 		"2024-01-16",
-		validDDBExpenseCategory,
+		validDDBExpenseCategory2,
 		validDDBExpenseAmount,
 		expense.PaymentMethods[0],
 	)
@@ -261,7 +262,7 @@ func TestDDBQuery(t *testing.T) {
 		store,
 		validDDBExpenseName,
 		"2024-01-17",
-		validDDBExpenseCategory,
+		validDDBExpenseCategory2,
 		validDDBExpenseAmount,
 		expense.PaymentMethods[0],
 	)
@@ -305,6 +306,36 @@ func TestDDBQuery(t *testing.T) {
 		_, err := store.Query(ctx, "2023-01-01", "2024-01-02", []string{}, "activeVaultID")
 		if err == nil {
 			t.Error("expected and error but didn't get one")
+		}
+	})
+
+	t.Run("returns expenses with filtered categories", func(t *testing.T) {
+		expenses, err := store.Query(ctx,
+			"2024-01-15",
+			"2024-01-18",
+			[]string{validDDBExpenseCategory, validDDBExpenseCategory2},
+			"activeVaultID")
+		if err != nil {
+			t.Fatalf("didn't expect an error while querying, but got one: %v", err)
+		}
+		got := len(expenses)
+		want := 4
+		if got != want {
+			t.Errorf("expected %d expenses returned, got %d", want, got)
+		}
+
+		expenses, err = store.Query(ctx,
+			"2024-01-15",
+			"2024-01-18",
+			[]string{validDDBExpenseCategory},
+			"activeVaultID")
+		if err != nil {
+			t.Fatalf("didn't expect an error while querying, but got one: %v", err)
+		}
+		got = len(expenses)
+		want = 2
+		if got != want {
+			t.Errorf("expected %d expenses returned, got %d", want, got)
 		}
 	})
 }

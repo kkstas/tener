@@ -1,8 +1,12 @@
 package components
 
 import (
+	"reflect"
+	"slices"
 	"testing"
 	"time"
+
+	"github.com/kkstas/tjener/internal/model/expense"
 )
 
 func TestParseDate(t *testing.T) {
@@ -19,6 +23,56 @@ func TestParseDate(t *testing.T) {
 		got := parseDate(input, time.RFC3339)
 		if got != input {
 			t.Errorf("got %s, want %s", got, input)
+		}
+	})
+}
+
+func TestExtractCategories(t *testing.T) {
+
+	t.Run("returns unique categories", func(t *testing.T) {
+		categories := []expense.Expense{
+			{Category: "cat1"},
+			{Category: "cat1"},
+			{Category: "cat2"},
+		}
+
+		got := extractCategories(categories)
+		want := []string{"cat1", "cat2"}
+
+		slices.Sort(got)
+		slices.Sort(want)
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %#v, want %#v", got, want)
+		}
+	})
+
+	t.Run("doesn't return empty string categories", func(t *testing.T) {
+		categories := []expense.Expense{
+			{Category: "cat1"},
+			{Category: ""},
+			{Category: "cat2"},
+		}
+
+		got := extractCategories(categories)
+		want := []string{"cat1", "cat2"}
+
+		slices.Sort(got)
+		slices.Sort(want)
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %#v, want %#v", got, want)
+		}
+	})
+
+	t.Run("returns empty string slice if no expenses were provided", func(t *testing.T) {
+		categories := []expense.Expense{}
+
+		got := extractCategories(categories)
+		want := []string{}
+
+		if !reflect.DeepEqual(got, want) {
+			t.Errorf("got %#v, want %#v", got, want)
 		}
 	})
 }

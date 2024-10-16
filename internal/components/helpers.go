@@ -25,12 +25,14 @@ func extractCategories(expenses []expense.Expense) []string {
 	uniqueCategories := make(map[string]bool)
 
 	for _, exp := range expenses {
-		uniqueCategories[exp.Category] = true
+		if exp.Category != "" {
+			uniqueCategories[exp.Category] = true
+		}
 	}
 
 	foundCategories := make([]string, 0, len(uniqueCategories))
 
-	for key, _ := range uniqueCategories {
+	for key := range uniqueCategories {
 		foundCategories = append(foundCategories, key)
 	}
 

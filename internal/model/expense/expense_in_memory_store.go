@@ -88,8 +88,9 @@ func (e *InMemoryStore) Query(ctx context.Context, from, to string, categories [
 		hasQueriedCategory := true
 
 		if len(categories) > 0 {
-			slices.Contains(categories, expense.Category)
-			hasQueriedCategory = true
+			if !slices.Contains(categories, expense.Category) {
+				hasQueriedCategory = false
+			}
 		}
 
 		if daysAfterFrom >= 0 && daysBeforeTo >= 0 && hasQueriedCategory {
