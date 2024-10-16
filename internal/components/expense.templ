@@ -18,7 +18,7 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 		hx-target="#all-expenses-list"
 		hx-trigger="change[target._flatpickr.selectedDates.length === 2] from:#main-date-range-picker"
 		hx-swap="outerHTML"
-		class="mt-auto mb-1 w-60 text-neutral-600 dark:text-neutral-300 cursor-pointer"
+		class="mt-auto mb-1 w-60 text-neutral-600 dark:text-neutral-300 cursor-pointer border-none"
 	>
 		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.MonthAgo() }/>
 		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
@@ -41,7 +41,7 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 					px-4 py-2 text-xs
 					focus-visible:outline-none"
 			/>
-			<svg class="my-auto me-3" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg>
+			<svg @click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();" class="my-auto me-3" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg>
 		</div>
 		<script>
 			function dateToISODateString(date) {
