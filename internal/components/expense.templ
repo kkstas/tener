@@ -19,7 +19,8 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 		hx-trigger="change[target._flatpickr.selectedDates.length === 2] from:#main-date-range-picker"
 		hx-swap="outerHTML"
 		hx-include="#categories"
-		class="my-1 w-32 sm:w-48 text-neutral-600 dark:text-neutral-300 cursor-pointer border-none"
+		class="my-1 w-36 text-zinc-700 dark:text-zinc-200 cursor-pointer
+			border border-1 border-zinc-200 dark:border-zinc-700 rounded-md"
 	>
 		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.MonthAgo() }/>
 		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
@@ -28,7 +29,7 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 			class="flatpickr flex group
 				group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
 				rounded-md
-				bg-neutral-50 dark:bg-neutral-900/50"
+				bg-zinc-50 dark:bg-zinc-800"
 			@keydown.enter="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
 			@click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
 			@keydown.escape.stop="document.querySelector('#main-date-range-picker')._flatpickr.close();"
@@ -39,7 +40,7 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 				class="cursor-pointer
 					w-full appearance-none rounded-md
 					border border-transparent bg-transparent
-					px-4 py-2 text-xs
+					ps-3 py-2 text-xs
 					focus-visible:outline-none"
 			/>
 			<svg @click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();" class="my-auto me-3" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg>
@@ -71,7 +72,7 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 }
 
 templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
-	<div class="my-1" x-data={ toJSON(map[string][]string{"options": categories}) }>
+	<div class="my-1 pe-1" x-data={ toJSON(map[string][]string{"options": categories}) }>
 		<div
 			hx-get={ url.Create(ctx, "expense", "all") }
 			hx-target="#all-expenses-list"
@@ -132,12 +133,11 @@ templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
 				<button
 					type="button"
 					role="combobox"
-					class="
-						inline-flex items-center justify-between gap-2 whitespace-nowrap
-						w-32 sm:w-48 text-neutral-600 dark:text-neutral-300 text-xs cursor-pointer border-none
+					class="inline-flex items-center justify-between gap-2 whitespace-nowrap
+						h-9 ps-3 pe-2 min-w-32 max-w-48 md:max-w-60 text-zinc-700 dark:text-zinc-200 text-xs cursor-pointer
 						group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
-						rounded-md h-9 ps-4 pe-2
-						bg-neutral-50 dark:bg-neutral-900/50"
+						bg-zinc-50 dark:bg-zinc-800
+						border border-1 border-zinc-200 dark:border-zinc-700 rounded-md"
 					aria-haspopup="listbox"
 					aria-controls="categoriesList"
 					x-on:click="isOpen = ! isOpen"
@@ -147,7 +147,7 @@ templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
 					x-bind:aria-label="setLabelText()"
 					x-bind:aria-expanded="isOpen || openedWithKeyboard"
 				>
-					<span class="text-xs w-full font-normal text-start overflow-hidden text-ellipsis  whitespace-nowrap" x-text="setLabelText()"></span>
+					<span class="w-full font-normal text-start overflow-hidden text-ellipsis  whitespace-nowrap" x-text="setLabelText()"></span>
 					<!-- Chevron  -->
 					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
 						<path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
@@ -162,15 +162,15 @@ templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
 					x-on:change="console.log('change'); $dispatch('reload-expenses', { selectedCategories: selectedOptions })"
 					hidden
 				/>
-				<ul x-cloak x-show="isOpen || openedWithKeyboard" id="categoriesList" class="absolute z-10 left-0 top-11 flex max-h-44 w-full flex-col overflow-hidden overflow-y-auto border-neutral-300 bg-neutral-50 py-1.5 dark:border-neutral-700 dark:bg-neutral-900 border rounded-md" role="listbox" x-on:click.outside="isOpen = false, openedWithKeyboard = false" x-on:keydown.down.prevent="$focus.wrap().next()" x-on:keydown.up.prevent="$focus.wrap().previous()" x-transition x-trap="openedWithKeyboard">
+				<ul x-cloak x-show="isOpen || openedWithKeyboard" id="categoriesList" class="absolute z-10 left-0 top-11 flex max-h-44 w-full flex-col overflow-hidden overflow-y-auto border-zinc-300 bg-zinc-50 py-1.5 dark:border-zinc-700 dark:bg-zinc-900 border rounded-md" role="listbox" x-on:click.outside="isOpen = false, openedWithKeyboard = false" x-on:keydown.down.prevent="$focus.wrap().next()" x-on:keydown.up.prevent="$focus.wrap().previous()" x-transition x-trap="openedWithKeyboard">
 					<template x-for="(item, index) in options" x-bind:key="item">
 						<!-- option  -->
 						<li role="option">
-							<label class="flex cursor-pointer items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-600 hover:bg-neutral-950/5 has-[:focus]:bg-neutral-950/5 dark:text-neutral-300 dark:hover:bg-white/5 dark:has-[:focus]:bg-white/5 [&:has(input:checked)]:text-neutral-900 dark:[&:has(input:checked)]:text-white [&:has(input:disabled)]:cursor-not-allowed [&:has(input:disabled)]:opacity-75" x-bind:for="'checkboxOption' + index">
+							<label class="flex cursor-pointer items-center gap-2 px-4 py-3 text-xs font-medium text-zinc-600 hover:bg-zinc-950/5 has-[:focus]:bg-zinc-950/5 dark:text-zinc-300 dark:hover:bg-white/5 dark:has-[:focus]:bg-white/5 [&:has(input:checked)]:text-zinc-900 dark:[&:has(input:checked)]:text-white [&:has(input:disabled)]:cursor-not-allowed [&:has(input:disabled)]:opacity-75" x-bind:for="'checkboxOption' + index">
 								<div class="relative flex items-center">
-									<input type="checkbox" class="combobox-option before:content[''] peer relative size-4 cursor-pointer appearance-none overflow-hidden border border-neutral-300 bg-neutral-50 before:absolute before:inset-0 checked:border-black checked:before:bg-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-neutral-800 checked:focus:outline-black active:outline-offset-0 disabled:cursor-not-allowed dark:border-neutral-700 rounded dark:bg-neutral-900 dark:checked:border-white dark:checked:before:bg-white dark:focus:outline-neutral-300 dark:checked:focus:outline-white" x-on:change="handleOptionToggle($el)" x-on:keydown.enter.prevent="$el.checked = ! $el.checked; handleOptionToggle($el)" x-bind:value="item" x-bind:id="'checkboxOption' + index"/>
+									<input type="checkbox" class="combobox-option before:content[''] peer relative size-4 cursor-pointer appearance-none overflow-hidden border border-zinc-300 bg-zinc-50 before:absolute before:inset-0 checked:border-black checked:before:bg-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-zinc-800 checked:focus:outline-black active:outline-offset-0 disabled:cursor-not-allowed dark:border-zinc-700 rounded dark:bg-zinc-900 dark:checked:border-white dark:checked:before:bg-white dark:focus:outline-zinc-300 dark:checked:focus:outline-white" x-on:change="handleOptionToggle($el)" x-on:keydown.enter.prevent="$el.checked = ! $el.checked; handleOptionToggle($el)" x-bind:value="item" x-bind:id="'checkboxOption' + index"/>
 									<!-- Checkmark  -->
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="4" class="pointer-events-none invisible absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 text-neutral-100 peer-checked:visible dark:text-black" aria-hidden="true">
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="4" class="pointer-events-none invisible absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 text-zinc-100 peer-checked:visible dark:text-black" aria-hidden="true">
 										<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
 									</svg>
 								</div>
@@ -184,33 +184,11 @@ templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
 	</div>
 }
 
-templ ExpenseSummary(ctx context.Context, expenses []expense.Expense) {
-	<div
-		class="flex p-4 my-10 relative w-full max-w-md mx-auto
-			text-sm font-normal
-			bg-white dark:bg-zinc-800
-			border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md
-		"
-	>
-		<div class="focus:outline-none mt-auto w-full min-w-36 text-left text-xs md:text-sm select-none">
-			<div>Total expenses</div>
-			<div class="pt-2 dark:text-zinc-200 text-zinc-800 font-medium">
-				<span class="text-5xl font-bold" id="total-expenses-integer-part">4825</span>
-				<span>,<span id="total-expenses-decimal-part">99</span> PLN</span>
-			</div>
-		</div>
-		<div class="h-20 max-w-60 border-none mt-auto">
-			@ExpenseCategoryFilter(ctx, extractCategories(expenses))
-			@ExpenseSummaryDateRangePicker(ctx)
-		</div>
-	</div>
-}
-
 templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, users map[string]user.User) {
 	<div
-		class="my-3 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md"
 		id="all-expenses-list"
 		hx-include="#main-date-range-picker-from, #main-date-range-picker-to, #categories"
+		class="text-sm font-normal bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md"
 	>
 		for i := len(expenses) - 1; i >= 0; i-- {
 			@Expense(ctx, expenses[i], paymentMethods, categories, users[expenses[i].CreatedBy])
@@ -461,7 +439,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 					<button
 						@click="popoverOpen = false;"
 						type="button"
-						class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide transition-colors duration-100 rounded-md text-neutral-600 dark:text-neutral-200 bg-neutral-100 dark:bg-zinc-700 hover:text-neutral-600 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-zinc-600/80 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
+						class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide transition-colors duration-100 rounded-md text-zinc-600 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-700 hover:text-zinc-600 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-600/80 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
 					>
 						Cancel
 					</button>

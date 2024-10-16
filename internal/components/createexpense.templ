@@ -11,17 +11,24 @@ import (
 )
 
 templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categories []expensecategory.Category) {
-	<div class="my-10 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-zinc-800 focus:shadow-outline has-[:focus]:shadow-outline focus:outline-none has-[:focus]:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 has-[:focus]:outline-zinc-800/10 dark:has-[:focus]:outline-zinc-300/20 focus:outline-1 has-[:focus]:outline-1 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md">
+	<div class="mt-10 mb-5 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-zinc-800 focus:shadow-outline has-[:focus]:shadow-outline focus:outline-none has-[:focus]:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 has-[:focus]:outline-zinc-800/10 dark:has-[:focus]:outline-zinc-300/20 focus:outline-1 has-[:focus]:outline-1 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md">
 		<div x-data="{ id: $id('accordion') }" class="cursor-pointer group">
 			<button @click="setActiveAccordion(id)" class="focus:outline-none flex items-center justify-center w-full p-4 text-left select-none">
-				<div class="w-8 h-8 me-[5%]">
-					<svg class="stroke-zinc-800 dark:stroke-zinc-400" width="100%" height="100%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><g id="Edit / Add_Row"><path id="Vector" d="M3 14V15C3 16.1046 3.89543 17 5 17L19 17C20.1046 17 21 16.1046 21 15L21 13C21 11.8954 20.1046 11 19 11H13M10 8H7M7 8H4M7 8V5M7 8V11" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> </g> </g></svg>
+				<div class="focus:outline-none mt-auto w-full min-w-36 text-left text-xs md:text-sm select-none">
+					<div>Total expenses</div>
+					<div class="pt-2 dark:text-zinc-200 text-zinc-800 font-medium">
+						<span class="text-5xl font-bold" id="total-expenses-integer-part">0</span>
+						<span>,<span id="total-expenses-decimal-part">00</span> PLN</span>
+					</div>
 				</div>
-				<span class="font-medium text-lg">Add expense</span>
-				<div class="w-8 h-8 ms-[5%]"></div>
+				<svg :class="activeAccordion==id && 'rotate-180'" class="size-8 mx-auto opacity-40 me-2 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+					<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
+				</svg>
 			</button>
 			<div x-show="activeAccordion==id" x-collapse x-cloak>
 				<div class="p-4 pt-0">
+					<hr class="w-[50%] mx-auto mb-3 mt-1 dark:border-zinc-700"/>
+					<h1 class="text-3xl font-semibold pb-4">Add new expense</h1>
 					<form
 						class="grid gap-2"
 						hx-post={ url.Create(ctx, "expense", "create") }
