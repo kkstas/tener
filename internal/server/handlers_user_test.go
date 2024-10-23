@@ -137,6 +137,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestRegister(t *testing.T) {
+	os.Setenv("ENABLE_REGISTER", "true")
 	t.Run("registers new user", func(t *testing.T) {
 		var param = url.Values{}
 		param.Set("firstName", validFirstName)
