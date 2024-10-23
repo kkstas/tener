@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/kkstas/tjener/internal/auth"
 	"github.com/kkstas/tjener/internal/model/user"
@@ -35,6 +36,17 @@ func redirectIfLoggedIn(next http.HandlerFunc) http.HandlerFunc {
 				return
 			}
 		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *Application) toggleRegisterMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if os.Getenv("ENABLE_REGISTER") != "true" {
+			http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusFound)
+			return
+		}
+
 		next.ServeHTTP(w, r)
 	})
 }
