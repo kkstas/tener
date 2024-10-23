@@ -39,7 +39,6 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 							if (activeAccordion === id) {
 								formErrors = {};
 								$el.reset();
-								$refs.firstInput.focus();
 							}
 						"
 						hx-include="#main-date-range-picker-from, #main-date-range-picker-to, #categories"
@@ -60,7 +59,6 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 							>Name</label>
 							<input
 								x-bind:class="formErrors.name && 'border-red-500'"
-								x-ref="firstInput"
 								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								id="create-expense-name-input"
 								type="text"
