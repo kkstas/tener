@@ -39,7 +39,7 @@ func CreateToken(u user.User) (string, error) {
 	}
 
 	claims, err := base64URLEncode(map[string]interface{}{
-		"exp":  time.Now().Add(24 * time.Hour).Unix(),
+		"exp":  time.Now().Add(7 * 24 * time.Hour).Unix(),
 		"user": u,
 	})
 	if err != nil {
