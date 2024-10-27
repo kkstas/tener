@@ -50,7 +50,7 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
 		Value:    token,
-		Expires:  time.Now().Add(24 * time.Hour),
+		Expires:  time.Now().Add(auth.TokenTTL),
 		HttpOnly: true,
 		SameSite: http.SameSiteLaxMode,
 		Secure:   true,

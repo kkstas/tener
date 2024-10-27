@@ -14,6 +14,8 @@ import (
 	"github.com/kkstas/tjener/internal/model/user"
 )
 
+const TokenTTL = 7 * 24 * time.Hour
+
 type Claims struct {
 	User user.User `json:"user"`
 	Exp  int       `json:"exp"`
@@ -39,7 +41,7 @@ func CreateToken(u user.User) (string, error) {
 	}
 
 	claims, err := base64URLEncode(map[string]interface{}{
-		"exp":  time.Now().Add(7 * 24 * time.Hour).Unix(),
+		"exp":  time.Now().Add(TokenTTL).Unix(),
 		"user": u,
 	})
 	if err != nil {
