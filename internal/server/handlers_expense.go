@@ -13,7 +13,7 @@ import (
 )
 
 func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u user.User) {
-	expenses, err := app.expense.Query(r.Context(), helpers.MonthAgo(), helpers.DaysAgo(0), []string{}, u.ActiveVault)
+	expenses, err := app.expense.Query(r.Context(), helpers.DaysAgo(helpers.DefaultDaysAgo), helpers.DaysAgo(0), []string{}, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return

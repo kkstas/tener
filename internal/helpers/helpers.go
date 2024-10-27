@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const DefaultDaysAgo = 7
+
 func GenerateCurrentTimestamp() string {
 	loc, _ := time.LoadLocation("Europe/Warsaw")
 	return time.Now().In(loc).Format(time.RFC3339Nano)

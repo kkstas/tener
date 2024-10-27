@@ -22,7 +22,7 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 		class="my-1 w-36 text-zinc-700 dark:text-zinc-200 cursor-pointer
 			border border-1 border-zinc-200 dark:border-zinc-700 rounded-md"
 	>
-		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.MonthAgo() }/>
+		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.DaysAgo(helpers.DefaultDaysAgo) }/>
 		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
 		<div
 			tabindex="0"
@@ -159,7 +159,7 @@ templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
 					name="categories"
 					type="text"
 					x-ref="hiddenTextField"
-					x-on:change="console.log('change'); $dispatch('reload-expenses', { selectedCategories: selectedOptions })"
+					x-on:change="$dispatch('reload-expenses', { selectedCategories: selectedOptions })"
 					hidden
 				/>
 				<ul x-cloak x-show="isOpen || openedWithKeyboard" id="categoriesList" class="absolute z-10 left-0 top-11 flex max-h-44 w-full flex-col overflow-hidden overflow-y-auto border-zinc-300 bg-zinc-50 py-1.5 dark:border-zinc-700 dark:bg-zinc-900 border rounded-md" role="listbox" x-on:click.outside="isOpen = false, openedWithKeyboard = false" x-on:keydown.down.prevent="$focus.wrap().next()" x-on:keydown.up.prevent="$focus.wrap().previous()" x-transition x-trap="openedWithKeyboard">
@@ -194,20 +194,28 @@ templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods [
 			@Expense(ctx, expenses[i], paymentMethods, categories, users[expenses[i].CreatedBy])
 		}
 		<script>
-			function calcTotalExpenses() {
-				const amountInputs = document.getElementById('all-expenses-list').querySelectorAll('input[name="amount"]');
+			function refreshExpenseData() {
+				const expenseData = [];
 				let total = 0;
-				amountInputs.forEach(input => {
-					const val = parseFloat(input.value);
-					if (!isNaN(val)) {
-						total += val;
-					}
-				});
+				document.getElementById("all-expenses-list").querySelectorAll(".expense-element").forEach(el => {
+					let amount = parseFloat(el.querySelector('input[name="amount"]').value);
+					total += amount;
+					expenseData.push({
+						category: el.querySelector('select[name="category"]').value,
+						date: el.querySelector('input[name="date"]').value,
+						amount,
+					});
+				})
+
 				const [integerPart, decimalPart] = total.toFixed(2).split('.');
 				document.getElementById("total-expenses-integer-part").innerText = integerPart;
 				document.getElementById("total-expenses-decimal-part").innerText = decimalPart;
+
+				expenseData.reverse();
+				window.myChart.data = toDatasets(expenseData);
+				window.myChart.update();
 			}
-			calcTotalExpenses();
+			refreshExpenseData();
 		</script>
 	</div>
 }
@@ -268,7 +276,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 					hx-delete={ url.Create(ctx, "expense", exp.SK) }
 					hx-swap="delete"
 					hx-confirm={ "Are you sure you want to delete this expense?\n\nName: " + exp.Name + "\nCategory: " + exp.Category + "\nAmount: " + fmt.Sprintf("%.2f %s", exp.Amount, "PLN") }
-					@htmx:after-request.camel="calcTotalExpenses();"
+					@htmx:after-request.camel="refreshExpenseData();"
 				>
 					Delete	
 				</button>

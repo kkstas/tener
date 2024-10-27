@@ -8,6 +8,63 @@ import (
 	"github.com/kkstas/tjener/internal/model/user"
 )
 
+templ Chart() {
+	<div><canvas id="expensesChart"></canvas></div>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script>
+		function toDatasets(expenses) {
+			const cats = new Set();
+			expenses.forEach((e) => cats.add(e.category));
+			const categories = Array.from(cats);
+			const dates = getDateArray(expenses[0].date, expenses[expenses.length - 1].date);
+			const datesObject = dates.reduce((acc, date) => {
+				acc[date] = 0;
+				return acc;
+			}, {});
+			const byCategories = {};
+			categories.forEach((category) => {
+				byCategories[category] = {
+					label: category,
+					data: Object.assign({}, datesObject),
+				};
+			});
+			expenses.forEach((exp) => {
+				byCategories[exp.category].data[exp.date] += exp.amount;
+			});
+			return {
+				labels: dates,
+				datasets: Object.values(byCategories).map((el) => {
+					return Object.assign(Object.assign({}, el), {
+						data: Object.values(el.data)
+					});
+				}),
+			};
+		}
+
+		function getDateArray(startDate, endDate) {
+			const start = new Date(startDate);
+			const end = new Date(endDate);
+			const dateArray = [];
+			while (start <= end) {
+				dateArray.push(start.toISOString().split("T")[0]);
+				start.setDate(start.getDate() + 1);
+			}
+			return dateArray;
+		}
+
+		window.myChart = new Chart(document.getElementById("expensesChart"), {
+			type: "bar",
+			options: {
+				scales: {
+					y: { stacked: true, beginAtZero: true },
+					x: { stacked: true },
+				},
+				plugins: { legend: { display: false } },
+			},
+		});
+	</script>
+}
+
 templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, u user.User, users map[string]user.User) {
 	@BaseHTML(ctx, true, u) {
 		<div
@@ -20,8 +77,9 @@ templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 				document.querySelector('#main-date-range-picker')._flatpickr.close();
 			"
 		>
-			@CreateExpenseContainer(ctx, paymentMethods, categories)
 			<div class="my-3 relative w-full max-w-md mx-auto">
+				@Chart()
+				@CreateExpenseContainer(ctx, paymentMethods, categories)
 				<div class="flex justify-end pb-1">
 					@ExpenseCategoryFilter(ctx, extractCategories(expenses))
 					@ExpenseSummaryDateRangePicker(ctx)
