@@ -147,6 +147,7 @@ templ BaseHTML(ctx context.Context, loggedIn bool, u user.User) {
 			<script defer src={ url.Create(ctx, "assets", "public", "js", "alpine-collapse-3.14.1.min.js ") }></script>
 			<script defer src={ url.Create(ctx, "assets", "public", "js", "alpine-focus-3.14.1.min.js ") }></script>
 			<script defer src={ url.Create(ctx, "assets", "public", "js", "alpine-3.14.1.min.js ") }></script>
+			<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 			<link rel="stylesheet" href={ url.Create(ctx, "assets", "public", "css", "out.css") }/>
 			<link rel="stylesheet" href={ url.Create(ctx, "assets", "public", "css", "flatpickr-dark-theme-4.6.13.css") }/>
 			@darkMode()

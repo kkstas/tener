@@ -10,59 +10,31 @@ import (
 
 templ Chart() {
 	<div><canvas id="expensesChart"></canvas></div>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script>
 		function toDatasets(expenses) {
 			if (!expenses || expenses.length === 0) return;
-			const cats = new Set();
-			expenses.forEach((e) => cats.add(e.category));
-			const categories = Array.from(cats);
-			const dates = getDateArray(document.querySelector("#main-date-range-picker-from").value || expenses[0].date, document.querySelector("#main-date-range-picker-to").value || expenses[expenses.length-1].date);
-			const datesObject = dates.reduce((acc, date) => {
-				acc[date] = 0;
-				return acc;
-			}, {});
-			const byCategories = {};
-			categories.forEach((category) => {
-				byCategories[category] = {
-					label: category,
-					data: Object.assign({}, datesObject),
-				};
-			});
+			const byCats = {};
 			expenses.forEach((exp) => {
-				byCategories[exp.category].data[exp.date] += exp.amount;
+				if (!byCats[exp.category]) {
+					byCats[exp.category] = 0;
+				}
+				byCats[exp.category] += exp.amount;
 			});
+			const labels = Object.keys(byCats);
+			const data = Object.values(byCats);
 			return {
-				labels: dates,
-				datasets: Object.values(byCategories).map((el) => {
-					return Object.assign(Object.assign({}, el), {
-						data: Object.values(el.data)
-					});
-				}),
+				labels,
+				datasets: [{
+					label: "Expenses",
+					data,
+					backgroundColor: [ "rgba(54, 162, 235, 0.8)", "rgba(255, 205, 86, 0.8)", "rgba(75, 192, 192, 0.8)", "rgba(255, 99, 132, 0.8)", "rgba(153, 102, 255, 0.8)", "rgba(34, 202, 236, 0.8)", "rgba(255, 159, 64, 0.8)" ],
+				}]
 			};
 		}
 
-		function getDateArray(startDate, endDate) {
-			const start = new Date(startDate);
-			const end = new Date(endDate);
-			const dateArray = [];
-			while (start <= end) {
-				dateArray.push(start.toISOString().split("T")[0]);
-				start.setDate(start.getDate() + 1);
-			}
-			dateArray.push(endDate);
-			return dateArray;
-		}
-
-		window.myChart = new Chart(document.getElementById("expensesChart"), {
-			type: "bar",
-			options: {
-				scales: {
-					y: { stacked: true, beginAtZero: true },
-					x: { stacked: true },
-				},
-				plugins: { legend: { display: false } },
-			},
+		window.expensesChart = new Chart(document.getElementById("expensesChart"), {
+			type: "doughnut",
+			options: { borderWidth: 0 },
 		});
 	</script>
 }

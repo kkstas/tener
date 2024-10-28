@@ -212,8 +212,8 @@ templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods [
 				document.getElementById("total-expenses-decimal-part").innerText = decimalPart;
 
 				expenseData.reverse();
-				window.myChart.data = toDatasets(expenseData);
-				window.myChart.update();
+				window.expensesChart.data = toDatasets(expenseData);
+				window.expensesChart.update();
 			}
 			refreshExpenseData();
 		</script>
