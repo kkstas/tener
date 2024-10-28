@@ -13,10 +13,11 @@ templ Chart() {
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha512-CQBWl4fJHWbryGE+Pc7UAxWMUMNMWzWxF4SQo9CgkJIN1kx6djDQZjh3Y8SZ1d+6I+1zze6Z7kHXO7q3UyZAWw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script>
 		function toDatasets(expenses) {
+			if (!expenses || expenses.length === 0) return;
 			const cats = new Set();
 			expenses.forEach((e) => cats.add(e.category));
 			const categories = Array.from(cats);
-			const dates = getDateArray(expenses[0].date, expenses[expenses.length - 1].date);
+			const dates = getDateArray(document.querySelector("#main-date-range-picker-from").value || expenses[0].date, document.querySelector("#main-date-range-picker-to").value || expenses[expenses.length-1].date);
 			const datesObject = dates.reduce((acc, date) => {
 				acc[date] = 0;
 				return acc;
@@ -49,6 +50,7 @@ templ Chart() {
 				dateArray.push(start.toISOString().split("T")[0]);
 				start.setDate(start.getDate() + 1);
 			}
+			dateArray.push(endDate);
 			return dateArray;
 		}
 
