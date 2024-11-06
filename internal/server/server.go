@@ -16,6 +16,7 @@ type expenseStore interface {
 	Update(ctx context.Context, expenseFU expense.Expense, vaultID string) error
 	FindOne(ctx context.Context, SK, vaultID string) (expense.Expense, error)
 	Query(ctx context.Context, from, to string, categories []string, vaultID string) ([]expense.Expense, error)
+	GetMonthlySums(ctx context.Context, monthsAgo int, vaultID string) ([]expense.MonthlySum, error)
 }
 
 type expenseCategoryStore interface {

@@ -35,9 +35,10 @@ type Expense struct {
 }
 
 type MonthlySum struct {
-	PK  string  `dynamodbav:"PK"`
-	SK  string  `dynamodbav:"SK"`
-	Sum float64 `dynamodbav:"sum"`
+	PK       string  `dynamodbav:"PK"`
+	SK       string  `dynamodbav:"SK"`
+	Category string  `dynamodbav:"category"`
+	Sum      float64 `dynamodbav:"sum"`
 }
 
 func New(name, date, category string, amount float64, paymentMethod string) (Expense, error) {

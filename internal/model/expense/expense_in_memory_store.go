@@ -58,6 +58,37 @@ func (e *InMemoryStore) FindOne(ctx context.Context, SK, vaultID string) (Expens
 	return Expense{}, &NotFoundError{SK: SK}
 }
 
+func (es *InMemoryStore) GetMonthlySums(ctx context.Context, monthsAgo int, vaultID string) ([]MonthlySum, error) {
+	expenses, err := es.Query(ctx, helpers.MonthsAgo(monthsAgo)[:7], helpers.DaysAgo(0), []string{}, vaultID)
+	if err != nil {
+		return nil, err
+	}
+
+	m := make(map[string]MonthlySum)
+
+	for _, val := range expenses {
+		sum, found := m[val.Date[:7]+val.Category]
+		if !found {
+			m[val.Date[:7]+val.Category] = MonthlySum{
+				SK:       val.Date[:7] + val.Category,
+				Category: val.Category,
+				Sum:      val.Amount,
+			}
+			continue
+		}
+		sum.Sum += val.Amount
+		m[val.Date[:7]+val.Category] = sum
+	}
+
+	var results []MonthlySum
+
+	for _, v := range m {
+		results = append(results, v)
+	}
+
+	return results, err
+}
+
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
 func (e *InMemoryStore) Query(ctx context.Context, from, to string, categories []string, vaultID string) ([]Expense, error) {
 	daysDiff, err := helpers.DaysBetween(from, to)

@@ -20,6 +20,7 @@ const (
 )
 
 func TestDDBCreate(t *testing.T) {
+	vaultID := "activeVaultID"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -31,7 +32,7 @@ func TestDDBCreate(t *testing.T) {
 
 	expense := createDefaultDDBExpenseHelper(t, ctx, store)
 
-	foundExpense, err := store.FindOne(ctx, expense.SK, "activeVaultID")
+	foundExpense, err := store.FindOne(ctx, expense.SK, vaultID)
 	if err != nil {
 		t.Fatalf("didn't expect an error but got one: %v", err)
 	}
@@ -50,6 +51,19 @@ func TestDDBCreate(t *testing.T) {
 		date, createdAt := split[0], split[1]
 		assertEqual(t, date, foundExpense.Date)
 		assertEqual(t, createdAt, foundExpense.CreatedAt)
+	})
+
+	t.Run("creates monthly sum for given month & category", func(t *testing.T) {
+		monthlySums, err := store.GetMonthlySums(ctx, 100, vaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		want := 1
+		got := len(monthlySums)
+		if got != want {
+			t.Errorf("expected %d monthly sum(s), got %d", want, got)
+		}
 	})
 }
 

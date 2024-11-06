@@ -305,6 +305,50 @@ func (es *DDBStore) calcMonthlySum(ctx context.Context, activeVault, category, d
 	return math.Floor(sum*100) / 100, nil
 }
 
+func (es *DDBStore) GetMonthlySums(ctx context.Context, monthsAgo int, vaultID string) ([]MonthlySum, error) {
+	from := helpers.MonthsAgo(monthsAgo)[:7]
+
+	keyCond := expression.
+		Key("PK").Equal(expression.Value(buildMonthlySumPK(vaultID))).
+		And(expression.Key("SK").GreaterThanEqual(expression.Value(from)))
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+	if err != nil {
+		return nil, fmt.Errorf("failed to build expression for monthlysums query %w", err)
+	}
+
+	var monthlySums []MonthlySum
+
+	queryInput := dynamodb.QueryInput{
+		TableName:                 &es.tableName,
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
+	}
+
+	queryPaginator := dynamodb.NewQueryPaginator(es.client, &queryInput)
+
+	for queryPaginator.HasMorePages() {
+		response, err := queryPaginator.NextPage(ctx)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to query for expenses: %w", err)
+		}
+
+		var resMonthlySums []MonthlySum
+		err = attributevalue.UnmarshalListOfMaps(response.Items, &resMonthlySums)
+
+		if err != nil {
+			return monthlySums, fmt.Errorf("failed to unmarshal query response %w", err)
+		}
+
+		monthlySums = append(monthlySums, resMonthlySums...)
+	}
+
+	return monthlySums, nil
+}
+
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).
 func (es *DDBStore) Query(ctx context.Context, from, to string, categories []string, vaultID string) ([]Expense, error) {
 	daysDiff, err := helpers.DaysBetween(from, to)
@@ -340,7 +384,6 @@ func (es *DDBStore) Query(ctx context.Context, from, to string, categories []str
 	}
 
 	expr, err := exprBuilder.Build()
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to build expression for query %w", err)
 	}
