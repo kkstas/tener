@@ -2,44 +2,38 @@ package components
 
 import (
 	"context"
-
 	"github.com/kkstas/tjener/internal/model/expense"
 	"github.com/kkstas/tjener/internal/model/expensecategory"
 	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tjener/internal/url"
 )
 
-templ Chart() {
-	<div><canvas id="expensesChart"></canvas></div>
-	<script>
-		function toDatasets(expenses) {
-			if (!expenses || expenses.length === 0) return;
-			const byCats = {};
-			expenses.forEach((exp) => {
-				if (!byCats[exp.category]) {
-					byCats[exp.category] = 0;
-				}
-				byCats[exp.category] += exp.amount;
+templ MonthlySumsChart(ctx context.Context, chartData expense.ChartData) {
+	@templ.JSONScript("chartDataRaw", chartData)
+	<div
+		hx-get={ url.Create(ctx, "expense", "sums") }
+		hx-swap="outerHTML"
+		hx-trigger="reload-expenses from:body"
+		hx-target="this"
+	>
+		<canvas id="monthsBarChart" width="400" height="300"></canvas>
+		<script>
+			const ctx = document.getElementById("monthsBarChart").getContext("2d");
+			new Chart(ctx, {
+				type: "bar",
+				data: JSON.parse(document.getElementById("chartDataRaw").textContent),
+				options: {
+					scales: {
+						x: { stacked: true },
+						y: { stacked: true, beginAtZero: true },
+					},
+				},
 			});
-			const labels = Object.keys(byCats);
-			const data = Object.values(byCats);
-			return {
-				labels,
-				datasets: [{
-					label: "Expenses",
-					data,
-					backgroundColor: [ "rgba(54, 162, 235, 0.8)", "rgba(255, 205, 86, 0.8)", "rgba(75, 192, 192, 0.8)", "rgba(255, 99, 132, 0.8)", "rgba(153, 102, 255, 0.8)", "rgba(34, 202, 236, 0.8)", "rgba(255, 159, 64, 0.8)" ],
-				}]
-			};
-		}
-
-		window.expensesChart = new Chart(document.getElementById("expensesChart"), {
-			type: "doughnut",
-			options: { borderWidth: 0 },
-		});
-	</script>
+		</script>
+	</div>
 }
 
-templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, u user.User, users map[string]user.User) {
+templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, u user.User, users map[string]user.User, monthlySums []expense.MonthlySum) {
 	@BaseHTML(ctx, true, u) {
 		<div
 			x-data="{
@@ -52,7 +46,7 @@ templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 			"
 		>
 			<div class="my-3 relative w-full max-w-md mx-auto">
-				@Chart()
+				@MonthlySumsChart(ctx, expense.TransformToChartData(monthlySums))
 				@CreateExpenseContainer(ctx, paymentMethods, categories, getTotalAmount(expenses))
 				<div class="flex justify-end pb-1">
 					@ExpenseCategoryFilter(ctx, extractCategories(expenses))

@@ -115,7 +115,7 @@ templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
 				},
 				handleClose() {
 					if (!this.isOpen) {
-						this.$el.dispatchEvent(new Event('reload-expenses'));
+						this.$el.dispatchEvent(new Event('reload-expenses', { bubbles: true }));
 					}
 				},
 			}"
@@ -195,25 +195,15 @@ templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods [
 		}
 		<script>
 			function refreshExpenseData() {
-				const expenseData = [];
 				let total = 0;
 				document.getElementById("all-expenses-list").querySelectorAll(".expense-element").forEach(el => {
 					let amount = parseFloat(el.querySelector('input[name="amount"]').value);
 					total += amount;
-					expenseData.push({
-						category: el.querySelector('select[name="category"]').value,
-						date: el.querySelector('input[name="date"]').value,
-						amount,
-					});
 				})
 
 				const [integerPart, decimalPart] = total.toFixed(2).split('.');
 				document.getElementById("total-expenses-integer-part").innerText = integerPart;
 				document.getElementById("total-expenses-decimal-part").innerText = decimalPart;
-
-				expenseData.reverse();
-				window.expensesChart.data = toDatasets(expenseData);
-				window.expensesChart.update();
 			}
 			refreshExpenseData();
 		</script>

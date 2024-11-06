@@ -269,9 +269,10 @@ func (es *DDBStore) updateMonthlySum(ctx context.Context, vaultID, date, categor
 
 	item, err := attributevalue.MarshalMap(
 		MonthlySum{
-			PK:  buildMonthlySumPK(vaultID),
-			SK:  buildMonthlySumSK(yearAndMonth, category),
-			Sum: sum,
+			PK:       buildMonthlySumPK(vaultID),
+			SK:       buildMonthlySumSK(yearAndMonth, category),
+			Sum:      sum,
+			Category: category,
 		},
 	)
 	if err != nil {

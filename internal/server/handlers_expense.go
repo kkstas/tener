@@ -34,9 +34,34 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
+	monthlySums, err := app.expense.GetMonthlySums(r.Context(), 6, u.ActiveVault)
+	if err != nil {
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to find monthly sums: "+err.Error(),
+			err)
+		return
+	}
+
 	app.renderTempl(
 		w, r,
-		components.Page(r.Context(), expenses, expense.PaymentMethods, categories, u, users),
+		components.Page(r.Context(), expenses, expense.PaymentMethods, categories, u, users, monthlySums),
+	)
+}
+
+func (app *Application) getMonthlySums(w http.ResponseWriter, r *http.Request, u user.User) {
+	monthlySums, err := app.expense.GetMonthlySums(r.Context(), 6, u.ActiveVault)
+	if err != nil {
+		sendErrorResponse(w,
+			http.StatusInternalServerError,
+			"failed to find monthly sums: "+err.Error(),
+			err)
+		return
+	}
+
+	app.renderTempl(
+		w, r,
+		components.MonthlySumsChart(r.Context(), expense.TransformToChartData(monthlySums)),
 	)
 }
 

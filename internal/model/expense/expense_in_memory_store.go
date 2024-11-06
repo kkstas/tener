@@ -59,7 +59,7 @@ func (e *InMemoryStore) FindOne(ctx context.Context, SK, vaultID string) (Expens
 }
 
 func (es *InMemoryStore) GetMonthlySums(ctx context.Context, monthsAgo int, vaultID string) ([]MonthlySum, error) {
-	expenses, err := es.Query(ctx, helpers.MonthsAgo(monthsAgo)[:7], helpers.DaysAgo(0), []string{}, vaultID)
+	expenses, err := es.Query(ctx, helpers.MonthsAgo(monthsAgo), helpers.DaysAgo(0), []string{}, vaultID)
 	if err != nil {
 		return nil, err
 	}
