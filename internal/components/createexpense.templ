@@ -3,6 +3,7 @@ package components
 import (
 	"context"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/kkstas/tjener/internal/model/expense"
@@ -10,15 +11,15 @@ import (
 	"github.com/kkstas/tjener/internal/url"
 )
 
-templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categories []expensecategory.Category) {
+templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categories []expensecategory.Category, total string) {
 	<div class="mt-10 mb-5 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-zinc-800 focus:shadow-outline has-[:focus]:shadow-outline focus:outline-none has-[:focus]:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 has-[:focus]:outline-zinc-800/10 dark:has-[:focus]:outline-zinc-300/20 focus:outline-1 has-[:focus]:outline-1 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md">
 		<div x-data="{ id: $id('accordion') }" class="cursor-pointer group">
 			<button @click="setActiveAccordion(id)" class="focus:outline-none flex items-center justify-center w-full p-4 text-left select-none">
 				<div class="focus:outline-none mt-auto w-full min-w-36 text-left text-xs md:text-sm select-none">
 					<div>Total expenses</div>
 					<div class="pt-2 dark:text-zinc-200 text-zinc-800 font-medium">
-						<span class="text-5xl font-bold" id="total-expenses-integer-part">0</span>
-						<span>,<span id="total-expenses-decimal-part">00</span> PLN</span>
+						<span class="text-5xl font-bold" id="total-expenses-integer-part">{ strings.Split(total, ".")[0] }</span>
+						<span>,<span id="total-expenses-decimal-part">{ strings.Split(total, ".")[1] }</span> PLN</span>
 					</div>
 				</div>
 				<svg :class="activeAccordion==id && 'rotate-180'" class="size-8 mx-auto opacity-40 me-2 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

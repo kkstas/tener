@@ -2,6 +2,7 @@ package components
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/kkstas/tjener/internal/model/expense"
@@ -37,4 +38,12 @@ func extractCategories(expenses []expense.Expense) []string {
 	}
 
 	return foundCategories
+}
+
+func getTotalAmount(expenses []expense.Expense) string {
+	var sum float64
+	for _, val := range expenses {
+		sum += val.Amount
+	}
+	return fmt.Sprintf("%.2f", sum)
 }

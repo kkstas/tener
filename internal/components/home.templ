@@ -53,7 +53,7 @@ templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 		>
 			<div class="my-3 relative w-full max-w-md mx-auto">
 				@Chart()
-				@CreateExpenseContainer(ctx, paymentMethods, categories)
+				@CreateExpenseContainer(ctx, paymentMethods, categories, getTotalAmount(expenses))
 				<div class="flex justify-end pb-1">
 					@ExpenseCategoryFilter(ctx, extractCategories(expenses))
 					@ExpenseSummaryDateRangePicker(ctx)
