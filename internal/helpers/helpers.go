@@ -47,11 +47,11 @@ func DaysAgo(days int) string {
 	return date
 }
 
-// Returns YYYY-MM-DD date of one month ago from now
-func MonthAgo() string {
+// Returns YYYY-MM-DD date of num months ago from now
+func MonthsAgo(num int) string {
 	loc, _ := time.LoadLocation("Europe/Warsaw")
 	now := time.Now().In(loc)
-	monthAgo := now.AddDate(0, -1, 0)
+	monthAgo := now.AddDate(0, -num, 0)
 	return monthAgo.Format("2006-01-02")
 }
 
