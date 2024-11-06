@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -90,6 +91,11 @@ func (es *DDBStore) Create(ctx context.Context, expenseFC Expense, userID, vault
 		return Expense{}, fmt.Errorf("failed to put item into DynamoDB: %w", err)
 	}
 
+	err = es.updateMonthlySum(ctx, vaultID, newExpense.Date, newExpense.Category)
+	if err != nil {
+		return Expense{}, fmt.Errorf("failed to update monthly sum: %w", err)
+	}
+
 	return newExpense, nil
 }
 
@@ -126,9 +132,20 @@ func (es *DDBStore) Update(ctx context.Context, expenseFU Expense, vaultID strin
 	expenseFU.CreatedBy = foundExpense.CreatedBy
 
 	if expenseFU.SK == buildSK(expenseFU.Date, foundExpense.CreatedAt) {
-		return es.updateWithoutNewSK(ctx, expenseFU, vaultID)
+		err = es.updateWithoutNewSK(ctx, expenseFU, vaultID)
+	} else {
+		err = es.updateWithNewSK(ctx, expenseFU, vaultID)
 	}
-	return es.updateWithNewSK(ctx, expenseFU, vaultID)
+	if err != nil {
+		return fmt.Errorf("failed to update expense: %w", err)
+	}
+
+	err = es.updateMonthlySum(ctx, vaultID, expenseFU.Date, expenseFU.Category)
+	if err != nil {
+		return fmt.Errorf("failed to update monthly sum: %w", err)
+	}
+
+	return err
 }
 
 func (es *DDBStore) updateWithNewSK(ctx context.Context, expenseFU Expense, vaultID string) error {
@@ -217,11 +234,12 @@ func (es *DDBStore) updateWithoutNewSK(ctx context.Context, expenseFU Expense, v
 }
 
 func (es *DDBStore) Delete(ctx context.Context, sk, vaultID string) error {
-	if _, err := es.FindOne(ctx, sk, vaultID); err != nil {
+	exp, err := es.FindOne(ctx, sk, vaultID)
+	if err != nil {
 		return &NotFoundError{SK: sk}
 	}
 
-	_, err := es.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+	_, err = es.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
 		TableName: &es.tableName,
 		Key:       getKey(vaultID, sk),
 	})
@@ -230,7 +248,61 @@ func (es *DDBStore) Delete(ctx context.Context, sk, vaultID string) error {
 		return fmt.Errorf("failed to delete expense with SK=%q from table: %w", sk, err)
 	}
 
+	err = es.updateMonthlySum(ctx, vaultID, exp.Date, exp.Category)
+	if err != nil {
+		return fmt.Errorf("failed to update monthly sum: %w", err)
+	}
+
+	return err
+}
+
+func (es *DDBStore) updateMonthlySum(ctx context.Context, vaultID, date, category string) error {
+	yearAndMonth := date[:7]
+	if !helpers.IsValidYYYYMM(yearAndMonth) {
+		return fmt.Errorf("error: expected date in format YYYY-MM, got %s", date)
+	}
+
+	sum, err := es.calcMonthlySum(ctx, vaultID, category, date)
+	if err != nil {
+		return fmt.Errorf("failed to calculate monthly sum: %w", err)
+	}
+
+	item, err := attributevalue.MarshalMap(
+		MonthlySum{
+			PK:  buildMonthlySumPK(vaultID),
+			SK:  buildMonthlySumSK(yearAndMonth, category),
+			Sum: sum,
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to marshal monthly sum: %w", err)
+	}
+
+	_, err = es.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: &es.tableName,
+		Item:      item,
+	})
+
+	if err != nil {
+		return fmt.Errorf("failed to put monthly sum into DynamoDB: %w", err)
+	}
+
 	return nil
+}
+
+func (es *DDBStore) calcMonthlySum(ctx context.Context, activeVault, category, dateStr string) (float64, error) {
+	from, to := helpers.GetFirstAndLastDayOfMonth(dateStr)
+	thisMonthCategoryExpenses, err := es.Query(ctx, from, to, []string{category}, activeVault)
+	if err != nil {
+		return 0, err
+	}
+
+	var sum float64
+	for _, val := range thisMonthCategoryExpenses {
+		sum += val.Amount
+	}
+
+	return math.Floor(sum*100) / 100, nil
 }
 
 // Retrieves expenses between the given `from` and `to` YYYY-MM-DD dates (inclusive).

@@ -7,3 +7,11 @@ func buildPK(vaultID string) string {
 func buildSK(date, createdAt string) string {
 	return date + "::" + createdAt
 }
+
+func buildMonthlySumPK(vaultID string) string {
+	return monthlySumPKPrefix + "::" + vaultID
+}
+
+func buildMonthlySumSK(month, category string) string {
+	return month + "::" + category
+}

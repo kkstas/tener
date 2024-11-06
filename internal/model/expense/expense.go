@@ -13,6 +13,7 @@ var PaymentMethods = []string{"Cash", "Credit Card", "Debit Card"}
 
 const (
 	pkPrefix              = "expense"
+	monthlySumPKPrefix    = "monthlysum"
 	minQueryRangeDaysDiff = 0
 	maxQueryRangeDaysDiff = 365
 
@@ -31,6 +32,12 @@ type Expense struct {
 	CreatedAt           string  `dynamodbav:"createdAt"`
 	CreatedBy           string  `dynamodbav:"createdBy"`
 	validator.Validator `dynamodbav:"-"`
+}
+
+type MonthlySum struct {
+	PK  string  `dynamodbav:"PK"`
+	SK  string  `dynamodbav:"SK"`
+	Sum float64 `dynamodbav:"sum"`
 }
 
 func New(name, date, category string, amount float64, paymentMethod string) (Expense, error) {

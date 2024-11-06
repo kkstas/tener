@@ -84,3 +84,16 @@ func TestDaysBetween(t *testing.T) {
 		}
 	})
 }
+
+func TestGetFirstAndLastDayOfMonth(t *testing.T) {
+	gotFrom, gotTo := GetFirstAndLastDayOfMonth("2024-01-01")
+	wantFrom := "2024-01-01"
+	wantTo := "2024-01-31"
+
+	if gotFrom != wantFrom {
+		t.Errorf("got %s want %s", gotFrom, wantFrom)
+	}
+	if gotTo != wantTo {
+		t.Errorf("got %s want %s", gotTo, wantTo)
+	}
+}
