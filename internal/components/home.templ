@@ -16,7 +16,10 @@ templ MonthlySumsChart(ctx context.Context, chartData expense.ChartData) {
 		hx-swap="outerHTML"
 		hx-trigger="reload-chart"
 		hx-target="this"
-		hx-on::before-swap="Chart.getChart('monthsBarChart') && Chart.getChart('monthsBarChart').destroy()"
+		hx-on::before-swap="
+			document.getElementById('chartDataRaw').remove();
+			Chart.getChart('monthsBarChart') && Chart.getChart('monthsBarChart').destroy()
+		"
 	>
 		<canvas id="monthsBarChart" width="400" height="350"></canvas>
 		<script>

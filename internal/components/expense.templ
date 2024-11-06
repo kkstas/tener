@@ -266,7 +266,10 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 					hx-delete={ url.Create(ctx, "expense", exp.SK) }
 					hx-swap="delete"
 					hx-confirm={ "Are you sure you want to delete this expense?\n\nName: " + exp.Name + "\nCategory: " + exp.Category + "\nAmount: " + fmt.Sprintf("%.2f %s", exp.Amount, "PLN") }
-					@htmx:after-request.camel="refreshExpenseData();"
+					@htmx:after-request.camel="
+						refreshExpenseData();
+						document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
+					"
 				>
 					Delete	
 				</button>

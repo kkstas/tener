@@ -48,6 +48,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 								formErrors = JSON.parse(event.detail.xhr.response);
 								return;
 							} else {
+								document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
 								setActiveAccordion(id);
 								return;
 							}
