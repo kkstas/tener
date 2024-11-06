@@ -80,6 +80,17 @@ func GetFirstAndLastDayOfMonth(dateStr string) (from, to string) {
 	return from, to
 }
 
+func GetFirstDayOfCurrentMonth() string {
+	date, err := time.Parse("2006-01-02", DaysAgo(0))
+	if err != nil {
+		fmt.Println("Error parsing date:", err)
+		return ""
+	}
+
+	firstDay := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, date.Location())
+	return firstDay.Format("2006-01-02")
+}
+
 func IsValidYYYYMM(dateString string) bool {
 	layout := "2006-01"
 	_, err := time.Parse(layout, dateString)

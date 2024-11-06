@@ -51,7 +51,7 @@ func queryFilters(r *http.Request) (from, to string, selectedCategories []string
 	to = r.FormValue("to")
 
 	if from == "" {
-		from = helpers.MonthsAgo(1)
+		from = helpers.GetFirstDayOfCurrentMonth()
 	}
 	if to == "" {
 		to = helpers.DaysAgo(0)
