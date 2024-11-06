@@ -59,7 +59,7 @@ func queryFilters(r *http.Request) (from, to string, selectedCategories []string
 
 	categories := r.FormValue("categories")
 	if categories != "" {
-		selectedCategories = strings.Split(categories, ",")
+		selectedCategories = strings.Split(categories, ";")
 	}
 
 	return from, to, selectedCategories

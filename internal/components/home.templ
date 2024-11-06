@@ -11,15 +11,16 @@ import (
 templ MonthlySumsChart(ctx context.Context, chartData expense.ChartData) {
 	@templ.JSONScript("chartDataRaw", chartData)
 	<div
+		id="monthsBarChartContainer"
 		hx-get={ url.Create(ctx, "expense", "sums") }
 		hx-swap="outerHTML"
-		hx-trigger="reload-expenses from:body"
+		hx-trigger="reload-chart"
 		hx-target="this"
+		hx-on::before-swap="Chart.getChart('monthsBarChart') && Chart.getChart('monthsBarChart').destroy()"
 	>
-		<canvas id="monthsBarChart" width="400" height="300"></canvas>
+		<canvas id="monthsBarChart" width="400" height="350"></canvas>
 		<script>
-			const ctx = document.getElementById("monthsBarChart").getContext("2d");
-			new Chart(ctx, {
+			new Chart(document.getElementById("monthsBarChart").getContext("2d"), {
 				type: "bar",
 				data: JSON.parse(document.getElementById("chartDataRaw").textContent),
 				options: {

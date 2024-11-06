@@ -111,7 +111,7 @@ templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
 						)
 					}
 					// set the value of the hidden field to the selectedOptions array
-					this.$refs.hiddenTextField.value = this.selectedOptions
+					this.$refs.hiddenTextField.value = this.selectedOptions.join(';');
 				},
 				handleClose() {
 					if (!this.isOpen) {
@@ -302,6 +302,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 					x-data="{ formErrors: {} }"
 					x-effect="if (popoverOpen) { formErrors = {}; $el.reset(); }"
 					@htmx:after-request.camel="
+							document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
 							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
 								formErrors = JSON.parse(event.detail.xhr.response);
 								popoverOpen = false;
