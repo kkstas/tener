@@ -1,11 +1,12 @@
 package expense
 
 import (
+	"fmt"
 	"time"
 )
 
 type ChartData struct {
-	Labels   []string       `json:"labels"`
+	Labels   [][]string     `json:"labels"`
 	Datasets []CategoryData `json:"datasets"`
 }
 
@@ -59,8 +60,25 @@ func TransformToChartData(data []MonthlySum) ChartData {
 		})
 	}
 
+	monthAmounts := make([]float64, len(months))
+
+	for _, dataset := range datasets {
+		for k, v := range dataset.Data {
+			monthAmounts[k] += v
+		}
+	}
+
+	var labels [][]string
+
+	for i, month := range months {
+		labels = append(labels, []string{
+			fmt.Sprintf("%d PLN", int(monthAmounts[i])),
+			month,
+		})
+	}
+
 	return ChartData{
-		Labels:   months,
+		Labels:   labels,
 		Datasets: datasets,
 	}
 }
