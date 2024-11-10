@@ -12,6 +12,10 @@ import (
 	"github.com/kkstas/tjener/internal/model/user"
 )
 
+var (
+	MonthlySumsLastMonthsCount = 6
+)
+
 func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u user.User) {
 	expenses, err := app.expense.Query(r.Context(), helpers.GetFirstDayOfCurrentMonth(), helpers.DaysAgo(0), []string{}, u.ActiveVault)
 	if err != nil {
@@ -34,7 +38,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 		return
 	}
 
-	monthlySums, err := app.expense.GetMonthlySums(r.Context(), 6, u.ActiveVault)
+	monthlySums, err := app.expense.GetMonthlySums(r.Context(), MonthlySumsLastMonthsCount, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w,
 			http.StatusInternalServerError,
@@ -50,7 +54,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 }
 
 func (app *Application) getMonthlySums(w http.ResponseWriter, r *http.Request, u user.User) {
-	monthlySums, err := app.expense.GetMonthlySums(r.Context(), 6, u.ActiveVault)
+	monthlySums, err := app.expense.GetMonthlySums(r.Context(), MonthlySumsLastMonthsCount, u.ActiveVault)
 	if err != nil {
 		sendErrorResponse(w,
 			http.StatusInternalServerError,

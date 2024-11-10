@@ -3,12 +3,14 @@ package expense_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/kkstas/tjener/internal/database"
 	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tjener/internal/server"
 )
 
 const (
@@ -17,10 +19,11 @@ const (
 	validDDBExpenseCategory  = "Some category"
 	validDDBExpenseCategory2 = "Other category"
 	validDDBExpenseAmount    = 24.99
+
+	ddbStoreVaultID = "activeVaultID"
 )
 
 func TestDDBCreate(t *testing.T) {
-	vaultID := "activeVaultID"
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
@@ -30,9 +33,9 @@ func TestDDBCreate(t *testing.T) {
 	defer removeDDB()
 	store := expense.NewDDBStore(tableName, client)
 
-	expense := createDefaultDDBExpenseHelper(t, ctx, store)
+	createdExpense := createDefaultDDBExpenseHelper(t, ctx, store)
 
-	foundExpense, err := store.FindOne(ctx, expense.SK, vaultID)
+	foundExpense, err := store.FindOne(ctx, createdExpense.SK, ddbStoreVaultID)
 	if err != nil {
 		t.Fatalf("didn't expect an error but got one: %v", err)
 	}
@@ -54,7 +57,7 @@ func TestDDBCreate(t *testing.T) {
 	})
 
 	t.Run("creates monthly sum for given month & category", func(t *testing.T) {
-		monthlySums, err := store.GetMonthlySums(ctx, 100, vaultID)
+		monthlySums, err := store.GetMonthlySums(ctx, 100, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error but got one: %v", err)
 		}
@@ -80,17 +83,17 @@ func TestDDBDelete(t *testing.T) {
 		store := expense.NewDDBStore(tableName, client)
 		exp := createDefaultDDBExpenseHelper(t, ctx, store)
 
-		_, err = store.FindOne(ctx, exp.SK, "activeVaultID")
+		_, err = store.FindOne(ctx, exp.SK, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("failed finding expense after creation: %v", err)
 		}
 
-		err = store.Delete(ctx, exp.SK, "activeVaultID")
+		err = store.Delete(ctx, exp.SK, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("failed deleting expense: %v", err)
 		}
 
-		_, err = store.FindOne(ctx, exp.SK, "activeVaultID")
+		_, err = store.FindOne(ctx, exp.SK, ddbStoreVaultID)
 		if err == nil {
 			t.Fatal("expected error after trying to find deleted expense but didn't get one")
 		}
@@ -113,7 +116,7 @@ func TestDDBDelete(t *testing.T) {
 
 		store := expense.NewDDBStore(tableName, client)
 
-		err = store.Delete(ctx, invalidSK, "activeVaultID")
+		err = store.Delete(ctx, invalidSK, ddbStoreVaultID)
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
@@ -140,11 +143,11 @@ func TestDDBUpdate(t *testing.T) {
 		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 
 		expense.Name = validDDBExpenseName
-		err = store.Update(ctx, expense, "activeVaultID")
+		err = store.Update(ctx, expense, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
-		newExpense, err := store.FindOne(ctx, expense.SK, "activeVaultID")
+		newExpense, err := store.FindOne(ctx, expense.SK, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
@@ -158,12 +161,12 @@ func TestDDBUpdate(t *testing.T) {
 		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 		newDate := "2024-09-09"
 		expense.Date = newDate
-		err = store.Update(ctx, expense, "activeVaultID")
+		err = store.Update(ctx, expense, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
 
-		newExpense, err := store.FindOne(ctx, expense.Date+"::"+expense.CreatedAt, "activeVaultID")
+		newExpense, err := store.FindOne(ctx, expense.Date+"::"+expense.CreatedAt, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while searching for expense but got one: %v", err)
 		}
@@ -180,11 +183,11 @@ func TestDDBUpdate(t *testing.T) {
 		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 		newName := "new name"
 		expense.Name = newName
-		err = store.Update(ctx, expense, "activeVaultID")
+		err = store.Update(ctx, expense, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while updating expense but got one: %v", err)
 		}
-		newExpense, err := store.FindOne(ctx, expense.Date+"::"+expense.CreatedAt, "activeVaultID")
+		newExpense, err := store.FindOne(ctx, expense.Date+"::"+expense.CreatedAt, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while searching for expense but got one: %v", err)
 		}
@@ -196,7 +199,7 @@ func TestDDBUpdate(t *testing.T) {
 	t.Run("returns proper error when expense for update does not exist", func(t *testing.T) {
 		invalidSK := "invalidSK"
 
-		err := store.Update(ctx, expense.Expense{SK: invalidSK}, "activeVaultID")
+		err := store.Update(ctx, expense.Expense{SK: invalidSK}, ddbStoreVaultID)
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
@@ -205,6 +208,75 @@ func TestDDBUpdate(t *testing.T) {
 		if !errors.As(err, &notFoundErr) {
 			t.Errorf("got %#v, want %#v", err, &expense.NotFoundError{SK: invalidSK})
 		}
+	})
+
+	t.Run("updates monthly sums for old and new month, if date month has been changed", func(t *testing.T) {
+		category := "randomcategory"
+		date1 := "2024-09-15"
+		date2 := "2024-10-15"
+
+		createDDBExpenseHelper(t,
+			ctx,
+			store,
+			validDDBExpenseName,
+			date1,
+			category,
+			10.00,
+			expense.PaymentMethods[0],
+		)
+		expenseFU := createDDBExpenseHelper(t,
+			ctx,
+			store,
+			validDDBExpenseName,
+			date2,
+			category,
+			10.00,
+			expense.PaymentMethods[0],
+		)
+		prevMonthlySums, err := store.GetMonthlySums(ctx, server.MonthlySumsLastMonthsCount, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		expenseFU.Date = date1
+		err = store.Update(ctx, expenseFU, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		newMonthlySums, err := store.GetMonthlySums(ctx, server.MonthlySumsLastMonthsCount, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		fmt.Printf("%#v\n", prevMonthlySums)
+		fmt.Printf("%#v\n", newMonthlySums)
+
+		var prevDate1MonthlySum expense.MonthlySum
+		var prevDate2MonthlySum expense.MonthlySum
+		var newDate1MonthlySum expense.MonthlySum
+		var newDate2MonthlySum expense.MonthlySum
+
+		for _, m := range prevMonthlySums {
+			if m.Category == category && strings.HasPrefix(m.SK, date1[:7]) {
+				prevDate1MonthlySum = m
+			}
+			if m.Category == category && strings.HasPrefix(m.SK, date2[:7]) {
+				prevDate2MonthlySum = m
+			}
+		}
+
+		for _, m := range newMonthlySums {
+			if m.Category == category && strings.HasPrefix(m.SK, date1[:7]) {
+				newDate1MonthlySum = m
+			}
+			if m.Category == category && strings.HasPrefix(m.SK, date2[:7]) {
+				newDate2MonthlySum = m
+			}
+		}
+
+		assertEqual(t, newDate1MonthlySum.Sum, prevDate1MonthlySum.Sum+expenseFU.Amount)
+		assertEqual(t, newDate2MonthlySum.Sum, prevDate2MonthlySum.Sum-expenseFU.Amount)
 	})
 }
 
@@ -222,7 +294,7 @@ func TestDDBFindOne(t *testing.T) {
 	t.Run("finds existing expense", func(t *testing.T) {
 		expense := createDefaultDDBExpenseHelper(t, ctx, store)
 
-		_, err = store.FindOne(ctx, expense.SK, "activeVaultID")
+		_, err = store.FindOne(ctx, expense.SK, ddbStoreVaultID)
 		if err != nil {
 			t.Errorf("didn't expect an error while finding expense but got one: %v", err)
 		}
@@ -231,7 +303,7 @@ func TestDDBFindOne(t *testing.T) {
 	t.Run("returns proper error when searched expense does not exist", func(t *testing.T) {
 		invalidSK := "invalidSK"
 
-		_, err := store.FindOne(ctx, invalidSK, "activeVaultID")
+		_, err := store.FindOne(ctx, invalidSK, ddbStoreVaultID)
 		if err == nil {
 			t.Fatal("expected an error but didn't get one")
 		}
@@ -291,7 +363,7 @@ func TestDDBQuery(t *testing.T) {
 	)
 
 	t.Run("returns expenses that are greater or equal than 'from', and lesser or equal than 'to'", func(t *testing.T) {
-		expenses, err := store.Query(ctx, "2024-01-15", "2024-01-18", []string{}, "activeVaultID")
+		expenses, err := store.Query(ctx, "2024-01-15", "2024-01-18", []string{}, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -299,7 +371,7 @@ func TestDDBQuery(t *testing.T) {
 			t.Errorf("expected 4 expenses returned, got %d", len(expenses))
 		}
 
-		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-16", []string{}, "activeVaultID")
+		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-16", []string{}, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -307,7 +379,7 @@ func TestDDBQuery(t *testing.T) {
 			t.Errorf("expected 2 expenses returned, got %d", len(expenses))
 		}
 
-		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-15", []string{}, "activeVaultID")
+		expenses, err = store.Query(ctx, "2024-01-15", "2024-01-15", []string{}, ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying by date range, but got one: %v", err)
 		}
@@ -317,7 +389,7 @@ func TestDDBQuery(t *testing.T) {
 	})
 
 	t.Run("returns error when date range is above one year", func(t *testing.T) {
-		_, err := store.Query(ctx, "2023-01-01", "2024-01-02", []string{}, "activeVaultID")
+		_, err := store.Query(ctx, "2023-01-01", "2024-01-02", []string{}, ddbStoreVaultID)
 		if err == nil {
 			t.Error("expected and error but didn't get one")
 		}
@@ -328,7 +400,7 @@ func TestDDBQuery(t *testing.T) {
 			"2024-01-15",
 			"2024-01-18",
 			[]string{validDDBExpenseCategory, validDDBExpenseCategory2},
-			"activeVaultID")
+			ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying, but got one: %v", err)
 		}
@@ -342,7 +414,7 @@ func TestDDBQuery(t *testing.T) {
 			"2024-01-15",
 			"2024-01-18",
 			[]string{validDDBExpenseCategory},
-			"activeVaultID")
+			ddbStoreVaultID)
 		if err != nil {
 			t.Fatalf("didn't expect an error while querying, but got one: %v", err)
 		}
@@ -383,7 +455,7 @@ func createDDBExpenseHelper(
 	if err != nil {
 		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
 	}
-	expense, err := store.Create(ctx, expenseFC, "userID", "activeVaultID")
+	expense, err := store.Create(ctx, expenseFC, "userID", ddbStoreVaultID)
 	if err != nil {
 		t.Fatalf("didn't expect an error while putting expense into DDB but got one: %v", err)
 	}
