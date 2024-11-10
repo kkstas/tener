@@ -135,6 +135,16 @@ templ Nav(ctx context.Context, loggedIn bool, u user.User) {
 	</nav>
 }
 
+templ reloadIfStale() {
+	<script>
+		const lastReload = new Date().toISOString().split('T')[0];
+		window.addEventListener("focus", () => {
+			const today = new Date().toISOString().split('T')[0];
+			if (lastReload !== today) window.location.reload();
+		})
+	</script>
+}
+
 templ BaseHTML(ctx context.Context, loggedIn bool, u user.User) {
 	<html class="dark">
 		<head>
@@ -154,6 +164,7 @@ templ BaseHTML(ctx context.Context, loggedIn bool, u user.User) {
 			<title>Home</title>
 		</head>
 		<body class="bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
+			@reloadIfStale()
 			@Nav(ctx, loggedIn, u)
 			<div class="mx-5 my-3">
 				{ children... }
