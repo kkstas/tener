@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/kkstas/tjener/internal/helpers"
-	"github.com/kkstas/tjener/pkg/validator"
+	"github.com/kkstas/tener/internal/helpers"
+	"github.com/kkstas/tener/pkg/validator"
 )
 
 const (

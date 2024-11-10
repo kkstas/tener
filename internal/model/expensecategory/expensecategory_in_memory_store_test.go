@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/expensecategory"
 )
 
 func TestInMemoryCreate(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/kkstas/tjener/internal/helpers"
+	"github.com/kkstas/tener/internal/helpers"
 )
 
 type InMemoryStore struct {

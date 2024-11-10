@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/kkstas/tjener/internal/helpers"
+	"github.com/kkstas/tener/internal/helpers"
 )
 
 type DDBStore struct {

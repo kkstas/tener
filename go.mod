@@ -1,4 +1,4 @@
-module github.com/kkstas/tjener
+module github.com/kkstas/tener
 
 go 1.23.0
 

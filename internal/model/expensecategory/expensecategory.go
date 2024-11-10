@@ -1,7 +1,7 @@
 package expensecategory
 
 import (
-	"github.com/kkstas/tjener/pkg/validator"
+	"github.com/kkstas/tener/pkg/validator"
 )
 
 const (

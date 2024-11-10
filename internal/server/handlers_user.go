@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kkstas/tjener/internal/auth"
-	"github.com/kkstas/tjener/internal/components"
-	"github.com/kkstas/tjener/internal/model/user"
-	"github.com/kkstas/tjener/internal/url"
-	"github.com/kkstas/tjener/pkg/validator"
+	"github.com/kkstas/tener/internal/auth"
+	"github.com/kkstas/tener/internal/components"
+	"github.com/kkstas/tener/internal/model/user"
+	"github.com/kkstas/tener/internal/url"
+	"github.com/kkstas/tener/pkg/validator"
 )
 
 func (app *Application) renderLoginPage(w http.ResponseWriter, r *http.Request) {

@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/kkstas/tjener/internal/model/expensecategory"
-	"github.com/kkstas/tjener/internal/model/user"
-	"github.com/kkstas/tjener/internal/url"
+	"github.com/kkstas/tener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/user"
+	"github.com/kkstas/tener/internal/url"
 )
 
 templ ExpenseCategoriesPage(ctx context.Context, categories []expensecategory.Category, u user.User, users map[string]user.User) {

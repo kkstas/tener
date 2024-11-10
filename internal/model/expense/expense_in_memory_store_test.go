@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expense"
 )
 
 const (

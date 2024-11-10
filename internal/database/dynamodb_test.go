@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kkstas/tjener/internal/database"
+	"github.com/kkstas/tener/internal/database"
 )
 
 const testTimeout = 10 * time.Second

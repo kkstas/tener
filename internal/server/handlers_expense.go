@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/kkstas/tjener/internal/components"
-	"github.com/kkstas/tjener/internal/helpers"
-	"github.com/kkstas/tjener/internal/model/expense"
-	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tener/internal/components"
+	"github.com/kkstas/tener/internal/helpers"
+	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/user"
 )
 
 var (

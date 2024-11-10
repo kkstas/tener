@@ -11,12 +11,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/auth"
-	"github.com/kkstas/tjener/internal/model/expense"
-	"github.com/kkstas/tjener/internal/model/expensecategory"
-	"github.com/kkstas/tjener/internal/model/user"
-	"github.com/kkstas/tjener/internal/server"
-	u "github.com/kkstas/tjener/internal/url"
+	"github.com/kkstas/tener/internal/auth"
+	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/user"
+	"github.com/kkstas/tener/internal/server"
+	u "github.com/kkstas/tener/internal/url"
 )
 
 func TestHomeHandler(t *testing.T) {

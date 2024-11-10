@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/kkstas/tjener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expense"
 )
 
 func parseDate(date, layout string) string {

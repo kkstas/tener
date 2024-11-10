@@ -3,7 +3,7 @@ package user_test
 import (
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tener/internal/model/user"
 )
 
 const (

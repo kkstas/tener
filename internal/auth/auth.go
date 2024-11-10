@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tener/internal/model/user"
 )
 
 const TokenTTL = 7 * 24 * time.Hour

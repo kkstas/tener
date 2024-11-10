@@ -9,10 +9,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model/expense"
-	"github.com/kkstas/tjener/internal/model/expensecategory"
-	"github.com/kkstas/tjener/internal/model/user"
-	"github.com/kkstas/tjener/internal/server"
+	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/user"
+	"github.com/kkstas/tener/internal/server"
 )
 
 const (

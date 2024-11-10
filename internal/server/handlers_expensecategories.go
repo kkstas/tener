@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/kkstas/tjener/internal/components"
-	"github.com/kkstas/tjener/internal/model/expense"
-	"github.com/kkstas/tjener/internal/model/expensecategory"
-	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tener/internal/components"
+	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/user"
 )
 
 func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *http.Request, u user.User) {

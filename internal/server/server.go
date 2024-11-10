@@ -4,10 +4,10 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kkstas/tjener/assets"
-	"github.com/kkstas/tjener/internal/model/expense"
-	"github.com/kkstas/tjener/internal/model/expensecategory"
-	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tener/assets"
+	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/user"
 )
 
 type expenseStore interface {

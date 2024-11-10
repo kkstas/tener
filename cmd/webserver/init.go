@@ -12,11 +12,11 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
 
-	"github.com/kkstas/tjener/internal/database"
-	"github.com/kkstas/tjener/internal/model/expense"
-	"github.com/kkstas/tjener/internal/model/expensecategory"
-	"github.com/kkstas/tjener/internal/model/user"
-	"github.com/kkstas/tjener/internal/server"
+	"github.com/kkstas/tener/internal/database"
+	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/user"
+	"github.com/kkstas/tener/internal/server"
 )
 
 func initApplicationAndDDB() *server.Application {

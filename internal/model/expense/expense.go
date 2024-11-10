@@ -4,9 +4,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/kkstas/tjener/internal/helpers"
-	"github.com/kkstas/tjener/internal/model/expensecategory"
-	"github.com/kkstas/tjener/pkg/validator"
+	"github.com/kkstas/tener/internal/helpers"
+	"github.com/kkstas/tener/internal/model/expensecategory"
+	"github.com/kkstas/tener/pkg/validator"
 )
 
 var PaymentMethods = []string{"Cash", "Credit Card", "Debit Card"}

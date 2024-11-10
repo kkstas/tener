@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kkstas/tjener/internal/database"
-	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/database"
+	"github.com/kkstas/tener/internal/model/expensecategory"
 )
 
 func TestDDBCreate(t *testing.T) {

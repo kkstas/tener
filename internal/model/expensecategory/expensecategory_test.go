@@ -3,7 +3,7 @@ package expensecategory_test
 import (
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/expensecategory"
 )
 
 func TestNew(t *testing.T) {

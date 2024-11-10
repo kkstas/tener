@@ -4,8 +4,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/model/expense"
-	"github.com/kkstas/tjener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expensecategory"
 )
 
 func TestExtractUserIDs(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/kkstas/tjener/internal/auth"
-	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tener/internal/auth"
+	"github.com/kkstas/tener/internal/model/user"
 )
 
 func TestCreateToken(t *testing.T) {

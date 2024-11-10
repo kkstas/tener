@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kkstas/tjener/pkg/validator"
+	"github.com/kkstas/tener/pkg/validator"
 )
 
 type TestStruct struct {

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kkstas/tjener/internal/database"
-	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tener/internal/database"
+	"github.com/kkstas/tener/internal/model/user"
 )
 
 func TestDDBCreate(t *testing.T) {

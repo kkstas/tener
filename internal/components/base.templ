@@ -3,8 +3,8 @@ package components
 import (
 	"context"
 
-	"github.com/kkstas/tjener/internal/url"
-	"github.com/kkstas/tjener/internal/model/user"
+	"github.com/kkstas/tener/internal/url"
+	"github.com/kkstas/tener/internal/model/user"
 )
 
 templ darkMode() {
@@ -84,7 +84,7 @@ templ Nav(ctx context.Context, loggedIn bool, u user.User) {
 				border-b border-zinc-300 dark:border-black/30
 			"
 		>
-			<a href={ templ.SafeURL(url.Create(ctx, "home")) } class="text-2xl font-bold text-zinc-900 dark:text-white me-auto">tjener</a>
+			<a href={ templ.SafeURL(url.Create(ctx, "home")) } class="text-2xl font-bold text-zinc-900 dark:text-white me-auto">tener</a>
 			<!-- Desktop Menu -->
 			@toggleDarkMode()
 			<ul class="hidden items-center gap-4 md:flex">

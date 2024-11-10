@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/kkstas/tjener/internal/database"
-	"github.com/kkstas/tjener/internal/model/expense"
-	"github.com/kkstas/tjener/internal/server"
+	"github.com/kkstas/tener/internal/database"
+	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/server"
 )
 
 const (
