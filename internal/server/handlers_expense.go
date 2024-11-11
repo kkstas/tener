@@ -110,30 +110,35 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 
 	if err != nil {
+		emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w, http.StatusBadRequest, "amount must be a valid decimal number", err)
 		return
 	}
 
 	exp, err := expense.New(name, date, category, amount, paymentMethod)
 	if err != nil {
+		emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
 	_, err = app.expense.Create(r.Context(), exp, u.ID, u.ActiveVault)
 	if err != nil {
+		emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return
 	}
 
 	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
 	if err != nil {
+		emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
 		return
 	}
 
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
+		emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w,
 			http.StatusInternalServerError,
 			"failed to query expense categories: "+err.Error(),
@@ -143,6 +148,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
 	if err != nil {
+		emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w,
 			http.StatusInternalServerError,
 			"failed to find matching users for expenses & expense categories: "+err.Error(),
@@ -150,6 +156,7 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
+	emitActionTrail("create_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
 	app.renderTempl(
 		w, r,
 		components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users),
@@ -168,18 +175,21 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 	amount, err := strconv.ParseFloat(amountRaw, 64)
 
 	if err != nil {
+		emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w, http.StatusBadRequest, "invalid amount value", err)
 		return
 	}
 
 	expenseFU, err := expense.NewFU(SK, name, date, category, amount, paymentMethod)
 	if err != nil {
+		emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form, "expenseFU": expenseFU})
 		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
 	err = app.expense.Update(r.Context(), expenseFU, u.ActiveVault)
 	if err != nil {
+		emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form, "expenseFU": expenseFU})
 		var notFoundErr *expense.NotFoundError
 		if errors.As(err, &notFoundErr) {
 			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
@@ -194,6 +204,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
 	if err != nil {
+		emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w,
 			http.StatusInternalServerError,
 			"failed to query items: "+err.Error(),
@@ -203,6 +214,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
+		emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w,
 			http.StatusInternalServerError,
 			"failed to query expense categories: "+err.Error(),
@@ -212,6 +224,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 
 	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
 	if err != nil {
+		emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		sendErrorResponse(w,
 			http.StatusInternalServerError,
 			"failed to find matching users for expenses & expense categories: "+err.Error(),
@@ -219,6 +232,7 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return
 	}
 
+	emitActionTrail("update_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
 	app.renderTempl(
 		w, r,
 		components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users),
@@ -230,6 +244,7 @@ func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Reque
 
 	err := app.expense.Delete(r.Context(), sk, u.ActiveVault)
 	if err != nil {
+		emitActionTrail("delete_expense", false, &u, err, map[string]interface{}{"SK": sk})
 		var notFoundErr *expense.NotFoundError
 		if errors.As(err, &notFoundErr) {
 			sendErrorResponse(w, http.StatusNotFound, err.Error(), err)
@@ -242,5 +257,6 @@ func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	emitActionTrail("delete_expense", true, &u, nil, map[string]interface{}{"SK": sk})
 	w.WriteHeader(http.StatusOK)
 }

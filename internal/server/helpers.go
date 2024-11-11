@@ -14,6 +14,7 @@ import (
 	"github.com/kkstas/tener/internal/helpers"
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
+	"github.com/kkstas/tener/internal/model/user"
 	"github.com/kkstas/tener/pkg/validator"
 )
 
@@ -98,4 +99,31 @@ func clearTokenCookie(w http.ResponseWriter) {
 		SameSite: http.SameSiteLaxMode,
 		Secure:   true,
 	})
+}
+
+type logLine struct {
+	Success   bool        `json:"success"`
+	Action    string      `json:"action"`
+	ActorName string      `json:"actorName"`
+	Data      interface{} `json:"data"`
+	ActorID   string      `json:"actorID"`
+	ErrorMsg  string      `json:"error"`
+}
+
+func emitActionTrail(action string, success bool, actor *user.User, err error, data interface{}) {
+	var errMsg string
+	if err != nil {
+		errMsg = err.Error()
+	}
+
+	line := logLine{
+		ActorID:   actor.ID,
+		ActorName: actor.FirstName + " " + actor.LastName,
+		Action:    action,
+		Success:   success,
+		Data:      data,
+		ErrorMsg:  errMsg,
+	}
+	logBytes, _ := json.Marshal(line)
+	log.Info().RawJSON("message", logBytes).Msg("")
 }
