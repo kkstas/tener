@@ -214,7 +214,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 	<div x-data="{ id: $id('accordion') }" title={ fmt.Sprintf("Created by %s %s", usr.FirstName, usr.LastName) } class="has-[:focus]:bg-zinc-100/20 dark:has-[:focus]:bg-zinc-900/20 expense-element cursor-pointer">
 		<button @click="setActiveAccordion(id)" class="flex items-center focus:outline-none justify-between w-full p-4 text-left select-none">
 			<div class="flex flex-1 justify-between">
-				<div class="flex flex-col justify-between">
+				<div class="flex flex-col justify-between flex-1">
 					<div class="text-lg font-medium">{ exp.Name }</div>
 					<div class="text-xs dark:text-zinc-400">{ exp.Category }</div>
 				</div>

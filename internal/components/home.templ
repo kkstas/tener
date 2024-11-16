@@ -21,12 +21,13 @@ templ MonthlySumsChart(ctx context.Context, chartData expense.ChartData) {
 			Chart.getChart('monthsBarChart') && Chart.getChart('monthsBarChart').destroy()
 		"
 	>
-		<canvas id="monthsBarChart" width="400" height="350"></canvas>
+		<canvas id="monthsBarChart" width="400" height="300"></canvas>
 		<script>
 			new Chart(document.getElementById("monthsBarChart").getContext("2d"), {
 				type: "bar",
 				data: JSON.parse(document.getElementById("chartDataRaw").textContent),
 				options: {
+					plugins: { legend: { display: false } },
 					animations: false,
 					scales: {
 						x: { stacked: true },
