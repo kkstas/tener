@@ -114,7 +114,7 @@ templ Nav(ctx context.Context, loggedIn bool, u user.User) {
 			<ul x-cloak x-show="mobileMenuIsOpen" x-transition:enter="transition motion-reduce:transition-none ease-out duration-300" x-transition:enter-start="-translate-y-full" x-transition:enter-end="translate-y-0" x-transition:leave="transition motion-reduce:transition-none ease-out duration-300" x-transition:leave-start="translate-y-0" x-transition:leave-end="-translate-y-full" id="mobileMenu" class="fixed max-h-svh overflow-y-auto inset-x-0 top-0 z-10 flex flex-col divide-y divide-zinc-300 rounded-b-md border-b border-zinc-300 bg-zinc-50 px-6 pb-6 pt-10 dark:divide-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 md:hidden">
 				if loggedIn {
 					<li class="py-4">
-						@userDisabledCard(ctx, u)
+						@userDisabledCard(u)
 					</li>
 					<li class="py-4">
 						<a
