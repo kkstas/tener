@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -9,6 +10,7 @@ import (
 	"github.com/kkstas/tener/internal/components"
 	"github.com/kkstas/tener/internal/helpers"
 	"github.com/kkstas/tener/internal/model/expense"
+	"github.com/kkstas/tener/internal/model/expensecategory"
 	"github.com/kkstas/tener/internal/model/user"
 )
 
@@ -17,16 +19,54 @@ var (
 )
 
 func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u user.User) {
-	expenses, err := app.expense.Query(r.Context(), helpers.GetFirstDayOfCurrentMonth(), helpers.DaysAgo(0), []string{}, u.ActiveVault)
-	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query items: "+err.Error(), err)
-		return
-	}
+	var expenses []expense.Expense
+	var categories []expensecategory.Category
+	var monthlySums []expense.MonthlySum
 
-	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
-	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
-		return
+	expChan := make(chan []expense.Expense)
+	catChan := make(chan []expensecategory.Category)
+	sumsChan := make(chan []expense.MonthlySum)
+	errChan := make(chan error)
+
+	go func() {
+		expenses, err := app.expense.Query(r.Context(), helpers.GetFirstDayOfCurrentMonth(), helpers.DaysAgo(0), []string{}, u.ActiveVault)
+		if err != nil {
+			errChan <- fmt.Errorf("failed to query expenses: %w", err)
+			return
+		}
+		expChan <- expenses
+	}()
+
+	go func() {
+		categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
+		if err != nil {
+			errChan <- fmt.Errorf("failed to find all expense categories: %w", err)
+			return
+		}
+		catChan <- categories
+	}()
+
+	go func() {
+		monthlySums, err := app.expense.GetMonthlySums(r.Context(), MonthlySumsLastMonthsCount, u.ActiveVault)
+		if err != nil {
+			errChan <- fmt.Errorf("failed to get monthly sums: %w", err)
+			return
+		}
+		sumsChan <- monthlySums
+	}()
+
+	for i := 0; i < 3; i++ {
+		select {
+		case err := <-errChan:
+			sendErrorResponse(w, http.StatusInternalServerError, err.Error(), err)
+			return
+		case result := <-expChan:
+			expenses = result
+		case result := <-catChan:
+			categories = result
+		case result := <-sumsChan:
+			monthlySums = result
+		}
 	}
 
 	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
@@ -34,15 +74,6 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 		sendErrorResponse(w,
 			http.StatusInternalServerError,
 			"failed to find matching users for expenses & expense categories: "+err.Error(),
-			err)
-		return
-	}
-
-	monthlySums, err := app.expense.GetMonthlySums(r.Context(), MonthlySumsLastMonthsCount, u.ActiveVault)
-	if err != nil {
-		sendErrorResponse(w,
-			http.StatusInternalServerError,
-			"failed to find monthly sums: "+err.Error(),
 			err)
 		return
 	}
