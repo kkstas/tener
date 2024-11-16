@@ -154,6 +154,7 @@ templ BaseHTML(ctx context.Context, loggedIn bool, u user.User) {
 			<style>[x-cloak] { display: none !important; }</style>
 			<script src={ url.Create(ctx, "assets", "public", "js", "flatpickr-4.6.13.min.js") }></script>
 			<script src={ url.Create(ctx, "assets", "public", "js", "htmx-2.0.2.min.js ") }></script>
+			<script src={ url.Create(ctx, "assets", "public", "js", "htmx-ext-loading-states-2.0.0.js") }></script>
 			<script defer src={ url.Create(ctx, "assets", "public", "js", "alpine-collapse-3.14.1.min.js ") }></script>
 			<script defer src={ url.Create(ctx, "assets", "public", "js", "alpine-focus-3.14.1.min.js ") }></script>
 			<script defer src={ url.Create(ctx, "assets", "public", "js", "alpine-3.14.1.min.js ") }></script>
@@ -163,7 +164,7 @@ templ BaseHTML(ctx context.Context, loggedIn bool, u user.User) {
 			@darkMode()
 			<title>Home</title>
 		</head>
-		<body class="bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
+		<body hx-ext="loading-states" class="bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
 			@reloadIfStale()
 			@Nav(ctx, loggedIn, u)
 			<div class="mx-5 my-3">
