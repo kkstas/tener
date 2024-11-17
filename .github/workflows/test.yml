@@ -1,0 +1,43 @@
+name: 'test'
+
+on:
+  push:
+    branches: [ "main", "prod" ]
+  pull_request:
+    branches: [ "main", "prod" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and run Docker containers
+        run: |
+          docker compose -f docker-compose.yaml build
+          docker compose -f docker-compose.yaml up -d
+
+      - name: Get Go version from go.mod
+        id: get-go-version
+        run: |
+          GO_VERSION=$(grep -E '^go [0-9.]+$' go.mod | cut -d ' ' -f 2)
+          echo "Found version: ${GO_VERSION}"
+          echo "version=${GO_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Set up Go ${{ steps.get-go-version.outputs.version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ steps.get-go-version.outputs.version }}
+
+      - name: Run Go tests
+        run: |
+          go test -count=1 ./...
+
+      - name: Tear down Docker containers
+        if: always()
+        run: docker compose -f docker-compose.yaml down

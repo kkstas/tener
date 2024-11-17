@@ -3,13 +3,13 @@ include .env
 .PHONY: dev-build dev-start clean build-lambda push-lambda
 
 dev-build:
-	docker-compose -f docker-compose.yaml build
+	docker compose -f docker-compose.yaml build
 
 dev-start:
-	docker-compose -f docker-compose.yaml up
+	docker compose -f docker-compose.yaml up
 
 dev-down:
-	docker-compose -f docker-compose.yaml down
+	docker compose -f docker-compose.yaml down
 
 build-lambda:
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o bootstrap ./cmd/lambda
