@@ -1,0 +1,16 @@
+# https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
+linters:
+  enable:
+    - revive
+    - nilerr
+    - gosec
+    - gochecksumtype
+    - exhaustruct
+    - exhaustive
+
+severity:
+  default-severity: warning
+  rules:
+    - linters:
+        - exhaustruct
+      severity: info

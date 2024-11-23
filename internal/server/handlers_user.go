@@ -58,7 +58,6 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("HX-Redirect", url.Create(r.Context(), "home"))
 	http.Redirect(w, r, url.Create(r.Context(), "home"), http.StatusOK)
-	return
 }
 
 func (app *Application) renderRegisterPage(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +101,6 @@ func (app *Application) handleRegister(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("HX-Redirect", url.Create(r.Context(), "login"))
 	http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusOK)
-	return
 }
 
 func (app *Application) handleLogout(w http.ResponseWriter, r *http.Request) {
