@@ -2,15 +2,12 @@ package main
 
 import (
 	"context"
-	"net/http"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"github.com/rs/zerolog/pkgerrors"
 
 	"github.com/kkstas/tener/internal/database"
 	"github.com/kkstas/tener/internal/model/expense"
@@ -20,7 +17,7 @@ import (
 )
 
 func initApplicationAndDDB() *server.Application {
-	initLogger()
+	logger := initLogger()
 
 	tableName := os.Getenv("DDB_TABLE_NAME")
 
@@ -29,87 +26,58 @@ func initApplicationAndDDB() *server.Application {
 
 	client, err := database.CreateDynamoDBClient(ctx)
 	if err != nil {
-		log.Fatal().Err(err).Msg("creating DDB client failed")
+		logger.Error("creating DDB client failed", "error", err)
 		os.Exit(1)
 	}
 
-	createDDBTableIfNotExists(ctx, client, tableName)
+	createDDBTableIfNotExists(ctx, logger, client, tableName)
 
 	expenseStore := expense.NewDDBStore(tableName, client)
 	expenseCategoryStore := expensecategory.NewDDBStore(tableName, client)
 	userStore := user.NewDDBStore(tableName, client)
 
-	newApp := server.NewApplication(expenseStore, expenseCategoryStore, userStore)
-	newApp.Handler = loggingMiddleware(newApp.Handler)
-
+	newApp := server.NewApplication(logger, expenseStore, expenseCategoryStore, userStore)
 	return newApp
 }
 
-func createDDBTableIfNotExists(ctx context.Context, client *dynamodb.Client, tableName string) {
+func createDDBTableIfNotExists(ctx context.Context, logger *slog.Logger, client *dynamodb.Client, tableName string) {
 	exists, err := database.DDBTableExists(ctx, client, tableName)
 	if err != nil {
-		log.Fatal().Err(err).Msg("checking if DDB table exists failed")
+		logger.Error("checking if DDB table exists failed", "error", err)
 		os.Exit(1)
 	}
 	if exists {
-		log.Info().Msgf("DynamoDB table '%s' exists", tableName)
+		logger.Info("DynamoDB table exists", "tableName", tableName)
 		return
 	}
 
-	log.Printf("DynamoDB table '%s' does not exist. Creating...", tableName)
+	logger.Info("DynamoDB table '%s' does not exist. Creating...", "tableName", tableName)
 	if err := database.CreateDDBTable(ctx, client, tableName); err != nil {
-		log.Fatal().Err(err).Msg("creating DynamoDB table failed")
+		logger.Error("creating DynamoDB table failed", "error", err)
 		os.Exit(1)
 	}
-	log.Info().Msgf("DynamoDB table '%s' created successfully", tableName)
+	logger.Info("DynamoDB table created successfully", "tableName", tableName)
 }
 
-type loggingResponseWriter struct {
-	http.ResponseWriter
-	statusCode int
-}
+func initLogger() *slog.Logger {
+	envLevel := strings.ToLower(os.Getenv("LOG_LEVEL"))
+	var level slog.Level
 
-func (lrw *loggingResponseWriter) WriteHeader(code int) {
-	lrw.statusCode = code
-	lrw.ResponseWriter.WriteHeader(code)
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-
-		lrw := &loggingResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
-		next.ServeHTTP(lrw, r)
-
-		log.Info().
-			Str("method", r.Method).
-			Int("status", lrw.statusCode).
-			Str("uri", r.RequestURI).
-			Str("duration", time.Since(start).String()).
-			Str("remote_addr", r.RemoteAddr).
-			Msg("HTTP request processed")
-	})
-}
-
-func initLogger() {
-	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	level := strings.ToLower(os.Getenv("LOG_LEVEL"))
-
-	switch level {
-	case "trace":
-		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+	switch envLevel {
 	case "debug":
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		level = slog.LevelDebug
 	case "info":
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		level = slog.LevelInfo
+	case "warn":
+		level = slog.LevelWarn
 	case "error":
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-	case "fatal":
-		zerolog.SetGlobalLevel(zerolog.FatalLevel)
-	case "panic":
-		zerolog.SetGlobalLevel(zerolog.PanicLevel)
+		level = slog.LevelError
 	default:
-		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+		level = slog.LevelDebug
 	}
+
+	return slog.New(slog.NewJSONHandler(
+		os.Stdout,
+		&slog.HandlerOptions{Level: level},
+	))
 }

@@ -13,13 +13,13 @@ import (
 func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *http.Request, u user.User) {
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
+		app.sendErrorResponse(w, http.StatusInternalServerError, "failed to query expense categories: "+err.Error(), err)
 		return
 	}
 
 	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs([]expense.Expense{}, categories))
 	if err != nil {
-		sendErrorResponse(w,
+		app.sendErrorResponse(w,
 			http.StatusInternalServerError,
 			"failed to find matching users for expenses & expense categories: "+err.Error(),
 			err)
@@ -33,7 +33,7 @@ func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWrit
 
 	categoryFC, err := expensecategory.New(name)
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
+		app.sendErrorResponse(w, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
@@ -41,11 +41,11 @@ func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWrit
 	if err != nil {
 		var alreadyExistsErr *expensecategory.AlreadyExistsError
 		if errors.As(err, &alreadyExistsErr) {
-			sendErrorResponse(w, http.StatusConflict, err.Error(), err)
+			app.sendErrorResponse(w, http.StatusConflict, err.Error(), err)
 			return
 		}
 
-		sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
+		app.sendErrorResponse(w, http.StatusInternalServerError, "failed to put item: "+err.Error(), err)
 		return
 	}
 
@@ -57,7 +57,7 @@ func (app *Application) deleteSingleExpenseCategory(w http.ResponseWriter, r *ht
 
 	err := app.expenseCategory.Delete(r.Context(), name, u.ActiveVault)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "deleting item failed: "+err.Error(), err)
+		app.sendErrorResponse(w, http.StatusInternalServerError, "deleting item failed: "+err.Error(), err)
 		return
 	}
 

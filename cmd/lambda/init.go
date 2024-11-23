@@ -2,13 +2,10 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"github.com/rs/zerolog/pkgerrors"
 
 	"github.com/kkstas/tener/internal/database"
 	"github.com/kkstas/tener/internal/model/expense"
@@ -18,51 +15,54 @@ import (
 )
 
 func initApplication() *server.Application {
-	initLogger()
+	logger := initLogger()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
 	client, err := database.CreateDynamoDBClient(ctx)
 	if err != nil {
-		log.Fatal().Err(err).Msg("creating DDB client failed")
+		logger.Error("creating DDB client failed", "error", err)
 	}
 
 	tableName := os.Getenv("DDB_TABLE_NAME")
 
 	exists, err := database.DDBTableExists(ctx, client, tableName)
 	if err != nil {
-		log.Fatal().Err(err).Msg("checking if DDB table exists failed")
+		logger.Error("checking if DDB table exists failed", "error", err)
+		os.Exit(1)
 	}
 	if !exists {
-		log.Fatal().Err(err).Msgf("DynamoDB table %q not found", tableName)
+		logger.Error("DynamoDB table not found", "tableName", tableName, "error", err)
+		os.Exit(1)
 	}
 
 	expenseStore := expense.NewDDBStore(tableName, client)
 	expenseCategoryStore := expensecategory.NewDDBStore(tableName, client)
 	userStore := user.NewDDBStore(tableName, client)
 
-	return server.NewApplication(expenseStore, expenseCategoryStore, userStore)
+	return server.NewApplication(logger, expenseStore, expenseCategoryStore, userStore)
 }
 
-func initLogger() {
-	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
-	level := strings.ToLower(os.Getenv("LOG_LEVEL"))
+func initLogger() *slog.Logger {
+	envLevel := strings.ToLower(os.Getenv("LOG_LEVEL"))
+	var level slog.Level
 
-	switch level {
-	case "trace":
-		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+	switch envLevel {
 	case "debug":
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+		level = slog.LevelDebug
 	case "info":
-		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		level = slog.LevelInfo
+	case "warn":
+		level = slog.LevelWarn
 	case "error":
-		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
-	case "fatal":
-		zerolog.SetGlobalLevel(zerolog.FatalLevel)
-	case "panic":
-		zerolog.SetGlobalLevel(zerolog.PanicLevel)
+		level = slog.LevelError
 	default:
-		zerolog.SetGlobalLevel(zerolog.WarnLevel)
+		level = slog.LevelInfo
 	}
+
+	return slog.New(slog.NewJSONHandler(
+		os.Stdout,
+		&slog.HandlerOptions{Level: level},
+	))
 }

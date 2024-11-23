@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/a-h/templ"
-	"github.com/rs/zerolog/log"
 
 	"github.com/kkstas/tener/internal/helpers"
 	"github.com/kkstas/tener/internal/model/expense"
@@ -22,12 +21,12 @@ func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, comp
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := component.Render(r.Context(), w); err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "error while generating template: "+err.Error(), err)
+		app.sendErrorResponse(w, http.StatusInternalServerError, "error while generating template: "+err.Error(), err)
 		return
 	}
 }
 
-func sendErrorResponse(w http.ResponseWriter, statusCode int, message string, err error) {
+func (app *Application) sendErrorResponse(w http.ResponseWriter, statusCode int, message string, err error) {
 	w.Header().Add("content-type", "application/json")
 	w.WriteHeader(statusCode)
 
@@ -37,7 +36,7 @@ func sendErrorResponse(w http.ResponseWriter, statusCode int, message string, er
 		return
 	}
 
-	log.Error().Stack().Err(err).Msg("")
+	app.logger.Error("", "error", err)
 	fmt.Fprintf(w, `{"message":%q}`, message)
 }
 
@@ -110,7 +109,7 @@ type logLine struct {
 	ErrorMsg  string      `json:"error"`
 }
 
-func emitActionTrail(action string, success bool, actor *user.User, err error, data interface{}) {
+func (app *Application) emitActionTrail(action string, success bool, actor *user.User, err error, data interface{}) {
 	var errMsg string
 	if err != nil {
 		errMsg = err.Error()
@@ -124,6 +123,6 @@ func emitActionTrail(action string, success bool, actor *user.User, err error, d
 		Data:      data,
 		ErrorMsg:  errMsg,
 	}
-	logBytes, _ := json.Marshal(line)
-	log.Info().RawJSON("message", logBytes).Msg("")
+
+	app.logger.Info("actionTrail", "actionTrail", line)
 }

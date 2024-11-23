@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 
 	"github.com/kkstas/tener/assets"
@@ -38,11 +39,14 @@ type Application struct {
 	expense         expenseStore
 	expenseCategory expenseCategoryStore
 	user            userStore
+	logger          *slog.Logger
 	http.Handler
 }
 
-func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCategoryStore, userStore userStore) *Application {
+func NewApplication(logger *slog.Logger, expenseStore expenseStore, expenseCategoryStore expenseCategoryStore, userStore userStore) *Application {
 	app := new(Application)
+
+	app.logger = logger
 
 	app.expense = expenseStore
 	app.expenseCategory = expenseCategoryStore
@@ -70,7 +74,7 @@ func NewApplication(expenseStore expenseStore, expenseCategoryStore expenseCateg
 	mux.HandleFunc("POST   /expensecategories/create", app.withUser(app.createAndRenderSingleExpenseCategory))
 	mux.HandleFunc("DELETE /expensecategories/{name}", app.withUser(app.deleteSingleExpenseCategory))
 
-	app.Handler = secureHeaders(mux)
+	app.Handler = app.logHTTP(secureHeaders(mux))
 
 	return app
 }

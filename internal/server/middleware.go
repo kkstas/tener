@@ -1,8 +1,10 @@
 package server
 
 import (
+	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/kkstas/tener/internal/auth"
 	"github.com/kkstas/tener/internal/model/user"
@@ -69,4 +71,34 @@ func (app *Application) withUser(fn func(http.ResponseWriter, *http.Request, use
 
 		fn(w, r, cookieUser)
 	}
+}
+
+type loggingResponseWriter struct {
+	http.ResponseWriter
+	statusCode int
+}
+
+func (lrw *loggingResponseWriter) WriteHeader(code int) {
+	lrw.statusCode = code
+	lrw.ResponseWriter.WriteHeader(code)
+}
+
+func (app *Application) logHTTP(next http.Handler) http.Handler {
+	httpLogger := func(r *http.Request, lrw *loggingResponseWriter, start time.Time) {
+		app.logger.LogAttrs(r.Context(),
+			slog.LevelDebug,
+			"request",
+			slog.String("method", r.Method),
+			slog.Int("status", lrw.statusCode),
+			slog.String("uri", r.RequestURI),
+			slog.String("duration", time.Since(start).String()),
+		)
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lrw := &loggingResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+		now := time.Now()
+		next.ServeHTTP(lrw, r)
+		httpLogger(r, lrw, now)
+	})
 }

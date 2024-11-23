@@ -3,6 +3,7 @@ package server_test
 import (
 	"bytes"
 	"context"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -38,7 +39,8 @@ func TestLogin(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		userStore := &user.InMemoryStore{}
-		app := server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+		app := server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 
 		userFC, err := user.New("John", "Doe", email, password)
 		if err != nil {
@@ -92,7 +94,9 @@ func TestLogin(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		userStore := &user.InMemoryStore{}
-		app := server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
+
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+		app := server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 
 		userFC, err := user.New("John", "Doe", email, validPassword)
 		if err != nil {
@@ -152,7 +156,8 @@ func TestRegister(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		userStore := &user.InMemoryStore{}
-		app := server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+		app := server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 		app.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
@@ -181,7 +186,8 @@ func TestRegister(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		userStore := &user.InMemoryStore{}
-		server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore).ServeHTTP(response, request)
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+		server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore).ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
@@ -201,7 +207,8 @@ func TestRegister(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		userStore := &user.InMemoryStore{}
-		server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore).ServeHTTP(response, request)
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+		server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore).ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
@@ -220,7 +227,8 @@ func TestRegister(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 		userStore := &user.InMemoryStore{}
-		app := server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+		app := server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 
 		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
 		if err != nil {
@@ -258,7 +266,8 @@ func TestLogout(t *testing.T) {
 		request := httptest.NewRequest(http.MethodGet, "/logout", nil)
 
 		userStore := &user.InMemoryStore{}
-		app := server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+		app := server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 
 		app.ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusSeeOther)

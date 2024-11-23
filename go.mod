@@ -18,10 +18,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/sts v1.33.0 // indirect
 	github.com/aws/smithy-go v1.22.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.20 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
-	golang.org/x/sys v0.27.0 // indirect
 )
 
 require (
@@ -34,6 +30,5 @@ require (
 	github.com/aws/aws-sdk-go-v2/feature/dynamodb/expression v1.7.51
 	github.com/aws/aws-sdk-go-v2/service/dynamodb v1.37.0
 	github.com/google/uuid v1.6.0
-	github.com/rs/zerolog v1.33.0
 	golang.org/x/crypto v0.29.0
 )

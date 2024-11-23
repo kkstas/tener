@@ -5,9 +5,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strings"
 	"testing"
 
@@ -152,8 +154,9 @@ func TestUpdateExpense(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		addTokenCookie(t, request)
 
-		server.NewApplication(&store, &expensecategory.InMemoryStore{}, &user.InMemoryStore{}).ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusOK)
+		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+		server.NewApplication(logger, &store, &expensecategory.InMemoryStore{}, &user.InMemoryStore{}).ServeHTTP(response, request)
+		assertStatus(t, response.Code, http.StatusCreated)
 	})
 }
 
@@ -165,7 +168,8 @@ func assertStatus(t testing.TB, got, want int) {
 }
 
 func newTestApplication() *server.Application {
-	return server.NewApplication(&expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, &user.InMemoryStore{})
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+	return server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, &user.InMemoryStore{})
 }
 
 func addTokenCookie(t testing.TB, r *http.Request) {

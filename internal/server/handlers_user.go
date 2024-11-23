@@ -32,7 +32,7 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 			sendFormErrorResponse(w, http.StatusNotFound, map[string][]string{"email": {"user with that email does not exist"}})
 			return
 		}
-		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
+		app.sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
 		return
 	}
 
@@ -43,7 +43,7 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	token, err := auth.CreateToken(foundUser)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
+		app.sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
 		return
 	}
 
@@ -78,24 +78,24 @@ func (app *Application) handleRegister(w http.ResponseWriter, r *http.Request) {
 
 	userFC, err := user.New(firstName, lastName, email, password)
 	if err != nil {
-		sendErrorResponse(w, http.StatusBadRequest, "Bad Request", err)
+		app.sendErrorResponse(w, http.StatusBadRequest, "Bad Request", err)
 		return
 	}
 
 	_, err = app.user.FindOneByEmail(r.Context(), userFC.Email)
 	if err == nil {
-		sendErrorResponse(w, http.StatusBadRequest, "User with that email already exists", err)
+		app.sendErrorResponse(w, http.StatusBadRequest, "User with that email already exists", err)
 		return
 	}
 	var notFoundErr *user.NotFoundError
 	if !errors.As(err, &notFoundErr) {
-		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
+		app.sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
 		return
 	}
 
 	_, err = app.user.Create(r.Context(), userFC)
 	if err != nil {
-		sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
+		app.sendErrorResponse(w, http.StatusInternalServerError, "Internal Server Error", err)
 		return
 	}
 
