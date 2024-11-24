@@ -28,48 +28,48 @@ func cacheControlMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func redirectIfLoggedIn(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func redirectIfLoggedIn(fn APIFunc) APIFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		token, err := r.Cookie("token")
 		if err == nil {
 			_, err := auth.DecodeToken(token.Value)
 			if err == nil {
 				http.Redirect(w, r, url.Create(r.Context(), "home"), http.StatusFound)
-				return
+				return nil
 			}
 		}
-		next.ServeHTTP(w, r)
-	})
+		return fn(w, r)
+	}
 }
 
-func (app *Application) toggleRegisterMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func (app *Application) toggleRegisterMiddleware(fn APIFunc) APIFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		if os.Getenv("ENABLE_REGISTER") != "true" {
 			http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusFound)
-			return
+			return nil
 		}
 
-		next.ServeHTTP(w, r)
-	})
+		return fn(w, r)
+	}
 }
 
-func (app *Application) withUser(fn func(http.ResponseWriter, *http.Request, user.User)) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func (app *Application) withUser(fn func(http.ResponseWriter, *http.Request, user.User) error) APIFunc {
+	return func(w http.ResponseWriter, r *http.Request) error {
 		token, err := r.Cookie("token")
 		if err != nil || token.Value == "" {
 			clearTokenCookie(w)
 			http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusFound)
-			return
+			return nil
 		}
 
 		cookieUser, err := auth.DecodeToken(token.Value)
 		if err != nil {
 			clearTokenCookie(w)
 			http.Redirect(w, r, url.Create(r.Context(), "login"), http.StatusFound)
-			return
+			return nil
 		}
 
-		fn(w, r, cookieUser)
+		return fn(w, r, cookieUser)
 	}
 }
 

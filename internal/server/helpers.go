@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,36 +13,15 @@ import (
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
 	"github.com/kkstas/tener/internal/model/user"
-	"github.com/kkstas/tener/pkg/validator"
 )
 
-func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, component templ.Component) {
+func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, component templ.Component) error {
 	w.Header().Set("Content-Type", "text/html")
 
 	if err := component.Render(r.Context(), w); err != nil {
-		app.sendErrorResponse(w, http.StatusInternalServerError, "error while generating template: "+err.Error(), err)
-		return
+		return fmt.Errorf("failed to generate template: %w", err)
 	}
-}
-
-func (app *Application) sendErrorResponse(w http.ResponseWriter, statusCode int, message string, err error) {
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(statusCode)
-
-	var validationErr *validator.ValidationError
-	if errors.As(err, &validationErr) {
-		_ = json.NewEncoder(w).Encode(validationErr.ErrMessages)
-		return
-	}
-
-	app.logger.Error("", "error", err)
-	fmt.Fprintf(w, `{"message":%q}`, message)
-}
-
-func sendFormErrorResponse(w http.ResponseWriter, statusCode int, messages map[string][]string) {
-	w.Header().Add("content-type", "application/json")
-	w.WriteHeader(statusCode)
-	_ = json.NewEncoder(w).Encode(messages)
+	return nil
 }
 
 func queryFilters(r *http.Request) (from, to string, selectedCategories []string) {

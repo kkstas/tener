@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/kkstas/tener/pkg/validator"
 )
 
 type APIError struct {
@@ -24,15 +26,15 @@ func NewAPIError(statusCode int, err error) *APIError {
 	}
 }
 
-func InvalidRequestData(errors map[string]string) APIError {
-	return APIError{
+func InvalidRequestData(errors map[string][]string) *APIError {
+	return &APIError{
 		Message:    errors,
-		StatusCode: http.StatusUnprocessableEntity,
+		StatusCode: http.StatusBadRequest,
 	}
 }
 
 func InvalidJSON() *APIError {
-	return NewAPIError(http.StatusBadRequest, fmt.Errorf("invalid JSON data"))
+	return NewAPIError(http.StatusUnprocessableEntity, fmt.Errorf("invalid JSON data"))
 }
 
 type APIFunc func(w http.ResponseWriter, r *http.Request) error
@@ -41,6 +43,14 @@ func (app *Application) make(h APIFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		err := h(w, r)
 		if err == nil {
+			return
+		}
+
+		var validationErr *validator.ValidationError
+		if errors.As(err, &validationErr) {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = fmt.Fprint(w, validationErr.Error())
 			return
 		}
 

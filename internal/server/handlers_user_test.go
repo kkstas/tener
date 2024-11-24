@@ -79,7 +79,7 @@ func TestLogin(t *testing.T) {
 
 	})
 
-	t.Run("returns 401 if password is invalid", func(t *testing.T) {
+	t.Run("returns 400 if password is invalid", func(t *testing.T) {
 		email := "john.doe@gmail.com"
 		validPassword := "validPassword123!"
 		invalidPassword := "invalidPassword321!"
@@ -108,7 +108,7 @@ func TestLogin(t *testing.T) {
 		}
 
 		app.ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusUnauthorized)
+		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
 	t.Run("returns 400 if email is invalid", func(t *testing.T) {
@@ -125,7 +125,7 @@ func TestLogin(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
-	t.Run("returns 404 if user with that email does not exist", func(t *testing.T) {
+	t.Run("returns 400 if user with that email does not exist", func(t *testing.T) {
 		var param = url.Values{}
 		param.Set("email", "idontexist@gmail.com")
 		param.Set("password", "howdy")
@@ -136,7 +136,7 @@ func TestLogin(t *testing.T) {
 		request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		newTestApplication().ServeHTTP(response, request)
 
-		assertStatus(t, response.Code, http.StatusNotFound)
+		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 }
 

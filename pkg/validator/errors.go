@@ -1,6 +1,6 @@
 package validator
 
-import "fmt"
+import "encoding/json"
 
 type ValidationError struct {
 	ErrMessages map[string][]string
@@ -8,4 +8,7 @@ type ValidationError struct {
 }
 
 func (e *ValidationError) Unwrap() error { return e.Err }
-func (e *ValidationError) Error() string { return fmt.Sprintf("%+v", e.ErrMessages) }
+func (e *ValidationError) Error() string {
+	val, _ := json.Marshal(e.ErrMessages)
+	return string(val)
+}

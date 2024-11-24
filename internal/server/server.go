@@ -54,25 +54,25 @@ func NewApplication(logger *slog.Logger, expenseStore expenseStore, expenseCateg
 
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("GET /health-check", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(http.StatusOK) })
+	mux.HandleFunc("GET /health-check", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.Handle("GET /assets/", http.StripPrefix("/assets/", cacheControlMiddleware(http.FileServer(http.FS(assets.Public)))))
 
-	mux.HandleFunc("GET /login", redirectIfLoggedIn(app.renderLoginPage))
-	mux.HandleFunc("POST /login", app.handleLogin)
-	mux.HandleFunc("GET /logout", app.handleLogout)
-	mux.HandleFunc("GET /register", app.toggleRegisterMiddleware(redirectIfLoggedIn(app.renderRegisterPage)))
-	mux.HandleFunc("POST /register", app.toggleRegisterMiddleware(app.handleRegister))
+	mux.HandleFunc("GET  /login", app.make(redirectIfLoggedIn(app.renderLoginPage)))
+	mux.HandleFunc("POST /login", app.make(app.handleLogin))
+	mux.HandleFunc("GET  /logout", app.make(app.handleLogout))
+	mux.HandleFunc("GET  /register", app.make(app.toggleRegisterMiddleware(redirectIfLoggedIn(app.renderRegisterPage))))
+	mux.HandleFunc("POST /register", app.make(app.toggleRegisterMiddleware(app.handleRegister)))
 
-	mux.HandleFunc("GET    /home", app.withUser(app.renderHomePage))
-	mux.HandleFunc("GET    /expense/all", app.withUser(app.renderExpenses))
-	mux.HandleFunc("POST   /expense/create", app.withUser(app.createSingleExpenseAndRenderExpenses))
-	mux.HandleFunc("PUT    /expense/edit/{SK}", app.withUser(app.updateSingleExpenseAndRenderExpenses))
-	mux.HandleFunc("DELETE /expense/{SK}", app.withUser(app.deleteSingleExpense))
-	mux.HandleFunc("GET /expense/sums", app.withUser(app.getMonthlySums))
+	mux.HandleFunc("GET    /home", app.make(app.withUser(app.renderHomePage)))
+	mux.HandleFunc("GET    /expense/all", app.make(app.withUser(app.renderExpenses)))
+	mux.HandleFunc("POST   /expense/create", app.make(app.withUser(app.createSingleExpenseAndRenderExpenses)))
+	mux.HandleFunc("PUT    /expense/edit/{SK}", app.make(app.withUser(app.updateSingleExpenseAndRenderExpenses)))
+	mux.HandleFunc("DELETE /expense/{SK}", app.make(app.withUser(app.deleteSingleExpense)))
+	mux.HandleFunc("GET    /expense/sums", app.make(app.withUser(app.getMonthlySums)))
 
-	mux.HandleFunc("GET    /expensecategories", app.withUser(app.renderExpenseCategoriesPage))
-	mux.HandleFunc("POST   /expensecategories/create", app.withUser(app.createAndRenderSingleExpenseCategory))
-	mux.HandleFunc("DELETE /expensecategories/{name}", app.withUser(app.deleteSingleExpenseCategory))
+	mux.HandleFunc("GET    /expensecategories", app.make(app.withUser(app.renderExpenseCategoriesPage)))
+	mux.HandleFunc("POST   /expensecategories/create", app.make(app.withUser(app.createAndRenderSingleExpenseCategory)))
+	mux.HandleFunc("DELETE /expensecategories/{name}", app.make(app.withUser(app.deleteSingleExpenseCategory)))
 
 	app.Handler = app.logHTTP(secureHeaders(mux))
 
