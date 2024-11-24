@@ -451,9 +451,9 @@ func createDDBExpenseHelper(
 	paymentMethod string,
 ) expense.Expense {
 	t.Helper()
-	expenseFC, err := expense.New(name, date, category, amount, paymentMethod)
-	if err != nil {
-		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", err)
+	expenseFC, isValid, errMessages := expense.New(name, date, category, amount, paymentMethod)
+	if !isValid {
+		t.Fatalf("didn't expect an error while creating NewExpenseFC but got one: %v", errMessages)
 	}
 	expense, err := store.Create(ctx, expenseFC, "userID", ddbStoreVaultID)
 	if err != nil {

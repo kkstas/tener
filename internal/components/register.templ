@@ -27,7 +27,10 @@ templ RegisterPage(ctx context.Context) {
 				x-data="{ formErrors: {} }"
 				@htmx:after-request.camel="
 						if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
-							formErrors = JSON.parse(event.detail.xhr.response);
+							const parsed = JSON.parse(event.detail.xhr.response);
+							if (parsed.message) {
+								formErrors = parsed.message;
+							}
 							return;
 						}
 					"

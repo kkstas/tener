@@ -15,9 +15,9 @@ const (
 
 func TestNew(t *testing.T) {
 	t.Run("creates new user with hashed password", func(t *testing.T) {
-		newUser, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		if err != nil {
-			t.Fatalf("didn't expect an error but got one: %v", err)
+		newUser, isValid, errMessages := user.New(validFirstName, validLastName, validEmail, validPassword)
+		if !isValid {
+			t.Fatalf("didn't expect an error but got one: %v", errMessages)
 		}
 		assertEqual(t, newUser.FirstName, validFirstName)
 		assertEqual(t, newUser.LastName, validLastName)
@@ -31,20 +31,20 @@ func TestNew(t *testing.T) {
 		tooShortLastName := string(make([]byte, user.LastNameMinLength-1))
 		tooLongLastName := string(make([]byte, user.LastNameMaxLength+1))
 
-		_, err := user.New(tooShortFirstName, validLastName, validEmail, validPassword)
-		if err == nil {
+		_, isValid, _ := user.New(tooShortFirstName, validLastName, validEmail, validPassword)
+		if isValid {
 			t.Error("expected an error for too short first name but didn't get one")
 		}
-		_, err = user.New(tooLongFirstName, validLastName, validEmail, validPassword)
-		if err == nil {
+		_, isValid, _ = user.New(tooLongFirstName, validLastName, validEmail, validPassword)
+		if isValid {
 			t.Error("expected an error for too long first name but didn't get one")
 		}
-		_, err = user.New(validFirstName, tooShortLastName, validEmail, validPassword)
-		if err == nil {
+		_, isValid, _ = user.New(validFirstName, tooShortLastName, validEmail, validPassword)
+		if isValid {
 			t.Error("expected an error for too short last name but didn't get one")
 		}
-		_, err = user.New(validFirstName, tooLongLastName, validEmail, validPassword)
-		if err == nil {
+		_, isValid, _ = user.New(validFirstName, tooLongLastName, validEmail, validPassword)
+		if isValid {
 			t.Error("expected an error for too long last name but didn't get one")
 		}
 	})
@@ -53,12 +53,12 @@ func TestNew(t *testing.T) {
 		tooShortPassword := string(make([]byte, user.PasswordMinLength-1))
 		tooLongPassword := string(make([]byte, user.PasswordMaxLength+1))
 
-		_, err := user.New(validFirstName, validLastName, validEmail, tooShortPassword)
-		if err == nil {
+		_, isValid, _ := user.New(validFirstName, validLastName, validEmail, tooShortPassword)
+		if isValid {
 			t.Error("expected an error for too short password but didn't get one")
 		}
-		_, err = user.New(validFirstName, validLastName, validEmail, tooLongPassword)
-		if err == nil {
+		_, isValid, _ = user.New(validFirstName, validLastName, validEmail, tooLongPassword)
+		if isValid {
 			t.Error("expected an error for too long password but didn't get one")
 		}
 	})
@@ -82,8 +82,8 @@ func TestNew(t *testing.T) {
 			"user@domaincom.",
 		}
 		for _, c := range invalidEmails {
-			_, err := user.New(validFirstName, validLastName, c, validPassword)
-			if err == nil {
+			_, isValid, _ := user.New(validFirstName, validLastName, c, validPassword)
+			if isValid {
 				t.Errorf("expected an error for invalid email %s but didn't get one", c)
 			}
 		}

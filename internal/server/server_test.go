@@ -174,9 +174,9 @@ func newTestApplication() *server.Application {
 
 func addTokenCookie(t testing.TB, r *http.Request) {
 	t.Helper()
-	userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-	if err != nil {
-		t.Fatalf("didn't expect na error but got one: %v", err)
+	userFC, isValid, errMessages := user.New(validFirstName, validLastName, validEmail, validPassword)
+	if !isValid {
+		t.Fatalf("didn't expect na error but got one: %v", errMessages)
 	}
 
 	token, err := auth.CreateToken(userFC)

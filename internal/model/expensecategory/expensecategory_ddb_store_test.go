@@ -26,7 +26,10 @@ func TestDDBCreate(t *testing.T) {
 			t.Fatalf("failed querying ddb table for expense categories before putting expense category, %v", err)
 		}
 
-		categoryFC, _ := expensecategory.New("some-name")
+		categoryFC, isValid, errMessages := expensecategory.New("some-name")
+		if !isValid {
+			t.Fatalf("didn't expect error but got one: %v", errMessages)
+		}
 		err = store.Create(ctx, categoryFC, "userID", "activeVaultID")
 		if err != nil {
 			t.Fatalf("failed putting item into ddb, %v", err)
@@ -52,7 +55,10 @@ func TestDDBDelete(t *testing.T) {
 
 	store := expensecategory.NewDDBStore(tableName, client)
 
-	categoryFC, _ := expensecategory.New("some-name")
+	categoryFC, isValid, errMessages := expensecategory.New("some-name")
+	if !isValid {
+		t.Fatalf("didn't expect error but got one: %v", errMessages)
+	}
 
 	err = store.Create(ctx, categoryFC, "userID", "activeVaultID")
 	if err != nil {

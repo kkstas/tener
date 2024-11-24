@@ -16,14 +16,14 @@ type Category struct {
 	validator.Validator `dynamodbav:"-"`
 }
 
-func New(name string) (Category, error) {
-	category := Category{
+func New(name string) (category Category, isValid bool, errMessages validator.ErrMessages) {
+	category = Category{
 		Name: name,
 	}
 	category.Check(validator.StringLengthBetween("name", name, CategoryNameMinLength, CategoryNameMaxLength))
-	if err := category.Validate(); err != nil {
-		return Category{}, err
+	if isValid, errMessages = category.Validate(); !isValid {
+		return Category{}, false, errMessages
 	}
 
-	return category, nil
+	return category, true, nil
 }

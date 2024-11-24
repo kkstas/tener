@@ -27,12 +27,12 @@ func (app *Application) renderExpenseCategoriesPage(w http.ResponseWriter, r *ht
 func (app *Application) createAndRenderSingleExpenseCategory(w http.ResponseWriter, r *http.Request, u user.User) error {
 	name := r.FormValue("name")
 
-	categoryFC, err := expensecategory.New(name)
-	if err != nil {
-		return err
+	categoryFC, isValid, errMessages := expensecategory.New(name)
+	if !isValid {
+		return InvalidRequestData(errMessages)
 	}
 
-	err = app.expenseCategory.Create(r.Context(), categoryFC, u.ID, u.ActiveVault)
+	err := app.expenseCategory.Create(r.Context(), categoryFC, u.ID, u.ActiveVault)
 	if err != nil {
 		var alreadyExistsErr *expensecategory.AlreadyExistsError
 		if errors.As(err, &alreadyExistsErr) {

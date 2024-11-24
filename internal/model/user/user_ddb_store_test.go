@@ -24,8 +24,8 @@ func TestDDBCreate(t *testing.T) {
 		usersBefore, err := store.FindAll(ctx)
 		assertNoError(t, err)
 
-		userFC, err := user.New(validFirstName, validLastName, "johndoe123@email.com", validPassword)
-		assertNoError(t, err)
+		userFC, isValid, _ := user.New(validFirstName, validLastName, "johndoe123@email.com", validPassword)
+		assertEqual(t, true, isValid)
 
 		_, err = store.Create(ctx, userFC)
 		assertNoError(t, err)
@@ -39,14 +39,14 @@ func TestDDBCreate(t *testing.T) {
 	})
 
 	t.Run("does not create new user if user with that email already exists", func(t *testing.T) {
-		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		assertNoError(t, err)
+		userFC, isValid, _ := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertEqual(t, true, isValid)
 
 		_, err = store.Create(ctx, userFC)
 		assertNoError(t, err)
 
-		secondUserFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		assertNoError(t, err)
+		secondUserFC, isValid, _ := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertEqual(t, true, isValid)
 
 		_, err = store.Create(ctx, secondUserFC)
 
@@ -61,14 +61,14 @@ func TestDDBCreate(t *testing.T) {
 	})
 
 	t.Run("does not create new user if user with that ID already exists", func(t *testing.T) {
-		userFC, err := user.New(validFirstName, validLastName, "john847234doe@email.de", validPassword)
-		assertNoError(t, err)
+		userFC, isValid, _ := user.New(validFirstName, validLastName, "john847234doe@email.de", validPassword)
+		assertEqual(t, true, isValid)
 
 		_, err = store.Create(ctx, userFC)
 		assertNoError(t, err)
 
-		secondUserFC, err := user.New(validFirstName, validLastName, "doe123842doe@email.eu", validPassword)
-		assertNoError(t, err)
+		secondUserFC, isValid, _ := user.New(validFirstName, validLastName, "doe123842doe@email.eu", validPassword)
+		assertEqual(t, true, isValid)
 		secondUserFC.ID = userFC.ID
 
 		_, err = store.Create(ctx, secondUserFC)
@@ -94,8 +94,8 @@ func TestDDBFindOneByEmail(t *testing.T) {
 	store := user.NewDDBStore(tableName, client)
 
 	t.Run("finds created user by email", func(t *testing.T) {
-		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		assertNoError(t, err)
+		userFC, isValid, _ := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertEqual(t, true, isValid)
 
 		createdUser, err := store.Create(ctx, userFC)
 		assertNoError(t, err)
@@ -129,8 +129,8 @@ func TestDDBFindOneByID(t *testing.T) {
 	store := user.NewDDBStore(tableName, client)
 
 	t.Run("finds created user by ID", func(t *testing.T) {
-		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		assertNoError(t, err)
+		userFC, isValid, _ := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertEqual(t, true, isValid)
 
 		createdUser, err := store.Create(ctx, userFC)
 		assertNoError(t, err)
@@ -164,13 +164,13 @@ func TestDDBFindAllByIDs(t *testing.T) {
 	store := user.NewDDBStore(tableName, client)
 
 	t.Run("finds users by IDs", func(t *testing.T) {
-		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		assertNoError(t, err)
+		userFC, isValid, _ := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertEqual(t, true, isValid)
 		createdUser, err := store.Create(ctx, userFC)
 		assertNoError(t, err)
 
-		userFC2, err := user.New(validFirstName, validLastName, "howdy@howdy.com", validPassword)
-		assertNoError(t, err)
+		userFC2, isValid, _ := user.New(validFirstName, validLastName, "howdy@howdy.com", validPassword)
+		assertEqual(t, true, isValid)
 		createdUser2, err := store.Create(ctx, userFC2)
 		assertNoError(t, err)
 
@@ -214,8 +214,8 @@ func TestDDBDelete(t *testing.T) {
 	})
 
 	t.Run("deletes created user", func(t *testing.T) {
-		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		assertNoError(t, err)
+		userFC, isValid, _ := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertEqual(t, true, isValid)
 
 		createdUser, err := store.Create(ctx, userFC)
 		assertNoError(t, err)

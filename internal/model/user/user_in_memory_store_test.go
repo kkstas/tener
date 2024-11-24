@@ -126,13 +126,13 @@ func TestInMemoryFindAllByIDs(t *testing.T) {
 	ctx := context.Background()
 	store := &user.InMemoryStore{}
 	t.Run("finds created users by IDs", func(t *testing.T) {
-		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		assertNoError(t, err)
+		userFC, isValid, _ := user.New(validFirstName, validLastName, validEmail, validPassword)
+		assertEqual(t, true, isValid)
 		createdUser, err := store.Create(ctx, userFC)
 		assertNoError(t, err)
 
-		userFC2, err := user.New(validFirstName, validLastName, "howdy@howdy.com", validPassword)
-		assertNoError(t, err)
+		userFC2, isValid, _ := user.New(validFirstName, validLastName, "howdy@howdy.com", validPassword)
+		assertEqual(t, true, isValid)
 		createdUser2, err := store.Create(ctx, userFC2)
 		assertNoError(t, err)
 
@@ -192,10 +192,8 @@ func createInMemoryUserHelper(
 	password string,
 ) user.User {
 	t.Helper()
-	newUser, err := user.New(firstName, lastName, email, password)
-	if err != nil {
-		t.Fatalf("didn't expect an error while creating new user but got one: %v", err)
-	}
+	newUser, isValid, _ := user.New(firstName, lastName, email, password)
+	assertEqual(t, true, isValid)
 	createdUser, err := store.Create(ctx, newUser)
 	if err != nil {
 		t.Fatalf("didn't expect an error while putting user into in memory store but got one: %v", err)

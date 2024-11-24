@@ -10,9 +10,9 @@ import (
 
 func TestCreateToken(t *testing.T) {
 	os.Setenv("TOKEN_SECRET", "gHg8v3-XKj9XO8M-6gpjzW0n1xn7UZTBICIY1FcjyPw")
-	newUser, err := user.New("John", "Doe", "john@doe.com", "newPassword123!")
-	if err != nil {
-		t.Fatalf("didn't expect an error but got one: %v", err)
+	newUser, isValid, errMessages := user.New("John", "Doe", "john@doe.com", "newPassword123!")
+	if !isValid {
+		t.Fatalf("didn't expect an error but got one: %v", errMessages)
 	}
 	token, err := auth.CreateToken(newUser)
 	if err != nil {

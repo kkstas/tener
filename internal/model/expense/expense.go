@@ -41,7 +41,7 @@ type MonthlySum struct {
 	Sum      float64 `dynamodbav:"sum"`
 }
 
-func New(name, date, category string, amount float64, paymentMethod string) (Expense, error) {
+func New(name, date, category string, amount float64, paymentMethod string) (exp Expense, isValid bool, errMessages validator.ErrMessages) {
 	currentTimestamp := helpers.GenerateCurrentTimestamp()
 	return validate(Expense{
 		SK:            buildSK(date, currentTimestamp),
@@ -54,7 +54,7 @@ func New(name, date, category string, amount float64, paymentMethod string) (Exp
 	})
 }
 
-func NewFU(sk, name, date, category string, amount float64, paymentMethod string) (Expense, error) {
+func NewFU(sk, name, date, category string, amount float64, paymentMethod string) (exp Expense, isValid bool, errMessages validator.ErrMessages) {
 	return validate(Expense{
 		SK:            sk,
 		Name:          strings.TrimSpace(name),
@@ -65,7 +65,7 @@ func NewFU(sk, name, date, category string, amount float64, paymentMethod string
 	})
 }
 
-func validate(expense Expense) (Expense, error) {
+func validate(expense Expense) (exp Expense, isValid bool, errMessages validator.ErrMessages) {
 	expense.Check(validator.StringLengthBetween("name", expense.Name, NameMinLength, NameMaxLength))
 	expense.Check(validator.StringLengthBetween(
 		"category",
@@ -78,9 +78,9 @@ func validate(expense Expense) (Expense, error) {
 	expense.Check(validator.IsNonZero("amount", expense.Amount))
 	expense.Check(validator.IsTime("date", time.DateOnly, expense.Date))
 
-	if err := expense.Validate(); err != nil {
-		return Expense{}, err
+	if isValid, errMessages := expense.Validate(); !isValid {
+		return Expense{}, false, errMessages
 	}
 
-	return expense, nil
+	return expense, true, nil
 }

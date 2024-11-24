@@ -305,10 +305,14 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 					x-data="{ formErrors: {} }"
 					x-effect="if (popoverOpen) { formErrors = {}; $el.reset(); }"
 					@htmx:after-request.camel="
-							document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
 							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
-								formErrors = JSON.parse(event.detail.xhr.response);
-								popoverOpen = false;
+								const parsed = JSON.parse(event.detail.xhr.response);
+								if (typeof parsed.message === 'object') {
+									formErrors = parsed.message;
+								} else {
+									document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
+									popoverOpen = false;
+								}
 								return;
 							}
 						"

@@ -9,8 +9,10 @@ import (
 	"unicode/utf8"
 )
 
+type ErrMessages map[string][]string
+
 type Validator struct {
-	ErrMessages map[string][]string
+	ErrMessages ErrMessages
 }
 
 func NewValidator() Validator {
@@ -26,11 +28,11 @@ func (v *Validator) Check(ok bool, name, msg string) {
 	}
 }
 
-func (v *Validator) Validate() *ValidationError {
+func (v *Validator) Validate() (isValid bool, errMessages ErrMessages) {
 	if len(v.ErrMessages) > 0 {
-		return &ValidationError{ErrMessages: v.ErrMessages}
+		return false, v.ErrMessages
 	}
-	return nil
+	return true, nil
 }
 
 func StringLengthBetween(name, val string, min, max int) (bool, string, string) {

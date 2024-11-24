@@ -120,17 +120,18 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 	date := r.FormValue("date")
 	name := r.FormValue("name")
 	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
-	amount, err := strconv.ParseFloat(amountRaw, 64)
 
+	amount, err := strconv.ParseFloat(amountRaw, 64)
 	if err != nil {
 		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return InvalidRequestData(map[string][]string{"amount": {"must be a valid decimal number"}})
 	}
 
-	exp, err := expense.New(name, date, category, amount, paymentMethod)
-	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return err
+	exp, isValid, errMessages := expense.New(name, date, category, amount, paymentMethod)
+	if !isValid {
+		validationErr := InvalidRequestData(errMessages)
+		app.emitActionTrail("create_expense", false, &u, validationErr, map[string]interface{}{"inputForm": r.Form})
+		return validationErr
 	}
 
 	_, err = app.expense.Create(r.Context(), exp, u.ID, u.ActiveVault)
@@ -181,10 +182,11 @@ func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		return InvalidRequestData(map[string][]string{"amount": {"invalid amount value"}})
 	}
 
-	expenseFU, err := expense.NewFU(SK, name, date, category, amount, paymentMethod)
-	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form, "expenseFU": expenseFU})
-		return err
+	expenseFU, isValid, errMessages := expense.NewFU(SK, name, date, category, amount, paymentMethod)
+	if !isValid {
+		validationErr := InvalidRequestData(errMessages)
+		app.emitActionTrail("update_expense", false, &u, validationErr, map[string]interface{}{"inputForm": r.Form, "expenseFU": expenseFU})
+		return validationErr
 	}
 
 	err = app.expense.Update(r.Context(), expenseFU, u.ActiveVault)

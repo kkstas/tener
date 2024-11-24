@@ -42,11 +42,11 @@ func TestLogin(t *testing.T) {
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
 		app := server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 
-		userFC, err := user.New("John", "Doe", email, password)
-		if err != nil {
-			t.Fatalf("didn't expect an error but got one: %v", err)
+		userFC, isValid, errMessages := user.New("John", "Doe", email, password)
+		if !isValid {
+			t.Fatalf("didn't expect an error but got one: %v", errMessages)
 		}
-		_, err = userStore.Create(context.Background(), userFC)
+		_, err := userStore.Create(context.Background(), userFC)
 		if err != nil {
 			t.Fatalf("didn't expect an error but got one: %v", err)
 		}
@@ -98,13 +98,13 @@ func TestLogin(t *testing.T) {
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
 		app := server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 
-		userFC, err := user.New("John", "Doe", email, validPassword)
-		if err != nil {
-			t.Fatalf("didn't expect an error but got one: %v", err)
+		userFC, isValid, errMessages := user.New("John", "Doe", email, validPassword)
+		if !isValid {
+			t.Fatalf("didn't expect an error but got one: %v", errMessages)
 		}
-		_, err = userStore.Create(context.Background(), userFC)
+		_, err := userStore.Create(context.Background(), userFC)
 		if err != nil {
-			t.Fatalf("didn't expect an error but got one: %v", err)
+			t.Fatalf("didn't expect an error but got one: %v", errMessages)
 		}
 
 		app.ServeHTTP(response, request)
@@ -230,11 +230,11 @@ func TestRegister(t *testing.T) {
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
 		app := server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, userStore)
 
-		userFC, err := user.New(validFirstName, validLastName, validEmail, validPassword)
-		if err != nil {
-			t.Fatalf("didn't expect an error but got one: %v", err)
+		userFC, isValid, errMessages := user.New(validFirstName, validLastName, validEmail, validPassword)
+		if !isValid {
+			t.Fatalf("didn't expect an error but got one: %v", errMessages)
 		}
-		_, err = userStore.Create(context.Background(), userFC)
+		_, err := userStore.Create(context.Background(), userFC)
 		if err != nil {
 			t.Fatalf("didn't expect an error but got one: %v", err)
 		}

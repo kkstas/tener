@@ -1,7 +1,6 @@
 package user
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/google/uuid"
@@ -33,13 +32,13 @@ type User struct {
 	validator.Validator `dynamodbav:"-" json:"-"`
 }
 
-func New(firstName, lastName, email, password string) (User, error) {
+func New(firstName, lastName, email, password string) (user User, isValid bool, errMessages validator.ErrMessages) {
 	currentTimestamp := helpers.GenerateCurrentTimestamp()
 	id := uuid.New().String()
 
 	passwordHash, err := hashPassword(password)
 	if err != nil {
-		return User{}, fmt.Errorf("failed hashing password: %w", err)
+		return User{}, false, map[string][]string{"password": {"failed hashing password"}}
 	}
 
 	return validate(password, User{
@@ -54,15 +53,15 @@ func New(firstName, lastName, email, password string) (User, error) {
 	})
 }
 
-func validate(password string, user User) (User, error) {
+func validate(password string, user User) (User, bool, validator.ErrMessages) {
 	user.Check(validator.StringLengthBetween("firstName", user.FirstName, FirstNameMinLength, FirstNameMaxLength))
 	user.Check(validator.StringLengthBetween("lastName", user.LastName, LastNameMinLength, LastNameMaxLength))
 	user.Check(validator.IsEmail("email", user.Email))
 	user.Check(validator.StringLengthBetween("password", password, PasswordMinLength, PasswordMaxLength))
 
-	if err := user.Validate(); err != nil {
-		return User{}, err
+	if isValid, errMessages := user.Validate(); !isValid {
+		return User{}, false, errMessages
 	}
 
-	return user, nil
+	return user, true, nil
 }

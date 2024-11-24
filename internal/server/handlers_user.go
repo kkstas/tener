@@ -22,20 +22,20 @@ func (app *Application) handleLogin(w http.ResponseWriter, r *http.Request) erro
 	password := r.FormValue("password")
 
 	if ok, _, _ := validator.IsEmail("email", email); !ok {
-		return &validator.ValidationError{ErrMessages: map[string][]string{"email": {"invalid email"}}}
+		return InvalidRequestData(map[string][]string{"email": {"invalid email"}})
 	}
 
 	foundUser, err := app.user.FindOneByEmail(r.Context(), email)
 	if err != nil {
 		var notFoundErr *user.NotFoundError
 		if errors.As(err, &notFoundErr) {
-			return &validator.ValidationError{ErrMessages: map[string][]string{"email": {"user with that email does not exist"}}}
+			return InvalidRequestData(map[string][]string{"email": {"user with that email does not exist"}})
 		}
 		return err
 	}
 
 	if !user.CheckPassword(foundUser.PasswordHash, password) {
-		return &validator.ValidationError{ErrMessages: map[string][]string{"password": {"invalid password"}}}
+		return InvalidRequestData(map[string][]string{"password": {"invalid password"}})
 	}
 
 	token, err := auth.CreateToken(foundUser)
@@ -69,15 +69,15 @@ func (app *Application) handleRegister(w http.ResponseWriter, r *http.Request) e
 	confirmPassword := r.FormValue("confirmPassword")
 
 	if password != confirmPassword {
-		return &validator.ValidationError{ErrMessages: map[string][]string{"confirmPassword": {"passwords do not match"}}}
+		return InvalidRequestData(map[string][]string{"confirmPassword": {"passwords do not match"}})
 	}
 
-	userFC, err := user.New(firstName, lastName, email, password)
-	if err != nil {
-		return err
+	userFC, isValid, errMessages := user.New(firstName, lastName, email, password)
+	if !isValid {
+		return InvalidRequestData(errMessages)
 	}
 
-	_, err = app.user.FindOneByEmail(r.Context(), userFC.Email)
+	_, err := app.user.FindOneByEmail(r.Context(), userFC.Email)
 	if err == nil {
 		return NewAPIError(http.StatusBadRequest, errors.New("user with that email already exists"))
 	}

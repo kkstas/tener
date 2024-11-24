@@ -163,13 +163,12 @@ func TestCheck(t *testing.T) {
 		someStruct.Check(false, "name", "one")
 		someStruct.Check(false, "age", "two")
 
-		err := someStruct.Validate()
-
-		if err == nil {
+		isValid, errMessages := someStruct.Validate()
+		if isValid || errMessages == nil {
 			t.Fatal("expected validation errors but didn't get any")
 		}
 
-		got := len(err.ErrMessages)
+		got := len(errMessages)
 		want := 2
 
 		if got != want {
