@@ -97,7 +97,9 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 									name="category"
 									x-bind:class="formErrors.category && 'border-red-500'"
 									class="shadow appearance-none border dark:text-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 rounded w-full py-2 px-3 leading-tight focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1"
+									required
 								>
+									<option hidden disabled selected value style="display: none"></option>
 									for _, category := range categories {
 										<option>{ category.Name }</option>
 									}
@@ -166,7 +168,9 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 									class="shadow appearance-none border dark:border-zinc-700 dark:text-zinc-200 dark:bg-zinc-800 rounded w-full py-2 px-3 leading-tight focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1"
 									x-bind:class="formErrors.paymentMethod && 'border-red-500'"
 									name="paymentMethod"
+									required
 								>
+									<option hidden disabled selected value style="display: none"></option>
 									for _, paymentMethod := range paymentMethods {
 										<option>{ paymentMethod }</option>
 									}
