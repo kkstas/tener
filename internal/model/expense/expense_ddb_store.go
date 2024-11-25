@@ -145,8 +145,8 @@ func (es *DDBStore) Update(ctx context.Context, expenseFU Expense, vaultID strin
 		return fmt.Errorf("failed to update monthly sum: %w", err)
 	}
 
-	if expenseFU.Date[:7] != foundExpense.Date[:7] {
-		err = es.updateMonthlySum(ctx, vaultID, foundExpense.Date, expenseFU.Category)
+	if expenseFU.Date[:7] != foundExpense.Date[:7] || expenseFU.Category != foundExpense.Category {
+		err = es.updateMonthlySum(ctx, vaultID, foundExpense.Date, foundExpense.Category)
 		if err != nil {
 			return fmt.Errorf("failed to update monthly sum: %w", err)
 		}

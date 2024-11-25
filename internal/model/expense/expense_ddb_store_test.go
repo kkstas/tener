@@ -3,7 +3,6 @@ package expense_test
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -249,9 +248,6 @@ func TestDDBUpdate(t *testing.T) {
 			t.Fatalf("didn't expect an error but got one: %v", err)
 		}
 
-		fmt.Printf("%#v\n", prevMonthlySums)
-		fmt.Printf("%#v\n", newMonthlySums)
-
 		var prevDate1MonthlySum expense.MonthlySum
 		var prevDate2MonthlySum expense.MonthlySum
 		var newDate1MonthlySum expense.MonthlySum
@@ -277,6 +273,81 @@ func TestDDBUpdate(t *testing.T) {
 
 		assertEqual(t, newDate1MonthlySum.Sum, prevDate1MonthlySum.Sum+expenseFU.Amount)
 		assertEqual(t, newDate2MonthlySum.Sum, prevDate2MonthlySum.Sum-expenseFU.Amount)
+	})
+
+	t.Run("updates monthly sums for old and new categories, if category has been changed", func(t *testing.T) {
+		category1 := "category1"
+		category2 := "category2"
+
+		createDDBExpenseHelper(t,
+			ctx,
+			store,
+			validDDBExpenseName,
+			validDDBExpenseDate,
+			category1,
+			10.00,
+			expense.PaymentMethods[0],
+		)
+		createDDBExpenseHelper(t,
+			ctx,
+			store,
+			validDDBExpenseName,
+			validDDBExpenseDate,
+			category2,
+			10.00,
+			expense.PaymentMethods[0],
+		)
+		expenseFU := createDDBExpenseHelper(t,
+			ctx,
+			store,
+			validDDBExpenseName,
+			validDDBExpenseDate,
+			category2,
+			10.00,
+			expense.PaymentMethods[0],
+		)
+
+		prevMonthlySums, err := store.GetMonthlySums(ctx, server.MonthlySumsLastMonthsCount, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		expenseFU.Category = category1
+		err = store.Update(ctx, expenseFU, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		newMonthlySums, err := store.GetMonthlySums(ctx, server.MonthlySumsLastMonthsCount, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		var prevCategory1MonthlySum expense.MonthlySum
+		var prevCategory2MonthlySum expense.MonthlySum
+		var newCategory1MonthlySum expense.MonthlySum
+		var newCategory2MonthlySum expense.MonthlySum
+
+		for _, m := range prevMonthlySums {
+			if m.Category == category1 {
+				prevCategory1MonthlySum = m
+			}
+			if m.Category == category2 {
+				prevCategory2MonthlySum = m
+			}
+		}
+
+		for _, m := range newMonthlySums {
+			if m.Category == category1 {
+				newCategory1MonthlySum = m
+			}
+			if m.Category == category2 {
+				newCategory2MonthlySum = m
+			}
+		}
+
+		assertEqual(t, newCategory1MonthlySum.Sum, prevCategory1MonthlySum.Sum+expenseFU.Amount)
+		assertEqual(t, newCategory2MonthlySum.Sum, prevCategory2MonthlySum.Sum-expenseFU.Amount)
 	})
 }
 
