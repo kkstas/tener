@@ -15,17 +15,29 @@ templ RegisterPage(ctx context.Context) {
 				mx-auto max-w-md my-10 px-4 py-4
 				bg-white dark:bg-zinc-800
 				border border-zinc-200 dark:border-zinc-700 rounded-md
+				relative
 			"
 		>
-			<h1 class="text-4xl py-3 font-light text-center text-zinc-700 dark:text-zinc-300">Sign Up</h1>
-			<form
-				class="
+			<div
+				id="register-loading-overlay"
+				class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center"
+				style="flex-wrap: wrap; backdrop-filter: blur(4px);"
+			>
+				@loadingSpinner()
+			</div>
+			<div class="px-4 py-4">
+				<h1 class="text-4xl py-3 font-light text-center text-zinc-700 dark:text-zinc-300">Sign Up</h1>
+				<form
+					class="
 					[&>div>label]:w-fit [&>div>label]:pl-0.5 [&>div>label]:text-sm [&>div>label]:font-medium [&>div>label]:text-zinc-700 [&>div>label]:dark:text-zinc-300
 					[&>div]:items-center [&>div]:pt-4
 				"
-				hx-post={ url.Create(ctx, "register") }
-				x-data="{ formErrors: {} }"
-				@htmx:after-request.camel="
+					data-loading-path={ url.Create(ctx, "register") }
+					data-loading-target="#register-loading-overlay"
+					data-loading-class-remove="hidden"
+					hx-post={ url.Create(ctx, "register") }
+					x-data="{ formErrors: {} }"
+					@htmx:after-request.camel="
 						if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
 							const parsed = JSON.parse(event.detail.xhr.response);
 							if (parsed.message) {
@@ -34,88 +46,89 @@ templ RegisterPage(ctx context.Context) {
 							return;
 						}
 					"
-			>
-				<div>
-					<label for="register-first-name-input">First name</label>
-					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
-						id="register-first-name-input"
-						type="text"
-						name="firstName"
-						minlength={ strconv.Itoa(user.FirstNameMinLength) }
-						maxlength={ strconv.Itoa(user.FirstNameMaxLength) }
-						required
-					/>
-					<template x-for="err in formErrors.firstName">
-						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-					</template>
-				</div>
-				<div>
-					<label for="register-last-name-input">Last name</label>
-					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
-						id="register-last-name-input"
-						type="text"
-						name="lastName"
-						minlength={ strconv.Itoa(user.LastNameMinLength) }
-						maxlength={ strconv.Itoa(user.LastNameMaxLength) }
-						required
-					/>
-					<template x-for="err in formErrors.lastName">
-						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-					</template>
-				</div>
-				<div>
-					<label for="register-email-input">Email</label>
-					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
-						id="register-email-input"
-						type="email"
-						name="email"
-						minlength="7"
-						maxlength="254"
-						required
-					/>
-					<template x-for="err in formErrors.email">
-						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-					</template>
-				</div>
-				<div>
-					<label for="register-password-input">Password</label>
-					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
-						id="register-password-input"
-						type="password"
-						name="password"
-						minlength="8"
-						maxlength="254"
-						required
-					/>
-					<template x-for="err in formErrors.password">
-						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-					</template>
-				</div>
-				<div>
-					<label for="register-confirm-password-input">Confirm Password</label>
-					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
-						id="register-confirm-password-input"
-						type="password"
-						name="confirmPassword"
-						minlength="8"
-						maxlength="254"
-						required
-					/>
-					<template x-for="err in formErrors.confirmPassword">
-						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-					</template>
-				</div>
-				<button
-					type="submit"
-					class="mt-5 w-full flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-600 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
-				>Register</button>
-			</form>
-			<p class="text-sm text-center text-zinc-600 dark:text-zinc-300">Already have an account? <a href={ templ.SafeURL(url.Create(ctx, "login")) } class="text-blue-500 dark:text-blue-400 hover:underline">Sign in</a></p>
+				>
+					<div>
+						<label for="register-first-name-input">First name</label>
+						<input
+							class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+							id="register-first-name-input"
+							type="text"
+							name="firstName"
+							minlength={ strconv.Itoa(user.FirstNameMinLength) }
+							maxlength={ strconv.Itoa(user.FirstNameMaxLength) }
+							required
+						/>
+						<template x-for="err in formErrors.firstName">
+							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+						</template>
+					</div>
+					<div>
+						<label for="register-last-name-input">Last name</label>
+						<input
+							class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+							id="register-last-name-input"
+							type="text"
+							name="lastName"
+							minlength={ strconv.Itoa(user.LastNameMinLength) }
+							maxlength={ strconv.Itoa(user.LastNameMaxLength) }
+							required
+						/>
+						<template x-for="err in formErrors.lastName">
+							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+						</template>
+					</div>
+					<div>
+						<label for="register-email-input">Email</label>
+						<input
+							class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+							id="register-email-input"
+							type="email"
+							name="email"
+							minlength="7"
+							maxlength="254"
+							required
+						/>
+						<template x-for="err in formErrors.email">
+							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+						</template>
+					</div>
+					<div>
+						<label for="register-password-input">Password</label>
+						<input
+							class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+							id="register-password-input"
+							type="password"
+							name="password"
+							minlength="8"
+							maxlength="254"
+							required
+						/>
+						<template x-for="err in formErrors.password">
+							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+						</template>
+					</div>
+					<div>
+						<label for="register-confirm-password-input">Confirm Password</label>
+						<input
+							class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+							id="register-confirm-password-input"
+							type="password"
+							name="confirmPassword"
+							minlength="8"
+							maxlength="254"
+							required
+						/>
+						<template x-for="err in formErrors.confirmPassword">
+							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+						</template>
+					</div>
+					<button
+						type="submit"
+						class="mt-5 w-full flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-600 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
+					>Register</button>
+				</form>
+				<p class="text-sm text-center text-zinc-600 dark:text-zinc-300">Already have an account? <a href={ templ.SafeURL(url.Create(ctx, "login")) } class="text-blue-500 dark:text-blue-400 hover:underline">Sign in</a></p>
+			</div>
 		</div>
 	}
 }

@@ -11,16 +11,28 @@ templ LoginPage(ctx context.Context) {
 	@BaseHTML(ctx, false, user.User{}) {
 		<div
 			class="
-				mx-auto max-w-md my-10 px-4 py-4
+				mx-auto max-w-md my-10
 				bg-white dark:bg-zinc-800
 				border border-zinc-200 dark:border-zinc-700 rounded-md
+				relative
 			"
 		>
-			<h1 class="text-4xl py-3 font-light text-center text-zinc-700 dark:text-zinc-300">Sign In</h1>
-			<form
-				hx-post={ url.Create(ctx, "login") }
-				x-data="{ formErrors: {} }"
-				@htmx:after-request.camel="
+			<div
+				id="login-loading-overlay"
+				class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center"
+				style="flex-wrap: wrap; backdrop-filter: blur(4px);"
+			>
+				@loadingSpinner()
+			</div>
+			<div class="px-4 py-4">
+				<h1 class="text-4xl py-3 font-light text-center text-zinc-700 dark:text-zinc-300">Sign In</h1>
+				<form
+					data-loading-path={ url.Create(ctx, "login") }
+					data-loading-target="#login-loading-overlay"
+					data-loading-class-remove="hidden"
+					hx-post={ url.Create(ctx, "login") }
+					x-data="{ formErrors: {} }"
+					@htmx:after-request.camel="
 					if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
 						try {
 							const parsed = JSON.parse(event.detail.xhr.response);
@@ -31,43 +43,44 @@ templ LoginPage(ctx context.Context) {
 						return;
 					}
 				"
-			>
-				<div class="items-center pt-5 pb-4">
-					<label for="login-email-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>
-					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
-						id="login-email-input"
-						type="email"
-						name="email"
-						minlength="1"
-						maxlength="999"
-						required
-					/>
-					<template x-for="err in formErrors.email">
-						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-					</template>
-				</div>
-				<div class="items-center pt-0">
-					<label for="login-password-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
-					<input
-						class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
-						id="login-password-input"
-						type="password"
-						name="password"
-						minlength="1"
-						maxlength="999"
-						required
-					/>
-					<template x-for="err in formErrors.password">
-						<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-					</template>
-				</div>
-				<button
-					type="submit"
-					class="mt-5 w-full flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-600 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
-				>Log in</button>
-			</form>
-			<p class="text-sm text-center text-zinc-600 dark:text-zinc-300">Don't have an account? <a href={ templ.SafeURL(url.Create(ctx, "register")) } class="text-blue-500 dark:text-blue-400 hover:underline">Sign up</a></p>
+				>
+					<div class="items-center pt-5 pb-4">
+						<label for="login-email-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>
+						<input
+							class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+							id="login-email-input"
+							type="email"
+							name="email"
+							minlength="1"
+							maxlength="999"
+							required
+						/>
+						<template x-for="err in formErrors.email">
+							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+						</template>
+					</div>
+					<div class="items-center pt-0">
+						<label for="login-password-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
+						<input
+							class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+							id="login-password-input"
+							type="password"
+							name="password"
+							minlength="1"
+							maxlength="999"
+							required
+						/>
+						<template x-for="err in formErrors.password">
+							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
+						</template>
+					</div>
+					<button
+						type="submit"
+						class="mt-5 w-full flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-600 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
+					>Log in</button>
+				</form>
+				<p class="text-sm text-center text-zinc-600 dark:text-zinc-300">Don't have an account? <a href={ templ.SafeURL(url.Create(ctx, "register")) } class="text-blue-500 dark:text-blue-400 hover:underline">Sign up</a></p>
+			</div>
 		</div>
 	}
 }

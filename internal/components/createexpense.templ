@@ -38,7 +38,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 					<hr class="w-[50%] mx-auto mb-3 mt-1 dark:border-zinc-700"/>
 					<h1 class="text-3xl font-semibold pb-4">Add new expense</h1>
 					<form
-						data-loading-path="/expense/create"
+						data-loading-path={ url.Create(ctx, "expense", "create") }
 						data-loading-target="#create-expense-loading-overlay"
 						data-loading-class-remove="hidden"
 						class="grid gap-2"
