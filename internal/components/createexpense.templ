@@ -13,6 +13,13 @@ import (
 
 templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categories []expensecategory.Category, total string) {
 	<div class="mt-10 mb-5 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-zinc-800 focus:shadow-outline has-[:focus]:shadow-outline focus:outline-none has-[:focus]:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 has-[:focus]:outline-zinc-800/10 dark:has-[:focus]:outline-zinc-300/20 focus:outline-1 has-[:focus]:outline-1 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md">
+		<div
+			id="create-expense-loading-overlay"
+			class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center"
+			style="flex-wrap: wrap; backdrop-filter: blur(4px);"
+		>
+			@loadingSpinner()
+		</div>
 		<div x-data="{ id: $id('accordion') }" class="cursor-pointer group">
 			<button @click="setActiveAccordion(id)" class="focus:outline-none flex items-center justify-center w-full p-4 text-left select-none">
 				<div class="focus:outline-none mt-auto w-full min-w-36 text-left text-xs md:text-sm select-none">
@@ -31,6 +38,9 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 					<hr class="w-[50%] mx-auto mb-3 mt-1 dark:border-zinc-700"/>
 					<h1 class="text-3xl font-semibold pb-4">Add new expense</h1>
 					<form
+						data-loading-path="/expense/create"
+						data-loading-target="#create-expense-loading-overlay"
+						data-loading-class-remove="hidden"
 						class="grid gap-2"
 						hx-post={ url.Create(ctx, "expense", "create") }
 						hx-target="#all-expenses-list"

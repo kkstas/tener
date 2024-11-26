@@ -211,7 +211,14 @@ templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods [
 }
 
 templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string, categories []expensecategory.Category, usr user.User) {
-	<div x-data="{ id: $id('accordion') }" title={ fmt.Sprintf("Created by %s %s", usr.FirstName, usr.LastName) } class="has-[:focus]:bg-zinc-100/20 dark:has-[:focus]:bg-zinc-900/20 expense-element cursor-pointer">
+	<div x-data="{ id: $id('accordion') }" title={ fmt.Sprintf("Created by %s %s", usr.FirstName, usr.LastName) } class="relative has-[:focus]:bg-zinc-100/20 dark:has-[:focus]:bg-zinc-900/20 expense-element cursor-pointer">
+		<div
+			id={ "expense-loading-overlay-" + sanitizeCSSSelector(exp.SK) }
+			class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center"
+			style="flex-wrap: wrap; backdrop-filter: blur(4px);"
+		>
+			@loadingSpinner()
+		</div>
 		<button @click="setActiveAccordion(id)" class="flex items-center focus:outline-none justify-between w-full p-4 text-left select-none">
 			<div class="flex flex-1 justify-between">
 				<div class="flex flex-col justify-between flex-1">
@@ -298,6 +305,9 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 			<div x-show="popoverOpen && activeAccordion==id" x-collapse x-cloak>
 				<hr class="w-[80%] mx-auto mb-2 dark:border-zinc-700"/>
 				<form
+					data-loading-path={ url.Create(ctx, "expense", "edit", exp.SK) }
+					data-loading-target={ "#expense-loading-overlay-" + sanitizeCSSSelector(exp.SK) }
+					data-loading-class-remove="hidden"
 					class="grid gap-2 px-5"
 					hx-put={ url.Create(ctx, "expense", "edit", exp.SK) }
 					hx-target="#all-expenses-list"
@@ -446,9 +456,11 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 						@click="popoverOpen = false;"
 						type="button"
 						class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide transition-colors duration-100 rounded-md text-zinc-600 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-700 hover:text-zinc-600 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-zinc-600/80 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
+						data-loading-disable
 					>
 						Cancel
 					</button>
+					<div class="h-2 w-full"></div>
 				</form>
 			</div>
 		</div>

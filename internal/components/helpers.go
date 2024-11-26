@@ -3,6 +3,7 @@ package components
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"time"
 
 	"github.com/kkstas/tener/internal/model/expense"
@@ -46,4 +47,9 @@ func getTotalAmount(expenses []expense.Expense) string {
 		sum += val.Amount
 	}
 	return fmt.Sprintf("%.2f", sum)
+}
+
+func sanitizeCSSSelector(input string) string {
+	re := regexp.MustCompile("[^0-9]")
+	return re.ReplaceAllString(input, "_")
 }
