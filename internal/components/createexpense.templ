@@ -4,7 +4,6 @@ import (
 	"context"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
@@ -21,7 +20,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 			@loadingSpinner()
 		</div>
 		<div x-data="{ id: $id('accordion') }" class="cursor-pointer group">
-			<button @click="setActiveAccordion(id)" class="focus:outline-none flex items-center justify-center w-full p-4 text-left select-none">
+			<button @click="setActiveAccordion(id); if (activeAccordion==id) setTimeout(() => { document.getElementById('create-expense-date-input').value = new Date().toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit' }).split('.').reverse().join('-'); });" class="focus:outline-none flex items-center justify-center w-full p-4 text-left select-none">
 				<div class="focus:outline-none mt-auto w-full min-w-36 text-left text-xs md:text-sm select-none">
 					<div>Total expenses</div>
 					<div class="pt-2 dark:text-zinc-200 text-zinc-800 font-medium">
@@ -156,7 +155,6 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 								id="create-expense-date-input"
 								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm dark:text-zinc-200 bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								x-bind:class="formErrors.date && 'border-red-500'"
-								value={ time.Now().Format("2006-01-02") }
 								type="date"
 								name="date"
 								required
