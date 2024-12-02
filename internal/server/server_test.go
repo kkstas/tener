@@ -13,6 +13,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/kkstas/tener/assets"
 	"github.com/kkstas/tener/internal/auth"
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
@@ -50,7 +51,7 @@ func TestHealthCheck(t *testing.T) {
 func TestStaticCss(t *testing.T) {
 	t.Run("returns css file content with status 200", func(t *testing.T) {
 		response := httptest.NewRecorder()
-		request := httptest.NewRequest(http.MethodGet, "/assets/public/css/out.css", nil)
+		request := httptest.NewRequest(http.MethodGet, "/assets/public/css/"+assets.OutCSSFilename(), nil)
 		newTestApplication().ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)

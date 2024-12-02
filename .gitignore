@@ -5,7 +5,7 @@ build/tmp/
 build/docker/
 
 internal/components/**/*_templ.go
-assets/public/css/out.css
+assets/public/css/out*.css
 
 .vscode/
 .idea/
