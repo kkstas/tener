@@ -74,6 +74,7 @@ templ ExpenseSummaryDateRangePicker(ctx context.Context) {
 templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
 	<div class="my-1 pe-1" x-data={ toJSON(map[string][]string{"options": categories}) }>
 		<div
+			id="expense-category-filter"
 			hx-get={ url.Create(ctx, "expense", "all") }
 			hx-target="#all-expenses-list"
 			hx-trigger="reload-expenses"

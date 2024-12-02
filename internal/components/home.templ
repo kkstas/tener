@@ -39,6 +39,20 @@ templ MonthlySumsChart(ctx context.Context, chartData expense.ChartData) {
 	</div>
 }
 
+templ refreshExpensesIfStale() {
+	<script>
+		let lastReloadTimestamp = Date.now();
+		window.addEventListener("focus", () => {
+			const now = Date.now()
+			if (now - lastReloadTimestamp > 60 * 1000) { // 60 s * 1000 ms = 1 min
+				console.log(`${new Date().toISOString()} refreshing stale expenses`);
+				document.getElementById('expense-category-filter').dispatchEvent(new Event('reload-expenses', { bubbles: true }));
+				lastReloadTimestamp = now;
+			}
+		})
+	</script>
+}
+
 templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, u user.User, users map[string]user.User, monthlySums []expense.MonthlySum) {
 	@BaseHTML(ctx, true, u) {
 		<div
@@ -61,5 +75,6 @@ templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 				@Expenses(ctx, expenses, paymentMethods, categories, users)
 			</div>
 		</div>
+		@refreshExpensesIfStale()
 	}
 }
