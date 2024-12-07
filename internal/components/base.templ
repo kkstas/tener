@@ -150,6 +150,22 @@ templ reloadIfStale() {
 	</script>
 }
 
+templ composeURIFunction() {
+	<script>
+		/**
+		 * @param {string} urlStart
+		 * @param {string[]} pathElements
+		 * @returns {string}
+		 */
+		function composeURI(urlStart, pathElements) {
+			let sanitizedUrlStart = urlStart.startsWith('/') ? urlStart : '/' + urlStart;
+			sanitizedUrlStart = sanitizedUrlStart.endsWith('/') ? sanitizedUrlStart.slice(0, -1) : sanitizedUrlStart;
+			const path = pathElements.join('/');
+			return `${sanitizedUrlStart}/${path}`;
+		}
+	</script>
+}
+
 templ BaseHTML(ctx context.Context, loggedIn bool, u user.User) {
 	<html class="dark">
 		<head>
@@ -171,6 +187,7 @@ templ BaseHTML(ctx context.Context, loggedIn bool, u user.User) {
 			<title>Home</title>
 		</head>
 		<body hx-ext="loading-states" class="bg-zinc-50 dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
+			@composeURIFunction()
 			@reloadIfStale()
 			@Nav(ctx, loggedIn, u)
 			<div class="mx-5 my-3">

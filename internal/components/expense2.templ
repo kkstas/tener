@@ -48,8 +48,8 @@ templ Expense2(ctx context.Context, paymentMethods []string, categories []expens
 				<button
 					type="button"
 					class="mx-2 px-4 py-1 inline-flex items-center justify-center text-sm font-medium tracking-wide text-red-600 dark:text-white hover:text-white bg-white dark:bg-red-600 hover:bg-red-500 dark:hover:bg-red-700 border-2 border-red-500 dark:border-transparent rounded-md transition-colors duration-100 focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1 focus:shadow-outline focus:outline-none"
-					:hx-delete="urlStart + 'json/expense/' + exp.SK"
-					:data-loading-path="urlStart + 'json/expense/' + exp.SK"
+					:hx-delete="composeURI(urlStart, [ 'json', 'expense', exp.SK ])"
+					:data-loading-path="composeURI(urlStart, [ 'json', 'expense', exp.SK ])"
 					:data-loading-target="'#expense-loading-overlay-' + exp.SK.replace(/[^a-zA-Z0-9_-]/g, '_')"
 					data-loading-class-remove="hidden"
 					hx-swap="none"
@@ -83,11 +83,11 @@ templ Expense2(ctx context.Context, paymentMethods []string, categories []expens
 			<div x-show="popoverOpen && activeAccordion==id" x-collapse x-cloak>
 				<hr class="w-[80%] mx-auto mb-2 dark:border-zinc-700"/>
 				<form
-					:data-loading-path="urlStart + 'json/expense/edit/' + exp.SK"
+					:data-loading-path="composeURI(urlStart, ['json', 'expense', 'edit', exp.SK])"
 					:data-loading-target="'#expense-loading-overlay-' + exp.SK.replace(/[^a-zA-Z0-9_-]/g, '_')"
 					data-loading-class-remove="hidden"
 					class="grid gap-2 px-5"
-					:hx-put="urlStart + 'json/expense/edit/' + exp.SK"
+					:hx-put="composeURI(urlStart, [ 'json', 'expense', 'edit', exp.SK ])"
 					x-data="{ formErrors: {} }"
 					x-effect="if (popoverOpen) { formErrors = {}; $el.reset(); }"
 					hx-swap="none"
