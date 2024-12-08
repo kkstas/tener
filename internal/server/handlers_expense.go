@@ -19,9 +19,9 @@ var (
 )
 
 func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u user.User) error {
-	var expenses []expense.Expense
-	var categories []expensecategory.Category
-	var monthlySums []expense.MonthlySum
+	expenses := []expense.Expense{}
+	categories := []expensecategory.Category{}
+	monthlySums := []expense.MonthlySum{}
 
 	expChan := make(chan []expense.Expense)
 	catChan := make(chan []expensecategory.Category)
@@ -189,6 +189,61 @@ func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWrit
 		w, r,
 		components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users),
 	)
+}
+
+func (app *Application) createSingleExpenseJSON(w http.ResponseWriter, r *http.Request, u user.User) error {
+	from, to, selectedCategories := queryFilters(r)
+
+	category := r.FormValue("category")
+	paymentMethod := r.FormValue("paymentMethod")
+	date := r.FormValue("date")
+	name := r.FormValue("name")
+	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
+
+	amount, err := strconv.ParseFloat(amountRaw, 64)
+	if err != nil {
+		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
+		return InvalidRequestData(map[string][]string{"amount": {"must be a valid decimal number"}})
+	}
+
+	exp, isValid, errMessages := expense.New(name, date, category, amount, paymentMethod)
+	if !isValid {
+		validationErr := InvalidRequestData(errMessages)
+		app.emitActionTrail("create_expense", false, &u, validationErr, map[string]interface{}{"inputForm": r.Form})
+		return validationErr
+	}
+
+	_, err = app.expense.Create(r.Context(), exp, u.ID, u.ActiveVault)
+	if err != nil {
+		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
+		return fmt.Errorf("failed to put item: %w", err)
+	}
+
+	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
+	if err != nil {
+		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
+		return fmt.Errorf("failed to query items: %w", err)
+	}
+
+	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
+	if err != nil {
+		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
+		return fmt.Errorf("failed to query expense categories: %w", err)
+	}
+
+	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
+	if err != nil {
+		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
+		return fmt.Errorf("failed to find matching users for expenses & expense categories: %w", err)
+	}
+
+	app.emitActionTrail("create_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
+
+	return writeJSON(w, http.StatusOK, map[string]any{
+		"expenses":   expenses,
+		"categories": categories,
+		"users":      users,
+	})
 }
 
 func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) error {

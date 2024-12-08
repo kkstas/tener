@@ -2,7 +2,6 @@ package components
 
 import (
 	"context"
-
 	"github.com/kkstas/tener/internal/helpers"
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
@@ -231,6 +230,7 @@ templ Home2(ctx context.Context, expenses []expense.Expense, paymentMethods []st
 					users = users ?? {};
 				"
 			>
+				@CreateExpenseContainer2(ctx, paymentMethods, categories)
 				<div class="flex justify-end pb-1">
 					@ExpenseCategoryFilter2(ctx, extractCategories(expenses))
 					@ExpenseDateRangePicker(ctx)

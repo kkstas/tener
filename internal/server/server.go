@@ -68,6 +68,7 @@ func NewApplication(logger *slog.Logger, expenseStore expenseStore, expenseCateg
 	mux.HandleFunc("GET    /json/expense/all", app.make(app.withUser(app.getExpensesJSON)))
 
 	mux.HandleFunc("POST   /expense/create", app.make(app.withUser(app.createSingleExpenseAndRenderExpenses)))
+	mux.HandleFunc("POST   /json/expense/create", app.make(app.withUser(app.createSingleExpenseJSON)))
 	mux.HandleFunc("PUT    /expense/edit/{SK}", app.make(app.withUser(app.updateSingleExpenseAndRenderExpenses)))
 	mux.HandleFunc("PUT    /json/expense/edit/{SK}", app.make(app.withUser(app.updateSingleExpenseJSON)))
 

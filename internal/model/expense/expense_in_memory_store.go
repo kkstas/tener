@@ -80,7 +80,7 @@ func (es *InMemoryStore) GetMonthlySums(ctx context.Context, monthsAgo int, vaul
 		m[val.Date[:7]+val.Category] = sum
 	}
 
-	var results []MonthlySum
+	results := []MonthlySum{}
 
 	for _, v := range m {
 		results = append(results, v)
@@ -104,7 +104,7 @@ func (e *InMemoryStore) Query(ctx context.Context, from, to string, categories [
 		)
 	}
 
-	var expenses []Expense
+	expenses := []Expense{}
 
 	for _, expense := range e.expenses {
 		daysAfterFrom, err := helpers.DaysBetween(from, expense.Date)

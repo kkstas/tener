@@ -100,7 +100,7 @@ func (cs *DDBStore) FindAll(ctx context.Context, vaultID string) ([]Category, er
 }
 
 func (cs *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Category, error) {
-	var categories []Category
+	categories := []Category{}
 
 	queryInput := dynamodb.QueryInput{
 		TableName:                 &cs.tableName,
@@ -119,7 +119,7 @@ func (cs *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Ca
 			return nil, fmt.Errorf("failed to query for expense categories: %w", err)
 		}
 
-		var resCategories []Category
+		resCategories := []Category{}
 		err = attributevalue.UnmarshalListOfMaps(response.Items, &resCategories)
 		if err != nil {
 			return categories, fmt.Errorf("failed to unmarshal query response for expense categories: %w", err)

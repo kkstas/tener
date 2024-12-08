@@ -325,7 +325,7 @@ func (es *DDBStore) GetMonthlySums(ctx context.Context, monthsAgo int, vaultID s
 		return nil, fmt.Errorf("failed to build expression for monthlysums query %w", err)
 	}
 
-	var monthlySums []MonthlySum
+	monthlySums := []MonthlySum{}
 
 	queryInput := dynamodb.QueryInput{
 		TableName:                 &es.tableName,
@@ -344,7 +344,7 @@ func (es *DDBStore) GetMonthlySums(ctx context.Context, monthsAgo int, vaultID s
 			return nil, fmt.Errorf("failed to query for expenses: %w", err)
 		}
 
-		var resMonthlySums []MonthlySum
+		resMonthlySums := []MonthlySum{}
 		err = attributevalue.UnmarshalListOfMaps(response.Items, &resMonthlySums)
 
 		if err != nil {
@@ -400,7 +400,7 @@ func (es *DDBStore) Query(ctx context.Context, from, to string, categories []str
 }
 
 func (es *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Expense, error) {
-	var expenses []Expense
+	expenses := []Expense{}
 
 	queryInput := dynamodb.QueryInput{
 		TableName:                 &es.tableName,
@@ -419,7 +419,7 @@ func (es *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Ex
 			return nil, fmt.Errorf("failed to query for expenses: %w", err)
 		}
 
-		var resExpenses []Expense
+		resExpenses := []Expense{}
 		err = attributevalue.UnmarshalListOfMaps(response.Items, &resExpenses)
 
 		if err != nil {
