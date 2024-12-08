@@ -9,19 +9,8 @@ import (
 
 templ LoginPage(ctx context.Context) {
 	@BaseHTML(ctx, false, user.User{}) {
-		<div
-			class="
-				mx-auto max-w-md my-10
-				bg-white dark:bg-zinc-800
-				border border-zinc-200 dark:border-zinc-700 rounded-md
-				relative
-			"
-		>
-			<div
-				id="login-loading-overlay"
-				class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center"
-				style="flex-wrap: wrap; backdrop-filter: blur(4px);"
-			>
+		<div class="mx-auto max-w-md my-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md relative">
+			<div id="login-loading-overlay" style="flex-wrap: wrap; backdrop-filter: blur(4px);" class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center">
 				@loadingSpinner()
 			</div>
 			<div class="px-4 py-4">
@@ -55,9 +44,7 @@ templ LoginPage(ctx context.Context) {
 							maxlength="999"
 							required
 						/>
-						<template x-for="err in formErrors.email">
-							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-						</template>
+						<template x-for="err in formErrors.email"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p></template>
 					</div>
 					<div class="items-center pt-0">
 						<label for="login-password-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
@@ -70,14 +57,11 @@ templ LoginPage(ctx context.Context) {
 							maxlength="999"
 							required
 						/>
-						<template x-for="err in formErrors.password">
-							<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p>
-						</template>
+						<template x-for="err in formErrors.password"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mt-3 p-0 mb-0"></p></template>
 					</div>
-					<button
-						type="submit"
-						class="mt-5 w-full flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-600 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
-					>Log in</button>
+					<button type="submit" class="mt-5 w-full flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-600 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1">
+						Log in
+					</button>
 				</form>
 				<p class="text-sm text-center text-zinc-600 dark:text-zinc-300">Don't have an account? <a href={ templ.SafeURL(url.Create(ctx, "register")) } class="text-blue-500 dark:text-blue-400 hover:underline">Sign up</a></p>
 			</div>

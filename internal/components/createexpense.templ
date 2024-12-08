@@ -12,11 +12,7 @@ import (
 
 templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categories []expensecategory.Category) {
 	<div class="mt-10 mb-5 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-zinc-800 focus:shadow-outline has-[:focus]:shadow-outline focus:outline-none has-[:focus]:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 has-[:focus]:outline-zinc-800/10 dark:has-[:focus]:outline-zinc-300/20 focus:outline-1 has-[:focus]:outline-1 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md">
-		<div
-			id="create-expense-loading-overlay"
-			class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center"
-			style="flex-wrap: wrap; backdrop-filter: blur(4px);"
-		>
+		<div id="create-expense-loading-overlay" class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center" style="flex-wrap: wrap; backdrop-filter: blur(4px);">
 			@loadingSpinner()
 		</div>
 		<div x-data="{ id: $id('accordion') }" class="cursor-pointer group">
@@ -38,9 +34,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 						<span>,<span x-ref="decimalpart"></span> PLN</span>
 					</div>
 				</div>
-				<svg :class="activeAccordion==id && 'rotate-180'" class="size-8 mx-auto opacity-40 me-2 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-					<path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path>
-				</svg>
+				<svg :class="activeAccordion==id && 'rotate-180'" class="size-8 mx-auto opacity-40 me-2 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"></path></svg>
 			</button>
 			<div x-show="activeAccordion==id" x-collapse x-cloak>
 				<div class="p-4 pt-0">
@@ -82,10 +76,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 						"
 					>
 						<div class="grid items-center grid-cols-3 gap-4 pt-1">
-							<label
-								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-								for="create-expense-name-input"
-							>Name</label>
+							<label for="create-expense-name-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Name</label>
 							<input
 								x-bind:class="formErrors.name && 'border-red-500'"
 								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
@@ -96,24 +87,12 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 								maxlength={ strconv.Itoa(expense.NameMaxLength) }
 								required
 							/>
-							<template x-for="err in formErrors.name">
-								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
-							</template>
+							<template x-for="err in formErrors.name"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p> </template>
 						</div>
-						<div
-							class="grid items-center grid-cols-3 gap-4"
-						>
-							<label
-								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-								for="create-expense-category-input"
-							>
+						<div class="grid items-center grid-cols-3 gap-4">
+							<label for="create-expense-category-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
 								Category
-								<sup>
-									<a
-										class="text-[10px] leading-6 font-normal text-blue-500"
-										href={ templ.SafeURL(url.Create(ctx, "expensecategories")) }
-									>Manage</a>
-								</sup>
+								<sup><a href={ templ.SafeURL(url.Create(ctx, "expensecategories")) } class="text-[10px] leading-6 font-normal text-blue-500">Manage</a></sup>
 							</label>
 							<div class="flex w-full h-8 col-span-2 relative">
 								<select
@@ -128,21 +107,12 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 										<option>{ category.Name }</option>
 									}
 								</select>
-								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-700 dark:text-zinc-400">
-									<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
-								</div>
+								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-700 dark:text-zinc-400"><svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg></div>
 							</div>
-							<template x-for="err in formErrors.category">
-								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
-							</template>
+							<template x-for="err in formErrors.category"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p> </template>
 						</div>
-						<div
-							class="grid items-center grid-cols-3 gap-4"
-						>
-							<label
-								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-								for="create-expense-amount-input"
-							>Amount</label>
+						<div class="grid items-center grid-cols-3 gap-4">
+							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="create-expense-amount-input">Amount</label>
 							<input
 								class="flex w-full h-8 col-span-2 px-3 py-2 dark:text-zinc-200 text-sm bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								x-bind:class="formErrors.amount && 'border-red-500'"
@@ -155,17 +125,10 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 								title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
 								required
 							/>
-							<template x-for="err in formErrors.amount">
-								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
-							</template>
+							<template x-for="err in formErrors.amount"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p></template>
 						</div>
-						<div
-							class="grid items-center grid-cols-3 gap-4"
-						>
-							<label
-								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-								for="create-expense-date-input"
-							>Date</label>
+						<div class="grid items-center grid-cols-3 gap-4">
+							<label for="create-expense-date-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Date</label>
 							<input
 								id="create-expense-date-input"
 								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm dark:text-zinc-200 bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
@@ -174,17 +137,10 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 								name="date"
 								required
 							/>
-							<template x-for="err in formErrors.date">
-								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
-							</template>
+							<template x-for="err in formErrors.date"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p></template>
 						</div>
-						<div
-							class="grid items-center grid-cols-3 gap-4"
-						>
-							<label
-								class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-								for="create-expense-payment-method-input"
-							>Payment method</label>
+						<div class="grid items-center grid-cols-3 gap-4">
+							<label for="create-expense-payment-method-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Payment method</label>
 							<div class="flex w-full h-8 col-span-2 relative">
 								<select
 									id="create-expense-payment-method-input"
@@ -198,26 +154,14 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 										<option>{ paymentMethod }</option>
 									}
 								</select>
-								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-700 dark:text-zinc-400">
-									<svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg>
-								</div>
+								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-700 dark:text-zinc-400"><svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg></div>
 							</div>
-							<template x-for="err in formErrors.paymentMethod">
-								<p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p>
-							</template>
+							<template x-for="err in formErrors.paymentMethod"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p></template>
 						</div>
-						<button
-							type="submit"
-							class="mt-3 inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-600 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
-							data-loading-disable
-						>
+						<button data-loading-disable type="submit" class="mt-3 inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide text-white transition-colors duration-200 bg-blue-500 rounded-md hover:bg-blue-600 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1">
 							Submit
 						</button>
-						<button
-							@click="setActiveAccordion(id);"
-							type="button"
-							class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide transition-colors duration-100 rounded-md text-neutral-600 dark:text-neutral-200 bg-neutral-100 dark:bg-zinc-700 hover:text-neutral-600 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-zinc-600/80 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
-						>
+						<button @click="setActiveAccordion(id);" type="button" class="inline-flex items-center justify-center px-4 py-2 text-sm font-medium tracking-wide transition-colors duration-100 rounded-md text-neutral-600 dark:text-neutral-200 bg-neutral-100 dark:bg-zinc-700 hover:text-neutral-600 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-zinc-600/80 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1">
 							Cancel
 						</button>
 					</form>

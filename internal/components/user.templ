@@ -5,21 +5,8 @@ import "github.com/kkstas/tener/internal/model/user"
 import "github.com/kkstas/tener/internal/url"
 
 templ userDisabledCard(u user.User) {
-	<div
-		class="
-				inline-flex items-center justify-start
-				h-12 py-2 pl-3 pr-12 w-full
-				bg-white dark:bg-zinc-800
-				text-neutral-700 dark:text-zinc-100 text-sm font-medium transition-colors
-				border rounded-md dark:border-zinc-800
-				focus:outline-none
-				disabled:opacity-50
-				disabled:pointer-events-none
-			"
-	>
-		<svg class="size-6 stroke-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="inherit">
-			<path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-		</svg>
+	<div class="inline-flex items-center justify-start h-12 py-2 pl-3 pr-12 w-full bg-white dark:bg-zinc-800 text-neutral-700 dark:text-zinc-100 text-sm font-medium transition-colors border rounded-md dark:border-zinc-800 focus:outline-none disabled:opacity-50 disabled:pointer-events-none">
+		<svg class="size-6 stroke-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="inherit"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
 		<span class="flex flex-col items-start flex-shrink-0 h-full ml-2 leading-none translate-y-px">
 			<span>{ u.FirstName } { u.LastName }</span>
 			<span class="text-xs font-light text-neutral-400">{ u.Email }</span>
@@ -28,28 +15,9 @@ templ userDisabledCard(u user.User) {
 }
 
 templ UserCard(ctx context.Context, u user.User) {
-	<div
-		x-data="{
-			dropdownOpen: false
-		}"
-		class="relative"
-	>
-		<button
-			@click="dropdownOpen=true"
-			class="
-				inline-flex items-center justify-center
-				h-12 py-2 pl-3 pr-12
-				bg-white dark:bg-zinc-800 hover:bg-neutral-100 dark:hover:bg-zinc-700 active:bg-white dark:active:bg-zinc-800 focus:bg-white dark:focus:bg-zinc-800
-				text-neutral-700 dark:text-zinc-100 text-sm font-medium transition-colors
-				border rounded-md dark:border-zinc-800
-				focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1
-				disabled:opacity-50
-				disabled:pointer-events-none
-			"
-		>
-			<svg class="size-6 stroke-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="inherit">
-				<path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path>
-			</svg>
+	<div x-data="{ dropdownOpen: false }" class="relative">
+		<button @click="dropdownOpen=true" class="inline-flex items-center justify-center h-12 py-2 pl-3 pr-12 bg-white dark:bg-zinc-800 hover:bg-neutral-100 dark:hover:bg-zinc-700 active:bg-white dark:active:bg-zinc-800 focus:bg-white dark:focus:bg-zinc-800 text-neutral-700 dark:text-zinc-100 text-sm font-medium transition-colors border rounded-md dark:border-zinc-800 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1 disabled:opacity-50 disabled:pointer-events-none">
+			<svg class="size-6 stroke-zinc-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="inherit"><path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"></path></svg>
 			<span class="flex flex-col items-start flex-shrink-0 h-full ml-2 leading-none translate-y-px">
 				<span>{ u.FirstName } { u.LastName }</span>
 				<span class="text-xs font-light text-neutral-400">{ u.Email }</span>
@@ -65,13 +33,7 @@ templ UserCard(ctx context.Context, u user.User) {
 			class="absolute top-0 z-50 w-56 mt-12 -translate-x-1/2 left-1/2"
 			x-cloak
 		>
-			<div
-				class="p-1 mt-1
-					bg-white dark:bg-zinc-800
-					border rounded-md shadow-md border-neutral-200/70 dark:border-zinc-800
-					text-neutral-700 dark:text-zinc-200
-				"
-			>
+			<div class="p-1 mt-1 bg-white dark:bg-zinc-800 border rounded-md shadow-md border-neutral-200/70 dark:border-zinc-800 text-neutral-700 dark:text-zinc-200">
 				<a href="#_" class="relative flex cursor-default select-none hover:bg-neutral-100 dark:hover:bg-zinc-700 items-center rounded px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50" data-disabled>
 					<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 mr-2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
 					<span>Profile</span>
