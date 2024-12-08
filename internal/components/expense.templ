@@ -2,219 +2,16 @@ package components
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
-	"github.com/kkstas/tener/internal/helpers"
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
-	"github.com/kkstas/tener/internal/model/user"
-	"github.com/kkstas/tener/internal/url"
 )
 
-templ ExpenseSummaryDateRangePicker(ctx context.Context) {
-	<form
-		hx-get={ url.Create(ctx, "expense", "all") }
-		hx-target="#all-expenses-list"
-		hx-trigger="change[target._flatpickr.selectedDates.length === 2] from:#main-date-range-picker"
-		hx-swap="outerHTML"
-		hx-include="#categories"
-		class="my-1 w-36 text-zinc-700 dark:text-zinc-200 cursor-pointer
-			border border-1 border-zinc-200 dark:border-zinc-700 rounded-md"
-	>
-		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.GetFirstDayOfCurrentMonth() }/>
-		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
+templ Expense(ctx context.Context, paymentMethods []string, categories []expensecategory.Category) {
+	<div x-data="{ id: $id('accordion') }" class="relative has-[:focus]:bg-zinc-100/20 dark:has-[:focus]:bg-zinc-900/20 cursor-pointer">
 		<div
-			tabindex="0"
-			class="flatpickr flex group
-				group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
-				rounded-md
-				bg-zinc-50 dark:bg-zinc-800"
-			@keydown.enter="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
-			@click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
-			@keydown.escape.stop="document.querySelector('#main-date-range-picker')._flatpickr.close();"
-		>
-			<input
-				tabindex="-1"
-				id="main-date-range-picker"
-				class="cursor-pointer
-					w-full appearance-none rounded-md
-					border border-transparent bg-transparent
-					ps-3 py-2 text-xs
-					focus-visible:outline-none"
-			/>
-			<svg @click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();" class="my-auto me-3" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg>
-		</div>
-		<script>
-			function dateToISODateString(date) {
-				return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
-			}
-
-			flatpickr("#main-date-range-picker", {
-				mode: "range",
-				dateFormat: "Y-m-d",
-				defaultDate: [document.getElementById("main-date-range-picker-from").value, document.getElementById("main-date-range-picker-to").value],
-				altInput: true,
-				altFormat: "j M",
-				maxDate: "today",
-				onClose: function(selectedDates, dateStr, instance) {
-					instance.input.blur();
-				},
-				onChange: function(selectedDates, dateStr, instance) {
-					if (selectedDates.length === 2) {
-						document.getElementById("main-date-range-picker-from").value = dateToISODateString(selectedDates[0]);
-						document.getElementById("main-date-range-picker-to").value = dateToISODateString(selectedDates[1]);
-					}
-				}
-			});
-		</script>
-	</form>
-}
-
-templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
-	<div class="my-1 pe-1" x-data={ toJSON(map[string][]string{"options": categories}) }>
-		<div
-			id="expense-category-filter"
-			hx-get={ url.Create(ctx, "expense", "all") }
-			hx-target="#all-expenses-list"
-			hx-trigger="reload-expenses"
-			hx-swap="outerHTML"
-			hx-include="#main-date-range-picker-from, #main-date-range-picker-to, #categories"
-			x-data="{
-				isOpen: false,
-				openedWithKeyboard: false,
-				selectedOptions: [],
-				setLabelText() {
-					const count = this.selectedOptions.length;
-					if (count === 0) return 'All categories'; // if there are no selected options
-					return this.selectedOptions.join(', '); // join the selected options with a comma
-				},
-				highlightFirstMatchingOption(pressedKey) {
-					if (pressedKey === 'Enter') return // if Enter pressed, do nothing
-
-					// find and focus the option that starts with the pressed key
-					const option = this.options.find((item) => item.toLowerCase().startsWith(pressedKey.toLowerCase()));
-					if (option) {
-						const index = this.options.indexOf(option)
-						const allOptions = document.querySelectorAll('.combobox-option')
-						if (allOptions[index]) {
-							allOptions[index].focus()
-						}
-					}
-				},
-				handleOptionToggle(option) {
-					if (option.checked) {
-						this.selectedOptions.push(option.value)
-					} else {
-						// remove the unchecked option from the selectedOptions array
-						this.selectedOptions = this.selectedOptions.filter(
-							(opt) => opt !== option.value,
-						)
-					}
-					// set the value of the hidden field to the selectedOptions array
-					this.$refs.hiddenTextField.value = this.selectedOptions.join(';');
-				},
-				handleClose() {
-					if (!this.isOpen) {
-						this.$el.dispatchEvent(new Event('reload-expenses', { bubbles: true }));
-					}
-				},
-			}"
-			class="w-full max-w-xs flex flex-col gap-1"
-			x-on:keydown="highlightFirstMatchingOption($event.key); handleClose();"
-			x-on:keydown.esc.window="isOpen = false, openedWithKeyboard = false; handleClose();"
-			x-on:click.outside="if (isOpen) {
-				isOpen = false;
-				openedWithKeyboard = false;
-				handleClose();
-			}"
-		>
-			<div class="relative">
-				<!-- trigger button  -->
-				<button
-					type="button"
-					role="combobox"
-					class="inline-flex items-center justify-between gap-2 whitespace-nowrap
-						h-9 ps-3 pe-2 min-w-32 max-w-48 md:max-w-60 text-zinc-700 dark:text-zinc-200 text-xs cursor-pointer
-						group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
-						bg-zinc-50 dark:bg-zinc-800
-						border border-1 border-zinc-200 dark:border-zinc-700 rounded-md"
-					aria-haspopup="listbox"
-					aria-controls="categoriesList"
-					x-on:click="isOpen = ! isOpen"
-					x-on:keydown.down.prevent="openedWithKeyboard = true"
-					x-on:keydown.enter.prevent="openedWithKeyboard = true"
-					x-on:keydown.space.prevent="openedWithKeyboard = true"
-					x-bind:aria-label="setLabelText()"
-					x-bind:aria-expanded="isOpen || openedWithKeyboard"
-				>
-					<span class="w-full font-normal text-start overflow-hidden text-ellipsis  whitespace-nowrap" x-text="setLabelText()"></span>
-					<!-- Chevron  -->
-					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
-						<path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
-					</svg>
-				</button>
-				<!-- hidden input to grab the selected value  -->
-				<input
-					id="categories"
-					name="categories"
-					type="text"
-					x-ref="hiddenTextField"
-					x-on:change="$dispatch('reload-expenses', { selectedCategories: selectedOptions })"
-					hidden
-				/>
-				<ul x-cloak x-show="isOpen || openedWithKeyboard" id="categoriesList" class="absolute z-10 left-0 top-11 flex max-h-44 w-full flex-col overflow-hidden overflow-y-auto border-zinc-300 bg-zinc-50 py-1.5 dark:border-zinc-700 dark:bg-zinc-900 border rounded-md" role="listbox" x-on:click.outside="isOpen = false, openedWithKeyboard = false" x-on:keydown.down.prevent="$focus.wrap().next()" x-on:keydown.up.prevent="$focus.wrap().previous()" x-transition x-trap="openedWithKeyboard">
-					<template x-for="(item, index) in options" x-bind:key="item">
-						<!-- option  -->
-						<li role="option">
-							<label class="flex cursor-pointer items-center gap-2 px-4 py-3 text-xs font-medium text-zinc-600 hover:bg-zinc-950/5 has-[:focus]:bg-zinc-950/5 dark:text-zinc-300 dark:hover:bg-white/5 dark:has-[:focus]:bg-white/5 [&:has(input:checked)]:text-zinc-900 dark:[&:has(input:checked)]:text-white [&:has(input:disabled)]:cursor-not-allowed [&:has(input:disabled)]:opacity-75" x-bind:for="'checkboxOption' + index">
-								<div class="relative flex items-center">
-									<input type="checkbox" class="combobox-option before:content[''] peer relative size-4 cursor-pointer appearance-none overflow-hidden border border-zinc-300 bg-zinc-50 before:absolute before:inset-0 checked:border-black checked:before:bg-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-zinc-800 checked:focus:outline-black active:outline-offset-0 disabled:cursor-not-allowed dark:border-zinc-700 rounded dark:bg-zinc-900 dark:checked:border-white dark:checked:before:bg-white dark:focus:outline-zinc-300 dark:checked:focus:outline-white" x-on:change="handleOptionToggle($el)" x-on:keydown.enter.prevent="$el.checked = ! $el.checked; handleOptionToggle($el)" x-bind:value="item" x-bind:id="'checkboxOption' + index"/>
-									<!-- Checkmark  -->
-									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="4" class="pointer-events-none invisible absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 text-zinc-100 peer-checked:visible dark:text-black" aria-hidden="true">
-										<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
-									</svg>
-								</div>
-								<span x-text="item"></span>
-							</label>
-						</li>
-					</template>
-				</ul>
-			</div>
-		</div>
-	</div>
-}
-
-templ Expenses(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, users map[string]user.User) {
-	<div
-		id="all-expenses-list"
-		hx-include="#main-date-range-picker-from, #main-date-range-picker-to, #categories"
-		class="text-sm font-normal bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md"
-	>
-		for i := len(expenses) - 1; i >= 0; i-- {
-			@Expense(ctx, expenses[i], paymentMethods, categories, users[expenses[i].CreatedBy])
-		}
-		<script>
-			function refreshExpenseData() {
-				let total = 0;
-				document.getElementById("all-expenses-list").querySelectorAll(".expense-element").forEach(el => {
-					let amount = parseFloat(el.querySelector('input[name="amount"]').value);
-					total += amount;
-				})
-
-				const [integerPart, decimalPart] = total.toFixed(2).split('.');
-				document.getElementById("total-expenses-integer-part").innerText = integerPart;
-				document.getElementById("total-expenses-decimal-part").innerText = decimalPart;
-			}
-			refreshExpenseData();
-		</script>
-	</div>
-}
-
-templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string, categories []expensecategory.Category, usr user.User) {
-	<div x-data="{ id: $id('accordion') }" title={ fmt.Sprintf("Created by %s %s", usr.FirstName, usr.LastName) } class="relative has-[:focus]:bg-zinc-100/20 dark:has-[:focus]:bg-zinc-900/20 expense-element cursor-pointer">
-		<div
-			id={ "expense-loading-overlay-" + sanitizeCSSSelector(exp.SK) }
+			:id="'expense-loading-overlay-' + exp.SK.replace(/[^a-zA-Z0-9_-]/g, '_')"
 			class="hidden absolute w-full z-50 h-full rounded-md justify-center align-middle content-center"
 			style="flex-wrap: wrap; backdrop-filter: blur(4px);"
 		>
@@ -223,29 +20,19 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 		<button @click="setActiveAccordion(id)" class="flex items-center focus:outline-none justify-between w-full p-4 text-left select-none">
 			<div class="flex flex-1 justify-between">
 				<div class="flex flex-col justify-between flex-1">
-					<div class="text-lg font-medium">{ exp.Name }</div>
-					<div class="text-xs dark:text-zinc-400">{ exp.Category }</div>
+					<div class="text-lg font-medium" x-text="exp.Name"></div>
+					<div class="text-xs dark:text-zinc-400" x-text="exp.Category"></div>
 				</div>
 				<div class="text-end flex flex-col justify-between">
 					<div class="flex justify-end items-center text-lg font-medium">
-						<span title={ exp.PaymentMethod }>
-							if exp.PaymentMethod == "Credit Card" {
-								<svg class="size-5 pb-0.5 pe-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"></path>
-								</svg>
-							} else if exp.PaymentMethod == "Debit Card" {
-								<svg class="size-5 pb-0.5 pe-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"></path>
-								</svg>
-							} else if exp.PaymentMethod == "Cash" {
-								<svg class="size-5 pb-0.5 pe-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-									<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"></path>
-								</svg>
-							}
+						<span :title="exp.PaymentMethod">
+							<template x-if="exp.PaymentMethod === 'Credit Card'"><svg class="size-5 pb-0.5 pe-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"></path> </svg> </template>
+							<template x-if="exp.PaymentMethod === 'Debit Card'"><svg class="size-5 pb-0.5 pe-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z"></path> </svg> </template>
+							<template x-if="exp.PaymentMethod === 'Cash'"><svg class="size-5 pb-0.5 pe-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z"></path> </svg> </template>
 						</span>
-						<span>{ fmt.Sprintf("%.2f %s", exp.Amount, "PLN") }</span>
+						<span x-text="exp.Amount.toFixed(2) + ' PLN'"></span>
 					</div>
-					<div class="text-xs dark:text-zinc-400">{ parseDate(exp.Date, "Monday, 02 Jan 2006") }</div>
+					<div class="text-xs dark:text-zinc-400" x-text="exp.Date"></div>
 				</div>
 			</div>
 		</button>
@@ -260,24 +47,24 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 			<div class="flex justify-center pb-2">
 				<button
 					type="button"
-					class="mx-2 px-4 py-1
-						inline-flex items-center justify-center
-						text-sm font-medium tracking-wide
-						text-red-600 dark:text-white hover:text-white
-						bg-white dark:bg-red-600 hover:bg-red-500 dark:hover:bg-red-700 
-						border-2 border-red-500 dark:border-transparent rounded-md 
-						transition-colors duration-100
-						focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1
-						focus:shadow-outline focus:outline-none
-					"
-					hx-target="closest .expense-element"
-					hx-delete={ url.Create(ctx, "expense", exp.SK) }
-					hx-swap="delete"
-					hx-confirm={ "Are you sure you want to delete this expense?\n\nName: " + exp.Name + "\nCategory: " + exp.Category + "\nAmount: " + fmt.Sprintf("%.2f %s", exp.Amount, "PLN") }
+					class="mx-2 px-4 py-1 inline-flex items-center justify-center text-sm font-medium tracking-wide text-red-600 dark:text-white hover:text-white bg-white dark:bg-red-600 hover:bg-red-500 dark:hover:bg-red-700 border-2 border-red-500 dark:border-transparent rounded-md transition-colors duration-100 focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1 focus:shadow-outline focus:outline-none"
+					:hx-delete="composeURI(urlStart, [ 'expense', exp.SK ])"
+					:data-loading-path="composeURI(urlStart, [ 'expense', exp.SK ])"
+					:data-loading-target="'#expense-loading-overlay-' + exp.SK.replace(/[^a-zA-Z0-9_-]/g, '_')"
+					data-loading-class-remove="hidden"
+					hx-swap="none"
+					hx-include="#main-date-range-picker-from, #main-date-range-picker-to, #categories"
 					@htmx:after-request.camel="
-						refreshExpenseData();
-						document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
+						console.log('@htmx:after-request.camel triggered from Expense DELETE button');
+						if (event.detail.successful && event.detail.xhr.responseURL.includes($el.getAttribute('hx-delete'))) {
+							const parsed = JSON.parse(event.detail.xhr.response);
+							categories = parsed.categories;
+							expenses = parsed.expenses;
+							users = parsed.users;
+							return;
+						}
 					"
+					:hx-confirm='"Are you sure you want to delete expense " + exp.Name + "(" + exp.Amount.toFixed(2) + " PLN)?"'
 				>
 					Delete	
 				</button>
@@ -287,17 +74,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 					<button
 						x-ref="popoverButton"
 						@click="popoverOpen=!popoverOpen"
-						class="
-							mx-2 px-4 py-1
-							text-blue-500 dark:text-zinc-200 hover:text-white
-							bg-white hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600
-							border-blue-500 dark:border-transparent
-							border-2 rounded-md
-							text-sm font-medium tracking-wide
-							inline-flex items-center justify-center
-							transition-colors duration-100
-							focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1
-						"
+						class="mx-2 px-4 py-1 text-blue-500 dark:text-zinc-200 hover:text-white bg-white hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-600 border-blue-500 dark:border-transparent border-2 rounded-md text-sm font-medium tracking-wide inline-flex items-center justify-center transition-colors duration-100 focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-200/30 focus:outline-1"
 					>
 						Edit
 					</button>
@@ -306,27 +83,38 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 			<div x-show="popoverOpen && activeAccordion==id" x-collapse x-cloak>
 				<hr class="w-[80%] mx-auto mb-2 dark:border-zinc-700"/>
 				<form
-					data-loading-path={ url.Create(ctx, "expense", "edit", exp.SK) }
-					data-loading-target={ "#expense-loading-overlay-" + sanitizeCSSSelector(exp.SK) }
+					:data-loading-path="composeURI(urlStart, [ 'expense', 'edit', exp.SK ])"
+					:data-loading-target="'#expense-loading-overlay-' + exp.SK.replace(/[^a-zA-Z0-9_-]/g, '_')"
 					data-loading-class-remove="hidden"
 					class="grid gap-2 px-5"
-					hx-put={ url.Create(ctx, "expense", "edit", exp.SK) }
-					hx-target="#all-expenses-list"
-					hx-swap="outerHTML"
+					:hx-put="composeURI(urlStart, [ 'expense', 'edit', exp.SK ])"
 					x-data="{ formErrors: {} }"
 					x-effect="if (popoverOpen) { formErrors = {}; $el.reset(); }"
+					hx-swap="none"
+					hx-include="#main-date-range-picker-from, #main-date-range-picker-to, #categories"
 					@htmx:after-request.camel="
-							if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
-								const parsed = JSON.parse(event.detail.xhr.response);
-								if (typeof parsed.message === 'object') {
-									formErrors = parsed.message;
-								} else {
-									document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
-									popoverOpen = false;
-								}
-								return;
+						console.log('@htmx:after-request.camel triggered from Expense FORM');
+						if (event.detail.successful && event.detail.xhr.responseURL.endsWith($el.getAttribute('hx-put'))) {
+							const parsed = JSON.parse(event.detail.xhr.response);
+							categories = parsed.categories;
+							expenses = parsed.expenses;
+							users = parsed.users;
+
+							setActiveAccordion();
+							return;
+						}
+
+						if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
+							const parsed = JSON.parse(event.detail.xhr.response);
+							if (typeof parsed.message === 'object') {
+								formErrors = parsed.message;
+							} else {
+								document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
+								popoverOpen = false;
 							}
-						"
+							return;
+						}
+					"
 				>
 					<div class="grid items-center grid-cols-3 gap-4">
 						<label
@@ -339,8 +127,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 							id="edit-expense-name-input"
 							type="text"
 							name="name"
-							value={ exp.Name }
-							placeholder={ exp.Name }
+							:placeholder="exp.Name"
 							minlength={ strconv.Itoa(expense.NameMinLength) }
 							maxlength={ strconv.Itoa(expense.NameMaxLength) }
 							required
@@ -363,11 +150,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 								class="shadow appearance-none border dark:border-zinc-700 dark:bg-zinc-800 rounded w-full py-2 px-3 text-zinc-700 dark:text-zinc-200 leading-tight focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1"
 							>
 								for _, category := range categories {
-									if exp.Category == category.Name {
-										<option selected>{ category.Name }</option>
-									} else {
-										<option>{ category.Name }</option>
-									}
+									<option :selected="exp.Category === $el.textContent">{ category.Name }</option>
 								}
 							</select>
 							<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-700">
@@ -390,8 +173,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 							id="edit-expense-amount-input"
 							name="amount"
 							type="text"
-							placeholder={ fmt.Sprintf("%.2f %s", exp.Amount, "PLN") }
-							value={ fmt.Sprintf("%.2f", exp.Amount) }
+							:placeholder="exp.Amount.toFixed(2) + ' PLN'"
 							inputmode="decimal"
 							pattern="^\d+([.,]\d{1,2})?$"
 							title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
@@ -413,7 +195,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 							class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 							type="date"
 							name="date"
-							value={ exp.Date }
+							:placeholder="exp.Date"
 							required
 						/>
 						<template x-for="err in formErrors.date">
@@ -434,11 +216,7 @@ templ Expense(ctx context.Context, exp expense.Expense, paymentMethods []string,
 								name="paymentMethod"
 							>
 								for _, paymentMethod := range paymentMethods {
-									if exp.PaymentMethod == paymentMethod {
-										<option selected>{ paymentMethod }</option>
-									} else {
-										<option>{ paymentMethod }</option>
-									}
+									<option :selected="exp.PaymentMethod === $el.textContent">{ paymentMethod }</option>
 								}
 							</select>
 							<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-700">

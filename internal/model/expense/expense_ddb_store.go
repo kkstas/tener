@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"sort"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
@@ -428,6 +429,10 @@ func (es *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Ex
 
 		expenses = append(expenses, resExpenses...)
 	}
+
+	sort.Slice(expenses, func(i, j int) bool {
+		return expenses[i].SK > expenses[j].SK
+	})
 
 	return expenses, nil
 }

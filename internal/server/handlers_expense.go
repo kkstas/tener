@@ -75,7 +75,7 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 
 	return app.renderTempl(
 		w, r,
-		components.Home2(r.Context(), expenses, expense.PaymentMethods, categories, u, users, monthlySums),
+		components.Home(r.Context(), expenses, expense.PaymentMethods, categories, u, users, monthlySums),
 	)
 }
 
@@ -114,81 +114,6 @@ func (app *Application) getExpensesJSON(w http.ResponseWriter, r *http.Request, 
 		"categories": categories,
 		"users":      users,
 	})
-}
-
-func (app *Application) renderExpenses(w http.ResponseWriter, r *http.Request, u user.User) error {
-	from, to, selectedCategories := queryFilters(r)
-
-	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
-	if err != nil {
-		return fmt.Errorf("failed to query expenses: %w", err)
-	}
-
-	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
-	if err != nil {
-		return fmt.Errorf("failed to query expense categories: %w", err)
-	}
-
-	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
-	if err != nil {
-		return fmt.Errorf("failed to find matching users for expenses & expense categories: %w", err)
-	}
-
-	return app.renderTempl(w, r, components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users))
-}
-
-func (app *Application) createSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) error {
-	from, to, selectedCategories := queryFilters(r)
-
-	category := r.FormValue("category")
-	paymentMethod := r.FormValue("paymentMethod")
-	date := r.FormValue("date")
-	name := r.FormValue("name")
-	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
-
-	amount, err := strconv.ParseFloat(amountRaw, 64)
-	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return InvalidRequestData(map[string][]string{"amount": {"must be a valid decimal number"}})
-	}
-
-	exp, isValid, errMessages := expense.New(name, date, category, amount, paymentMethod)
-	if !isValid {
-		validationErr := InvalidRequestData(errMessages)
-		app.emitActionTrail("create_expense", false, &u, validationErr, map[string]interface{}{"inputForm": r.Form})
-		return validationErr
-	}
-
-	_, err = app.expense.Create(r.Context(), exp, u.ID, u.ActiveVault)
-	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return fmt.Errorf("failed to put item: %w", err)
-	}
-
-	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
-	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return fmt.Errorf("failed to query items: %w", err)
-	}
-
-	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
-	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return fmt.Errorf("failed to query expense categories: %w", err)
-	}
-
-	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
-	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return fmt.Errorf("failed to find matching users for expenses & expense categories: %w", err)
-	}
-
-	app.emitActionTrail("create_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
-
-	return app.renderTempl(
-		w, r,
-		components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users),
-	)
 }
 
 func (app *Application) createSingleExpenseJSON(w http.ResponseWriter, r *http.Request, u user.User) error {
@@ -244,65 +169,6 @@ func (app *Application) createSingleExpenseJSON(w http.ResponseWriter, r *http.R
 		"categories": categories,
 		"users":      users,
 	})
-}
-
-func (app *Application) updateSingleExpenseAndRenderExpenses(w http.ResponseWriter, r *http.Request, u user.User) error {
-	from, to, selectedCategories := queryFilters(r)
-
-	SK := r.PathValue("SK")
-	category := strings.TrimSpace(r.FormValue("category"))
-	paymentMethod := strings.TrimSpace(r.FormValue("paymentMethod"))
-	date := r.FormValue("date")
-	name := strings.TrimSpace(r.FormValue("name"))
-	amountRaw := strings.Replace(r.FormValue("amount"), ",", ".", 1)
-	amount, err := strconv.ParseFloat(amountRaw, 64)
-
-	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return InvalidRequestData(map[string][]string{"amount": {"invalid amount value"}})
-	}
-
-	expenseFU, isValid, errMessages := expense.NewFU(SK, name, date, category, amount, paymentMethod)
-	if !isValid {
-		validationErr := InvalidRequestData(errMessages)
-		app.emitActionTrail("update_expense", false, &u, validationErr, map[string]interface{}{"inputForm": r.Form, "expenseFU": expenseFU})
-		return validationErr
-	}
-
-	err = app.expense.Update(r.Context(), expenseFU, u.ActiveVault)
-	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form, "expenseFU": expenseFU})
-		var notFoundErr *expense.NotFoundError
-		if errors.As(err, &notFoundErr) {
-			return NewAPIError(http.StatusNotFound, err)
-		}
-		return fmt.Errorf("failed to put item: %w", err)
-	}
-
-	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
-	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return fmt.Errorf("failed to query expenses: %w", err)
-	}
-
-	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
-	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return fmt.Errorf("failed to query expense categories: %w", err)
-	}
-
-	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
-	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
-		return fmt.Errorf("failed to find matching users for expenses & expense categories: %w", err)
-	}
-
-	app.emitActionTrail("update_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
-	w.WriteHeader(201)
-	return app.renderTempl(
-		w, r,
-		components.Expenses(r.Context(), expenses, expense.PaymentMethods, categories, users),
-	)
 }
 
 func (app *Application) updateSingleExpenseJSON(w http.ResponseWriter, r *http.Request, u user.User) error {
@@ -364,24 +230,6 @@ func (app *Application) updateSingleExpenseJSON(w http.ResponseWriter, r *http.R
 		"categories": categories,
 		"users":      users,
 	})
-}
-
-func (app *Application) deleteSingleExpense(w http.ResponseWriter, r *http.Request, u user.User) error {
-	sk := r.PathValue("SK")
-
-	err := app.expense.Delete(r.Context(), sk, u.ActiveVault)
-	if err != nil {
-		app.emitActionTrail("delete_expense", false, &u, err, map[string]interface{}{"SK": sk})
-		var notFoundErr *expense.NotFoundError
-		if errors.As(err, &notFoundErr) {
-			return NewAPIError(http.StatusNotFound, err)
-		}
-		return fmt.Errorf("failed to delete item: %w", err)
-	}
-
-	app.emitActionTrail("delete_expense", true, &u, nil, map[string]interface{}{"SK": sk})
-	w.WriteHeader(http.StatusOK)
-	return nil
 }
 
 func (app *Application) deleteSingleExpenseJSON(w http.ResponseWriter, r *http.Request, u user.User) error {
