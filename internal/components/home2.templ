@@ -26,7 +26,7 @@ templ ExpenseDateRangePicker(ctx context.Context) {
 			}
 		"
 		class="my-1 w-36 text-zinc-700 dark:text-zinc-200 cursor-pointer
-			border border-1 border-zinc-200 dark:border-zinc-700 rounded-md"
+			border border-1 border-zinc-200 dark:border-zinc-700 rounded-md overflow-hidden"
 	>
 		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.GetFirstDayOfCurrentMonth() }/>
 		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
@@ -34,7 +34,6 @@ templ ExpenseDateRangePicker(ctx context.Context) {
 			tabindex="0"
 			class="flatpickr flex group
 				group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
-				rounded-md
 				bg-zinc-50 dark:bg-zinc-800"
 			@keydown.enter="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
 			@click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
@@ -44,7 +43,7 @@ templ ExpenseDateRangePicker(ctx context.Context) {
 				tabindex="-1"
 				id="main-date-range-picker"
 				class="cursor-pointer
-					w-full appearance-none rounded-md
+					w-full appearance-none
 					border border-transparent bg-transparent
 					ps-3 py-2 text-xs
 					focus-visible:outline-none"
@@ -230,6 +229,9 @@ templ Home2(ctx context.Context, expenses []expense.Expense, paymentMethods []st
 					users = users ?? {};
 				"
 			>
+				<div x-init="$watch('expenses', () => document.getElementById('monthsBarChartContainer').dispatchEvent(new CustomEvent('reload-chart')))">
+					@MonthlySumsChart(ctx, expense.TransformToChartData(monthlySums))
+				</div>
 				@CreateExpenseContainer2(ctx, paymentMethods, categories)
 				<div class="flex justify-end pb-1">
 					@ExpenseCategoryFilter2(ctx, extractCategories(expenses))
@@ -240,13 +242,6 @@ templ Home2(ctx context.Context, expenses []expense.Expense, paymentMethods []st
 						@Expense2(ctx, paymentMethods, categories)
 					</template>
 				</div>
-				//				@MonthlySumsChart(ctx, expense.TransformToChartData(monthlySums))
-				//				@CreateExpenseContainer(ctx, paymentMethods, categories, getTotalAmount(expenses))
-				//				<div class="flex justify-end pb-1">
-				//					@ExpenseCategoryFilter(ctx, extractCategories(expenses))
-				//					@ExpenseSummaryDateRangePicker(ctx)
-				//				</div>
-				//				@Expenses(ctx, expenses, paymentMethods, categories, users)
 			</div>
 		</div>
 	}
