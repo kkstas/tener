@@ -44,7 +44,7 @@ templ Home(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 				</div>
 				@CreateExpenseContainer(ctx, paymentMethods, categories)
 				<div class="flex justify-end pb-1">
-					@ExpenseCategoryFilter(ctx, extractCategories(expenses))
+					@ExpenseCategoryFilter(ctx, getUniqueCategoryNames(extractCategories(expenses), categories))
 					@ExpenseDateRangePicker(ctx)
 				</div>
 				<div class="text-sm font-normal bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md divide-y-reverse overflow-hidden">
