@@ -197,7 +197,7 @@ func (s *DDBStore) FindAllByIDs(ctx context.Context, ids []string) (map[string]U
 		return nil, nil
 	}
 
-	var keys []map[string]types.AttributeValue
+	keys := []map[string]types.AttributeValue{}
 
 	for _, id := range ids {
 		keys = append(keys, getKey(id))
@@ -234,7 +234,7 @@ func (s *DDBStore) FindAllByIDs(ctx context.Context, ids []string) (map[string]U
 }
 
 func (s *DDBStore) query(ctx context.Context, expr expression.Expression) ([]User, error) {
-	var users []User
+	users := []User{}
 
 	queryInput := dynamodb.QueryInput{
 		TableName:                 &s.tableName,
@@ -253,7 +253,7 @@ func (s *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Use
 			return nil, fmt.Errorf("failed to query for expense categories: %w", err)
 		}
 
-		var resUsers []User
+		resUsers := []User{}
 		err = attributevalue.UnmarshalListOfMaps(response.Items, &resUsers)
 		if err != nil {
 			return users, fmt.Errorf("failed to unmarshal query response for expense categories: %w", err)

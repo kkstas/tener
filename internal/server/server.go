@@ -64,10 +64,10 @@ func NewApplication(logger *slog.Logger, expenseStore expenseStore, expenseCateg
 	mux.HandleFunc("POST /register", app.make(app.toggleRegisterMiddleware(app.handleRegister)))
 
 	mux.HandleFunc("GET    /home", app.make(app.withUser(app.renderHomePage)))
-	mux.HandleFunc("GET    /expense/all", app.make(app.withUser(app.renderExpenses)))
-	mux.HandleFunc("POST   /expense/create", app.make(app.withUser(app.createSingleExpenseAndRenderExpenses)))
-	mux.HandleFunc("PUT    /expense/edit/{SK}", app.make(app.withUser(app.updateSingleExpenseAndRenderExpenses)))
-	mux.HandleFunc("DELETE /expense/{SK}", app.make(app.withUser(app.deleteSingleExpense)))
+	mux.HandleFunc("GET    /expense/all", app.make(app.withUser(app.getExpensesJSON)))
+	mux.HandleFunc("POST   /expense/create", app.make(app.withUser(app.createSingleExpenseJSON)))
+	mux.HandleFunc("PUT    /expense/edit/{SK}", app.make(app.withUser(app.updateSingleExpenseJSON)))
+	mux.HandleFunc("DELETE /expense/{SK}", app.make(app.withUser(app.deleteSingleExpenseJSON)))
 	mux.HandleFunc("GET    /expense/sums", app.make(app.withUser(app.getMonthlySums)))
 
 	mux.HandleFunc("GET    /expensecategories", app.make(app.withUser(app.renderExpenseCategoriesPage)))

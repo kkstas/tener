@@ -1,0 +1,131 @@
+
+package components
+
+import (
+	"context"
+
+	"github.com/kkstas/tener/internal/url"
+)
+
+templ ExpenseCategoryFilter(ctx context.Context, categories []string) {
+	<div class="my-1 pe-1" x-data={ toJSON(map[string][]string{"options": categories}) }>
+		<div
+			id="expense-category-filter"
+			hx-get={ url.Create(ctx, "expense", "all") }
+			hx-trigger="reload-expenses"
+			hx-swap="none"
+			hx-include="#main-date-range-picker-from, #main-date-range-picker-to, #categories"
+			x-data="{
+				isOpen: false,
+				openedWithKeyboard: false,
+				selectedOptions: [],
+				setLabelText() {
+					const count = this.selectedOptions.length;
+					if (count === 0) return 'All categories'; // if there are no selected options
+					return this.selectedOptions.join(', '); // join the selected options with a comma
+				},
+				highlightFirstMatchingOption(pressedKey) {
+					if (pressedKey === 'Enter') return // if Enter pressed, do nothing
+
+					// find and focus the option that starts with the pressed key
+					const option = this.options.find((item) => item.toLowerCase().startsWith(pressedKey.toLowerCase()));
+					if (option) {
+						const index = this.options.indexOf(option)
+						const allOptions = document.querySelectorAll('.combobox-option')
+						if (allOptions[index]) {
+							allOptions[index].focus()
+						}
+					}
+				},
+				handleOptionToggle(option) {
+					if (option.checked) {
+						this.selectedOptions.push(option.value)
+					} else {
+						// remove the unchecked option from the selectedOptions array
+						this.selectedOptions = this.selectedOptions.filter(
+							(opt) => opt !== option.value,
+						)
+					}
+					// set the value of the hidden field to the selectedOptions array
+					this.$refs.hiddenTextField.value = this.selectedOptions.join(';');
+				},
+				handleClose() {
+					if (!this.isOpen) {
+						this.$el.dispatchEvent(new Event('reload-expenses', { bubbles: true }));
+					}
+				},
+			}"
+			class="w-full max-w-xs flex flex-col gap-1"
+			x-on:keydown="highlightFirstMatchingOption($event.key); handleClose();"
+			x-on:keydown.esc.window="isOpen = false, openedWithKeyboard = false; handleClose();"
+			x-on:click.outside="if (isOpen) {
+				isOpen = false;
+				openedWithKeyboard = false;
+				handleClose();
+			}"
+			@htmx:after-request.camel="
+				console.log('@htmx:after-request.camel triggered from ExpenseCategoryFilter');
+				if (event.detail.successful && event.detail.xhr.responseURL.includes($el.getAttribute('hx-get'))) {
+					const parsed = JSON.parse(event.detail.xhr.response);
+					categories = parsed.categories;
+					expenses = parsed.expenses;
+					users = parsed.users;
+					return;
+				}
+			"
+		>
+			<div class="relative">
+				<!-- trigger button  -->
+				<button
+					type="button"
+					role="combobox"
+					class="inline-flex items-center justify-between gap-2 whitespace-nowrap
+						h-9 ps-3 pe-2 min-w-32 max-w-48 md:max-w-60 text-zinc-700 dark:text-zinc-200 text-xs cursor-pointer
+						group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
+						bg-zinc-50 dark:bg-zinc-800
+						border border-1 border-zinc-200 dark:border-zinc-700 rounded-md"
+					aria-haspopup="listbox"
+					aria-controls="categoriesList"
+					x-on:click="isOpen = ! isOpen"
+					x-on:keydown.down.prevent="openedWithKeyboard = true"
+					x-on:keydown.enter.prevent="openedWithKeyboard = true"
+					x-on:keydown.space.prevent="openedWithKeyboard = true"
+					x-bind:aria-label="setLabelText()"
+					x-bind:aria-expanded="isOpen || openedWithKeyboard"
+				>
+					<span class="w-full font-normal text-start overflow-hidden text-ellipsis  whitespace-nowrap" x-text="setLabelText()"></span>
+					<!-- Chevron  -->
+					<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="size-5">
+						<path fill-rule="evenodd" d="M5.22 8.22a.75.75 0 0 1 1.06 0L10 11.94l3.72-3.72a.75.75 0 1 1 1.06 1.06l-4.25 4.25a.75.75 0 0 1-1.06 0L5.22 9.28a.75.75 0 0 1 0-1.06Z" clip-rule="evenodd"></path>
+					</svg>
+				</button>
+				<!-- hidden input to grab the selected value  -->
+				<input
+					id="categories"
+					name="categories"
+					type="text"
+					x-ref="hiddenTextField"
+					x-on:change="$dispatch('reload-expenses', { selectedCategories: selectedOptions })"
+					hidden
+				/>
+				<ul x-cloak x-show="isOpen || openedWithKeyboard" id="categoriesList" class="absolute z-10 left-0 top-11 flex max-h-44 w-full flex-col overflow-hidden overflow-y-auto border-zinc-300 bg-zinc-50 py-1.5 dark:border-zinc-700 dark:bg-zinc-900 border rounded-md" role="listbox" x-on:click.outside="isOpen = false, openedWithKeyboard = false" x-on:keydown.down.prevent="$focus.wrap().next()" x-on:keydown.up.prevent="$focus.wrap().previous()" x-transition x-trap="openedWithKeyboard">
+					<template x-for="(item, index) in options" x-bind:key="item">
+						<!-- option  -->
+						<li role="option">
+							<label class="flex cursor-pointer items-center gap-2 px-4 py-3 text-xs font-medium text-zinc-600 hover:bg-zinc-950/5 has-[:focus]:bg-zinc-950/5 dark:text-zinc-300 dark:hover:bg-white/5 dark:has-[:focus]:bg-white/5 [&:has(input:checked)]:text-zinc-900 dark:[&:has(input:checked)]:text-white [&:has(input:disabled)]:cursor-not-allowed [&:has(input:disabled)]:opacity-75" x-bind:for="'checkboxOption' + index">
+								<div class="relative flex items-center">
+									<input type="checkbox" class="combobox-option before:content[''] peer relative size-4 cursor-pointer appearance-none overflow-hidden border border-zinc-300 bg-zinc-50 before:absolute before:inset-0 checked:border-black checked:before:bg-black focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-zinc-800 checked:focus:outline-black active:outline-offset-0 disabled:cursor-not-allowed dark:border-zinc-700 rounded dark:bg-zinc-900 dark:checked:border-white dark:checked:before:bg-white dark:focus:outline-zinc-300 dark:checked:focus:outline-white" x-on:change="handleOptionToggle($el)" x-on:keydown.enter.prevent="$el.checked = ! $el.checked; handleOptionToggle($el)" x-bind:value="item" x-bind:id="'checkboxOption' + index"/>
+									<!-- Checkmark  -->
+									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="4" class="pointer-events-none invisible absolute left-1/2 top-1/2 size-3 -translate-x-1/2 -translate-y-1/2 text-zinc-100 peer-checked:visible dark:text-black" aria-hidden="true">
+										<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"></path>
+									</svg>
+								</div>
+								<span x-text="item"></span>
+							</label>
+						</li>
+					</template>
+				</ul>
+			</div>
+		</div>
+	</div>
+}

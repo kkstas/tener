@@ -12,7 +12,7 @@ import (
 type ErrMessages map[string][]string
 
 type Validator struct {
-	ErrMessages ErrMessages
+	ErrMessages ErrMessages `json:"-"`
 }
 
 func NewValidator() Validator {
@@ -35,9 +35,9 @@ func (v *Validator) Validate() (isValid bool, errMessages ErrMessages) {
 	return true, nil
 }
 
-func StringLengthBetween(name, val string, min, max int) (bool, string, string) {
+func StringLengthBetween(name, val string, minLen, maxLen int) (bool, string, string) {
 	length := utf8.RuneCountInString(strings.TrimSpace(val))
-	return length <= max && length >= min, name, fmt.Sprintf("must be between %d and %d characters long", min, max)
+	return length <= maxLen && length >= minLen, name, fmt.Sprintf("must be between %d and %d characters long", minLen, maxLen)
 }
 
 func OneOf[T comparable](name string, val T, arr []T) (bool, string, string) {

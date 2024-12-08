@@ -2,58 +2,14 @@ package components
 
 import (
 	"context"
+
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
 	"github.com/kkstas/tener/internal/model/user"
 	"github.com/kkstas/tener/internal/url"
 )
 
-templ MonthlySumsChart(ctx context.Context, chartData expense.ChartData) {
-	@templ.JSONScript("chartDataRaw", chartData)
-	<div
-		id="monthsBarChartContainer"
-		hx-get={ url.Create(ctx, "expense", "sums") }
-		hx-swap="outerHTML"
-		hx-trigger="reload-chart"
-		hx-target="this"
-		hx-on::before-swap="
-			document.getElementById('chartDataRaw').remove();
-			Chart.getChart('monthsBarChart') && Chart.getChart('monthsBarChart').destroy()
-		"
-	>
-		<canvas id="monthsBarChart" width="400" height="300"></canvas>
-		<script>
-			new Chart(document.getElementById("monthsBarChart").getContext("2d"), {
-				type: "bar",
-				data: JSON.parse(document.getElementById("chartDataRaw").textContent),
-				options: {
-					plugins: { legend: { display: false } },
-					animations: false,
-					scales: {
-						x: { stacked: true },
-						y: { stacked: true, beginAtZero: true },
-					},
-				},
-			});
-		</script>
-	</div>
-}
-
-templ refreshExpensesIfStale() {
-	<script>
-		let lastReloadTimestamp = Date.now();
-		window.addEventListener("focus", () => {
-			const now = Date.now()
-			if (now - lastReloadTimestamp > 60 * 1000) { // 60 s * 1000 ms = 1 min
-				console.log(`${new Date().toISOString()} refreshing stale expenses`);
-				document.getElementById('expense-category-filter').dispatchEvent(new Event('reload-expenses', { bubbles: true }));
-				lastReloadTimestamp = now;
-			}
-		})
-	</script>
-}
-
-templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, u user.User, users map[string]user.User, monthlySums []expense.MonthlySum) {
+templ Home(ctx context.Context, expenses []expense.Expense, paymentMethods []string, categories []expensecategory.Category, u user.User, users map[string]user.User, monthlySums []expense.MonthlySum) {
 	@BaseHTML(ctx, true, u) {
 		<div
 			x-data="{
@@ -65,16 +21,38 @@ templ Page(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 				document.querySelector('#main-date-range-picker')._flatpickr.close();
 			"
 		>
-			<div class="my-3 relative w-full max-w-md mx-auto">
-				@MonthlySumsChart(ctx, expense.TransformToChartData(monthlySums))
-				@CreateExpenseContainer(ctx, paymentMethods, categories, getTotalAmount(expenses))
+			<div
+				class="my-3 relative w-full max-w-md mx-auto"
+				x-data={ toJSON(map[string]any{
+					"categories": categories,
+					"expenses": expenses,
+					"monthlySums": monthlySums,
+					"paymentMethods": paymentMethods,
+					"users": users,
+					"urlStart": url.Create(ctx),
+				}) }
+				x-init="
+					categories = categories ?? [];
+					expenses = expenses ?? [];
+					monthlySums = monthlySums ?? [];
+					paymentMethods = paymentMethods ?? [];
+					users = users ?? {};
+				"
+			>
+				<div x-init="$watch('expenses', () => document.getElementById('monthsBarChartContainer').dispatchEvent(new CustomEvent('reload-chart')))">
+					@MonthlySumsChart(ctx, expense.TransformToChartData(monthlySums))
+				</div>
+				@CreateExpenseContainer(ctx, paymentMethods, categories)
 				<div class="flex justify-end pb-1">
 					@ExpenseCategoryFilter(ctx, extractCategories(expenses))
-					@ExpenseSummaryDateRangePicker(ctx)
+					@ExpenseDateRangePicker(ctx)
 				</div>
-				@Expenses(ctx, expenses, paymentMethods, categories, users)
+				<div class="text-sm font-normal bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md divide-y-reverse overflow-hidden">
+					<template x-for="exp in expenses" :key="exp.SK">
+						@Expense(ctx, paymentMethods, categories)
+					</template>
+				</div>
 			</div>
 		</div>
-		@refreshExpensesIfStale()
 	}
 }

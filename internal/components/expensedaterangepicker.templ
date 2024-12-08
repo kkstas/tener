@@ -1,0 +1,75 @@
+package components
+
+import (
+	"context"
+
+	"github.com/kkstas/tener/internal/helpers"
+	"github.com/kkstas/tener/internal/url"
+)
+
+templ ExpenseDateRangePicker(ctx context.Context) {
+	<form
+		hx-get={ url.Create(ctx, "expense", "all") }
+		hx-trigger="change[target._flatpickr.selectedDates.length === 2] from:#main-date-range-picker"
+		hx-swap="none"
+		hx-include="#categories"
+		@htmx:after-request.camel="
+			console.log('@htmx:after-request.camel triggered from ExpenseDateRangePicker');
+			if (event.detail.successful && event.detail.xhr.responseURL.includes($el.getAttribute('hx-get'))) {
+				const parsed = JSON.parse(event.detail.xhr.response);
+				categories = parsed.categories;
+				expenses = parsed.expenses;
+				users = parsed.users;
+				return;
+			}
+		"
+		class="my-1 w-36 text-zinc-700 dark:text-zinc-200 cursor-pointer
+			border border-1 border-zinc-200 dark:border-zinc-700 rounded-md overflow-hidden"
+	>
+		<input type="hidden" id="main-date-range-picker-from" name="from" value={ helpers.GetFirstDayOfCurrentMonth() }/>
+		<input type="hidden" id="main-date-range-picker-to" name="to" value={ helpers.DaysAgo(0) }/>
+		<div
+			tabindex="0"
+			class="flatpickr flex group
+				group-focus:shadow-outline group-focus:outline-none group-focus:outline-zinc-800/10 dark:group-focus:outline-zinc-200/30 group-focus:outline-1
+				bg-zinc-50 dark:bg-zinc-800"
+			@keydown.enter="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
+			@click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();"
+			@keydown.escape.stop="document.querySelector('#main-date-range-picker')._flatpickr.close();"
+		>
+			<input
+				tabindex="-1"
+				id="main-date-range-picker"
+				class="cursor-pointer
+					w-full appearance-none
+					border border-transparent bg-transparent
+					ps-3 py-2 text-xs
+					focus-visible:outline-none"
+			/>
+			<svg @click.self="document.querySelector('#main-date-range-picker')._flatpickr.toggle();" class="my-auto me-3" width="16" height="16" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"></path></svg>
+		</div>
+		<script>
+			function dateToISODateString(date) {
+				return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+			}
+
+			flatpickr("#main-date-range-picker", {
+				mode: "range",
+				dateFormat: "Y-m-d",
+				defaultDate: [document.getElementById("main-date-range-picker-from").value, document.getElementById("main-date-range-picker-to").value],
+				altInput: true,
+				altFormat: "j M",
+				maxDate: "today",
+				onClose: function(selectedDates, dateStr, instance) {
+					instance.input.blur();
+				},
+				onChange: function(selectedDates, dateStr, instance) {
+					if (selectedDates.length === 2) {
+						document.getElementById("main-date-range-picker-from").value = dateToISODateString(selectedDates[0]);
+						document.getElementById("main-date-range-picker-to").value = dateToISODateString(selectedDates[1]);
+					}
+				}
+			});
+		</script>
+	</form>
+}

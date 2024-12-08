@@ -1,16 +1,16 @@
+
 package components
 
 import (
 	"context"
 	"strconv"
-	"strings"
 
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
 	"github.com/kkstas/tener/internal/url"
 )
 
-templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categories []expensecategory.Category, total string) {
+templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categories []expensecategory.Category) {
 	<div class="mt-10 mb-5 relative w-full max-w-md mx-auto text-sm font-normal bg-white dark:bg-zinc-800 focus:shadow-outline has-[:focus]:shadow-outline focus:outline-none has-[:focus]:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 has-[:focus]:outline-zinc-800/10 dark:has-[:focus]:outline-zinc-300/20 focus:outline-1 has-[:focus]:outline-1 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md">
 		<div
 			id="create-expense-loading-overlay"
@@ -23,9 +23,19 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 			<button @click="setActiveAccordion(id); if (activeAccordion==id) setTimeout(() => { document.getElementById('create-expense-date-input').value = new Date().toLocaleDateString('pl-PL', { year: 'numeric', month: '2-digit', day: '2-digit' }).split('.').reverse().join('-'); });" class="focus:outline-none flex items-center justify-center w-full p-4 text-left select-none">
 				<div class="focus:outline-none mt-auto w-full min-w-36 text-left text-xs md:text-sm select-none">
 					<div>Total expenses</div>
-					<div class="pt-2 dark:text-zinc-200 text-zinc-800 font-medium">
-						<span class="text-5xl font-bold" id="total-expenses-integer-part">{ strings.Split(total, ".")[0] }</span>
-						<span>,<span id="total-expenses-decimal-part">{ strings.Split(total, ".")[1] }</span> PLN</span>
+					<div
+						class="pt-2 dark:text-zinc-200 text-zinc-800 font-medium"
+						x-data="{
+							updateTotalAmount(expenses) {
+								let totalAmount = expenses.reduce((acc, currExpense) => acc + currExpense.Amount, 0).toFixed(2);
+								$refs.integerpart.innerText = totalAmount.split('.')[0];
+								$refs.decimalpart.innerText = totalAmount.split('.')[1];
+							}
+						}"
+						x-effect="updateTotalAmount(expenses);"
+					>
+						<span class="text-5xl font-bold" x-ref="integerpart"></span>
+						<span>,<span x-ref="decimalpart"></span> PLN</span>
 					</div>
 				</div>
 				<svg :class="activeAccordion==id && 'rotate-180'" class="size-8 mx-auto opacity-40 me-2 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -42,8 +52,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 						data-loading-class-remove="hidden"
 						class="grid gap-2"
 						hx-post={ url.Create(ctx, "expense", "create") }
-						hx-target="#all-expenses-list"
-						hx-swap="outerHTML"
+						hx-swap="none"
 						x-data="{ formErrors: {} }"
 						x-effect="
 							if (activeAccordion === id) {
@@ -59,11 +68,17 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 									formErrors = parsed.message;
 								}
 								return;
-							} else {
-								document.getElementById('monthsBarChartContainer').dispatchEvent(new Event('reload-chart'));
-								setActiveAccordion(id);
-								return;
 							}
+
+							console.log('@htmx:after-request.camel triggered from CreateExpenseContainer');
+							if (event.detail.successful && event.detail.xhr.responseURL.includes($el.getAttribute('hx-post'))) {
+								const parsed = JSON.parse(event.detail.xhr.response);
+								categories = parsed.categories;
+								expenses = parsed.expenses;
+								users = parsed.users;
+							}
+
+							setActiveAccordion(id);
 						"
 					>
 						<div class="grid items-center grid-cols-3 gap-4 pt-1">

@@ -47,7 +47,7 @@ func TransformToChartData(data []MonthlySum) ChartData {
 		categoryMap[record.Category][monthYear] = record.Sum
 	}
 
-	var datasets []CategoryData
+	datasets := []CategoryData{}
 	for category, monthData := range categoryMap {
 		dataPoints := make([]float64, len(monthKeys))
 		for i, monthKey := range monthKeys {
@@ -68,7 +68,7 @@ func TransformToChartData(data []MonthlySum) ChartData {
 		}
 	}
 
-	var labels [][]string
+	labels := [][]string{}
 
 	for i, month := range months {
 		labels = append(labels, []string{

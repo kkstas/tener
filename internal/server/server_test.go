@@ -157,7 +157,7 @@ func TestUpdateExpense(t *testing.T) {
 
 		logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
 		server.NewApplication(logger, &store, &expensecategory.InMemoryStore{}, &user.InMemoryStore{}).ServeHTTP(response, request)
-		assertStatus(t, response.Code, http.StatusCreated)
+		assertStatus(t, response.Code, http.StatusOK)
 	})
 }
 

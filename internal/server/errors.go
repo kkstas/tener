@@ -48,8 +48,8 @@ func (app *Application) make(h APIFunc) http.HandlerFunc {
 
 		var validationErr *validator.ValidationError
 		if errors.As(err, &validationErr) {
-			w.WriteHeader(http.StatusBadRequest)
 			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
 			_, _ = fmt.Fprint(w, validationErr.Error())
 			return
 		}
