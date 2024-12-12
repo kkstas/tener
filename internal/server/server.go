@@ -68,7 +68,7 @@ func NewApplication(logger *slog.Logger, expenseStore expenseStore, expenseCateg
 	mux.HandleFunc("POST   /expense/create", app.make(app.withUser(app.createSingleExpenseJSON)))
 	mux.HandleFunc("PUT    /expense/edit/{SK}", app.make(app.withUser(app.updateSingleExpenseJSON)))
 	mux.HandleFunc("DELETE /expense/{SK}", app.make(app.withUser(app.deleteSingleExpenseJSON)))
-	mux.HandleFunc("GET    /expense/sums", app.make(app.withUser(app.getMonthlySums)))
+	mux.HandleFunc("GET    /expense/sums", app.make(app.withUser(app.getMonthlySumsJSON)))
 
 	mux.HandleFunc("GET    /expensecategories", app.make(app.withUser(app.renderExpenseCategoriesPage)))
 	mux.HandleFunc("POST   /expensecategories/create", app.make(app.withUser(app.createAndRenderSingleExpenseCategory)))

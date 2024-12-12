@@ -79,16 +79,13 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 	)
 }
 
-func (app *Application) getMonthlySums(w http.ResponseWriter, r *http.Request, u user.User) error {
+func (app *Application) getMonthlySumsJSON(w http.ResponseWriter, r *http.Request, u user.User) error {
 	monthlySums, err := app.expense.GetMonthlySums(r.Context(), MonthlySumsLastMonthsCount, u.ActiveVault)
 	if err != nil {
 		return fmt.Errorf("failed to find monthly sums: %w", err)
 	}
 
-	return app.renderTempl(
-		w, r,
-		components.MonthlySumsChart(r.Context(), expense.TransformToChartData(monthlySums)),
-	)
+	return writeJSON(w, http.StatusOK, expense.TransformToChartData(monthlySums))
 }
 
 func (app *Application) getExpensesJSON(w http.ResponseWriter, r *http.Request, u user.User) error {

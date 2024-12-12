@@ -121,7 +121,7 @@ templ expenseForm(paymentMethods []string, categories []expensecategory.Category
 				type="text"
 				name="name"
 				:placeholder="exp.Name"
-				x-init="$el.setAttribute('value', exp.Name)"
+				x-effect="if (popoverOpen) { $el.setAttribute('value', exp.Name) }"
 				minlength={ strconv.Itoa(expense.NameMinLength) }
 				maxlength={ strconv.Itoa(expense.NameMaxLength) }
 				required
@@ -152,7 +152,7 @@ templ expenseForm(paymentMethods []string, categories []expensecategory.Category
 				name="amount"
 				type="text"
 				:placeholder="exp.Amount.toFixed(2) + ' PLN'"
-				x-init="$el.setAttribute('value', exp.Amount)"
+				x-effect="if (popoverOpen) { $el.setAttribute('value', exp.Amount) }"
 				inputmode="decimal"
 				pattern="^\d+([.,]\d{1,2})?$"
 				title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
@@ -167,7 +167,7 @@ templ expenseForm(paymentMethods []string, categories []expensecategory.Category
 				class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 				type="date"
 				name="date"
-				x-init="$el.setAttribute('value', exp.Date)"
+				x-effect="if (popoverOpen) { $el.setAttribute('value', exp.Date) }"
 				required
 			/>
 			<template x-for="err in formErrors.date"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p></template>

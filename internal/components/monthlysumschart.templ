@@ -11,12 +11,20 @@ templ MonthlySumsChart(ctx context.Context, chartData expense.ChartData) {
 	<div
 		id="monthsBarChartContainer"
 		hx-get={ url.Create(ctx, "expense", "sums") }
-		hx-swap="outerHTML"
+		hx-swap="none"
 		hx-trigger="reload-chart"
 		hx-target="this"
-		hx-on::before-swap="
-			document.getElementById('chartDataRaw').remove();
-			Chart.getChart('monthsBarChart') && Chart.getChart('monthsBarChart').destroy()
+		@htmx:after-request.camel="
+			if (event.detail.successful && typeof event.detail.xhr === 'object') {
+				try {
+					const parsed = JSON.parse(event.detail.xhr.response);
+					console.log('Updating chart data with:', parsed);
+					const foundChart = Chart.getChart('monthsBarChart');
+					foundChart.data = parsed;
+					foundChart.update();
+				} catch {}
+				return;
+			}
 		"
 	>
 		<canvas id="monthsBarChart" width="400" height="300"></canvas>

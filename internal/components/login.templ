@@ -22,16 +22,16 @@ templ LoginPage(ctx context.Context) {
 					hx-post={ url.Create(ctx, "login") }
 					x-data="{ formErrors: {} }"
 					@htmx:after-request.camel="
-					if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
-						try {
-							const parsed = JSON.parse(event.detail.xhr.response);
-							if (typeof parsed.message === 'object') {
-								formErrors = parsed.message;
-							}
-						} catch {}
-						return;
-					}
-				"
+						if (!event.detail.successful && typeof event.detail.xhr === 'object' && event.detail.xhr !== null && !Array.isArray(event.detail.xhr)) {
+							try {
+								const parsed = JSON.parse(event.detail.xhr.response);
+								if (typeof parsed.message === 'object') {
+									formErrors = parsed.message;
+								}
+							} catch {}
+							return;
+						}
+					"
 				>
 					<div class="items-center pt-5 pb-4">
 						<label for="login-email-input" class="w-fit pl-0.5 text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>

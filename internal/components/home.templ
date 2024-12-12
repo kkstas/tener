@@ -47,7 +47,10 @@ templ Home(ctx context.Context, expenses []expense.Expense, paymentMethods []str
 					@ExpenseCategoryFilter(ctx, getUniqueCategoryNames(extractCategories(expenses), categories))
 					@ExpenseDateRangePicker(ctx)
 				</div>
-				<div class="text-sm font-normal bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md divide-y-reverse overflow-hidden">
+				<div
+					class="text-sm font-normal bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-200 dark:divide-zinc-700 rounded-md divide-y-reverse overflow-hidden"
+					x-init="$watch('expenses', (expenses) => htmx.process($el))"
+				>
 					<template x-for="exp in expenses" :key="exp.SK">
 						@Expense(paymentMethods, categories)
 					</template>
