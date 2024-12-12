@@ -2,6 +2,7 @@ package expense
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
@@ -76,6 +77,8 @@ func TransformToChartData(data []MonthlySum) ChartData {
 			month,
 		})
 	}
+
+	sort.Slice(datasets, func(i int, j int) bool { return datasets[i].Label < datasets[j].Label })
 
 	return ChartData{
 		Labels:   labels,
