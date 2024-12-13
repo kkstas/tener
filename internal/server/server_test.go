@@ -88,7 +88,7 @@ func TestCreateExpense(t *testing.T) {
 		assertStatus(t, response.Code, http.StatusBadRequest)
 	})
 
-	t.Run("returns 200 with html", func(t *testing.T) {
+	t.Run("returns 200", func(t *testing.T) {
 		var param = url.Values{}
 		param.Set("paymentMethod", expense.PaymentMethods[0])
 		param.Set("amount", "1.99")

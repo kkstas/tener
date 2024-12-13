@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -80,9 +81,20 @@ func (app *Application) renderHomePage(w http.ResponseWriter, r *http.Request, u
 }
 
 func (app *Application) getMonthlySumsJSON(w http.ResponseWriter, r *http.Request, u user.User) error {
+	_, _, selectedCategories := queryFilters(r)
 	monthlySums, err := app.expense.GetMonthlySums(r.Context(), MonthlySumsLastMonthsCount, u.ActiveVault)
 	if err != nil {
 		return fmt.Errorf("failed to find monthly sums: %w", err)
+	}
+
+	if len(selectedCategories) > 0 {
+		filteredSums := []expense.MonthlySum{}
+		for _, s := range monthlySums {
+			if slices.Contains(selectedCategories, s.Category) {
+				filteredSums = append(filteredSums, s)
+			}
+		}
+		monthlySums = filteredSums
 	}
 
 	return writeJSON(w, http.StatusOK, expense.TransformToChartData(monthlySums))
@@ -170,7 +182,6 @@ func (app *Application) createSingleExpenseJSON(w http.ResponseWriter, r *http.R
 
 func (app *Application) updateSingleExpenseJSON(w http.ResponseWriter, r *http.Request, u user.User) error {
 	from, to, selectedCategories := queryFilters(r)
-	fmt.Println("from", from, "to", to, "selectedCategories", selectedCategories)
 
 	SK := r.PathValue("SK")
 	category := strings.TrimSpace(r.FormValue("category"))

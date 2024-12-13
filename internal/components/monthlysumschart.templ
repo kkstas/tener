@@ -2,6 +2,7 @@ package components
 
 import (
 	"context"
+
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/url"
 )
@@ -14,6 +15,7 @@ templ MonthlySumsChart(ctx context.Context, chartData expense.ChartData) {
 		hx-swap="none"
 		hx-trigger="reload-chart"
 		hx-target="this"
+		hx-include="#categories"
 		@htmx:after-request.camel="
 			if (event.detail.successful && typeof event.detail.xhr === 'object') {
 				try {
