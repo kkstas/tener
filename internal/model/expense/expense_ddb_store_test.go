@@ -349,6 +349,101 @@ func TestDDBUpdate(t *testing.T) {
 		assertEqual(t, newCategory1MonthlySum.Sum, prevCategory1MonthlySum.Sum+expenseFU.Amount)
 		assertEqual(t, newCategory2MonthlySum.Sum, prevCategory2MonthlySum.Sum-expenseFU.Amount)
 	})
+
+	t.Run("updates monthly sums for old and new categories and for old and new months, if both category and month has been changed", func(t *testing.T) {
+		category1 := "category1"
+		category2 := "category2"
+		date1 := "2024-09-15"
+		date2 := "2024-10-15"
+
+		createDDBExpenseHelper(t,
+			ctx,
+			store,
+			validDDBExpenseName,
+			date1,
+			category1,
+			10.00,
+			expense.PaymentMethods[0],
+		)
+		createDDBExpenseHelper(t,
+			ctx,
+			store,
+			validDDBExpenseName,
+			date2,
+			category2,
+			10.00,
+			expense.PaymentMethods[0],
+		)
+		expenseFU := createDDBExpenseHelper(t,
+			ctx,
+			store,
+			validDDBExpenseName,
+			date2,
+			category2,
+			10.00,
+			expense.PaymentMethods[0],
+		)
+
+		prevMonthlySums, err := store.GetMonthlySums(ctx, server.MonthlySumsLastMonthsCount, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		expenseFU.Category = category1
+		err = store.Update(ctx, expenseFU, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		newMonthlySums, err := store.GetMonthlySums(ctx, server.MonthlySumsLastMonthsCount, ddbStoreVaultID)
+		if err != nil {
+			t.Fatalf("didn't expect an error but got one: %v", err)
+		}
+
+		var prevCategory1Date1MonthlySum expense.MonthlySum
+		var prevCategory1Date2MonthlySum expense.MonthlySum
+		var prevCategory2Date1MonthlySum expense.MonthlySum
+		var prevCategory2Date2MonthlySum expense.MonthlySum
+		var newCategory1Date1MonthlySum expense.MonthlySum
+		var newCategory1Date2MonthlySum expense.MonthlySum
+		var newCategory2Date1MonthlySum expense.MonthlySum
+		var newCategory2Date2MonthlySum expense.MonthlySum
+
+		for _, m := range prevMonthlySums {
+			if m.Category == category1 && strings.HasPrefix(m.SK, date1[:7]) {
+				prevCategory1Date1MonthlySum = m
+			}
+			if m.Category == category1 && strings.HasPrefix(m.SK, date2[:7]) {
+				prevCategory1Date2MonthlySum = m
+			}
+			if m.Category == category2 && strings.HasPrefix(m.SK, date1[:7]) {
+				prevCategory2Date1MonthlySum = m
+			}
+			if m.Category == category2 && strings.HasPrefix(m.SK, date2[:7]) {
+				prevCategory2Date2MonthlySum = m
+			}
+		}
+
+		for _, m := range newMonthlySums {
+			if m.Category == category1 && strings.HasPrefix(m.SK, date1[:7]) {
+				newCategory1Date1MonthlySum = m
+			}
+			if m.Category == category1 && strings.HasPrefix(m.SK, date2[:7]) {
+				newCategory1Date2MonthlySum = m
+			}
+			if m.Category == category2 && strings.HasPrefix(m.SK, date1[:7]) {
+				newCategory2Date1MonthlySum = m
+			}
+			if m.Category == category2 && strings.HasPrefix(m.SK, date2[:7]) {
+				newCategory2Date2MonthlySum = m
+			}
+		}
+
+		assertEqual(t, newCategory1Date1MonthlySum.Sum, prevCategory1Date1MonthlySum.Sum)
+		assertEqual(t, newCategory1Date2MonthlySum.Sum, prevCategory1Date2MonthlySum.Sum+expenseFU.Amount)
+		assertEqual(t, newCategory2Date1MonthlySum.Sum, prevCategory2Date1MonthlySum.Sum)
+		assertEqual(t, newCategory2Date2MonthlySum.Sum, prevCategory2Date2MonthlySum.Sum-expenseFU.Amount)
+	})
 }
 
 func TestDDBFindOne(t *testing.T) {
