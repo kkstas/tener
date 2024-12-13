@@ -1,11 +1,15 @@
 package main
 
 import (
-	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/awslabs/aws-lambda-go-api-proxy/httpadapter"
+	"context"
+	"fmt"
+	"os"
 )
 
 func main() {
-	app := initApplication()
-	lambda.Start(httpadapter.New(app).ProxyWithContext)
+	ctx := context.Background()
+	if err := run(ctx, os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
+	}
 }

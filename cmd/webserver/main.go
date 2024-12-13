@@ -1,21 +1,15 @@
 package main
 
 import (
-	"log"
-	"net/http"
-	"time"
+	"context"
+	"fmt"
+	"os"
 )
 
 func main() {
-	app := initApplicationAndDDB()
-
-	server := &http.Server{
-		Addr:              ":8081",
-		ReadHeaderTimeout: 3 * time.Second,
-		Handler:           app,
-	}
-
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatal(err)
+	ctx := context.Background()
+	if err := run(ctx, os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "%s\n", err)
+		os.Exit(1)
 	}
 }

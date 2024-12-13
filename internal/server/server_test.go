@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
@@ -139,7 +138,7 @@ func TestUpdateExpense(t *testing.T) {
 		)
 
 		if err != nil {
-			log.Fatalf("didn't expect an error but got one: %v", err)
+			t.Fatalf("didn't expect an error but got one: %v", err)
 		}
 
 		var param = url.Values{}
