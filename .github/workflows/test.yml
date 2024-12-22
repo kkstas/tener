@@ -5,6 +5,7 @@ on:
     branches: [ "main", "prod" ]
   pull_request:
     branches: [ "main", "prod" ]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -33,6 +34,25 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ steps.get-go-version.outputs.version }}
+
+      - name: Wait for API to be ready
+        run: |
+          max_attempts=30
+          attempt=0
+          while [ $attempt -lt $max_attempts ]; do
+            if curl -f http://localhost:8080/health-check; then
+              echo -e "\nAPI is up!"
+              break
+            fi
+            echo "Waiting for API... (Attempt $((attempt+1))/$max_attempts)"
+            sleep 10
+            attempt=$((attempt+1))
+          done
+
+          if [ $attempt -eq $max_attempts ]; then
+            echo "API did not become available in time"
+            exit 1
+          fi
 
       - name: Run Go tests
         run: |
