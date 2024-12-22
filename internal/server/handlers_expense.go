@@ -150,6 +150,12 @@ func (app *Application) createSingleExpenseJSON(w http.ResponseWriter, r *http.R
 	_, err = app.expense.Create(r.Context(), exp, u.ID, u.ActiveVault)
 	if err != nil {
 		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
+
+		var maxCountErr *expense.MaxMonthExpenseCountExceededError
+		if errors.As(err, &maxCountErr) {
+			return NewAPIError(http.StatusForbidden, err)
+		}
+
 		return fmt.Errorf("failed to put item: %w", err)
 	}
 
@@ -203,10 +209,17 @@ func (app *Application) updateSingleExpenseJSON(w http.ResponseWriter, r *http.R
 	err = app.expense.Update(r.Context(), expenseFU, u.ActiveVault)
 	if err != nil {
 		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form, "expenseFU": expenseFU})
+
 		var notFoundErr *expense.NotFoundError
 		if errors.As(err, &notFoundErr) {
 			return NewAPIError(http.StatusNotFound, err)
 		}
+
+		var maxCountErr *expense.MaxMonthExpenseCountExceededError
+		if errors.As(err, &maxCountErr) {
+			return NewAPIError(http.StatusForbidden, err)
+		}
+
 		return fmt.Errorf("failed to put item: %w", err)
 	}
 

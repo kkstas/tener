@@ -11,9 +11,11 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/kkstas/tener/assets"
 	"github.com/kkstas/tener/internal/auth"
+	"github.com/kkstas/tener/internal/database"
 	"github.com/kkstas/tener/internal/model/expense"
 	"github.com/kkstas/tener/internal/model/expensecategory"
 	"github.com/kkstas/tener/internal/model/user"
@@ -123,6 +125,38 @@ func TestCreateExpense(t *testing.T) {
 		newTestApplication().ServeHTTP(response, request)
 		assertStatus(t, response.Code, http.StatusOK)
 	})
+
+	t.Run("returns status forbidden and does not exceed expense count limit", func(t *testing.T) {
+		expenseLimit := 3
+		app, cancel := newTestApplicationWithDDB(t, expenseLimit)
+		defer cancel()
+
+		createExpense := func() *httptest.ResponseRecorder {
+			var param = url.Values{}
+			param.Set("paymentMethod", expense.PaymentMethods[0])
+			param.Set("amount", "1.99")
+			param.Set("category", "food")
+			param.Set("name", "some name")
+			param.Set("date", "2024-01-01")
+			var payload = bytes.NewBufferString(param.Encode())
+			response := httptest.NewRecorder()
+			request := httptest.NewRequest(http.MethodPost, "/expense/create", payload)
+			request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			addTokenCookie(t, request)
+			app.ServeHTTP(response, request)
+			return response
+		}
+
+		for i := 0; i < expenseLimit; i++ {
+			res := createExpense()
+			if res.Code != http.StatusOK {
+				t.Fatalf("failed to create expense - got response: %v", res)
+			}
+		}
+
+		res := createExpense()
+		assertStatus(t, res.Code, http.StatusForbidden)
+	})
 }
 
 func TestUpdateExpense(t *testing.T) {
@@ -172,12 +206,32 @@ func newTestApplication() *server.Application {
 	return server.NewApplication(logger, &expense.InMemoryStore{}, &expensecategory.InMemoryStore{}, &user.InMemoryStore{})
 }
 
+func newTestApplicationWithDDB(t testing.TB, expenseLimit int) (app *server.Application, cancelFunc func()) {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	tableName, client, removeDDB, err := database.CreateLocalTestDDBTable(ctx)
+	if err != nil {
+		t.Fatalf("failed creating local test ddb table: %v", err)
+	}
+
+	cancelFunc = func() {
+		removeDDB()
+		cancel()
+	}
+
+	store := expense.NewDDBStoreWithExpenseMonthLimit(tableName, client, expenseLimit)
+
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelWarn}))
+	return server.NewApplication(logger, store, &expensecategory.InMemoryStore{}, &user.InMemoryStore{}), cancelFunc
+}
+
 func addTokenCookie(t testing.TB, r *http.Request) {
 	t.Helper()
 	userFC, isValid, errMessages := user.New(validFirstName, validLastName, validEmail, validPassword)
 	if !isValid {
 		t.Fatalf("didn't expect na error but got one: %v", errMessages)
 	}
+	userFC.Vaults = []string{"vaultID"}
 
 	token, err := auth.CreateToken(userFC)
 	if err != nil {
