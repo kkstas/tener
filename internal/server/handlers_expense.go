@@ -153,25 +153,22 @@ func (app *Application) createSingleExpenseJSON(w http.ResponseWriter, r *http.R
 		return fmt.Errorf("failed to put item: %w", err)
 	}
 
+	app.emitActionTrail("create_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
+
 	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
 	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to query items: %w", err)
 	}
 
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to query expense categories: %w", err)
 	}
 
 	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
 	if err != nil {
-		app.emitActionTrail("create_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to find matching users for expenses & expense categories: %w", err)
 	}
-
-	app.emitActionTrail("create_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
 
 	return writeJSON(w, http.StatusOK, map[string]any{
 		"expenses":   expenses,
@@ -213,25 +210,22 @@ func (app *Application) updateSingleExpenseJSON(w http.ResponseWriter, r *http.R
 		return fmt.Errorf("failed to put item: %w", err)
 	}
 
+	app.emitActionTrail("update_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
+
 	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
 	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to query expenses: %w", err)
 	}
 
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to query expense categories: %w", err)
 	}
 
 	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
 	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to find matching users for expenses & expense categories: %w", err)
 	}
-
-	app.emitActionTrail("update_expense", true, &u, nil, map[string]interface{}{"inputForm": r.Form})
 
 	return writeJSON(w, http.StatusOK, map[string]any{
 		"expenses":   expenses,
@@ -259,19 +253,16 @@ func (app *Application) deleteSingleExpenseJSON(w http.ResponseWriter, r *http.R
 
 	expenses, err := app.expense.Query(r.Context(), from, to, selectedCategories, u.ActiveVault)
 	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to query expenses: %w", err)
 	}
 
 	categories, err := app.expenseCategory.FindAll(r.Context(), u.ActiveVault)
 	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to query expense categories: %w", err)
 	}
 
 	users, err := app.user.FindAllByIDs(r.Context(), extractUserIDs(expenses, categories))
 	if err != nil {
-		app.emitActionTrail("update_expense", false, &u, err, map[string]interface{}{"inputForm": r.Form})
 		return fmt.Errorf("failed to find matching users for expenses & expense categories: %w", err)
 	}
 
