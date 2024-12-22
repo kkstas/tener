@@ -86,7 +86,10 @@ func TestDaysBetween(t *testing.T) {
 }
 
 func TestGetFirstAndLastDayOfMonth(t *testing.T) {
-	gotFrom, gotTo := GetFirstAndLastDayOfMonth("2024-01-01")
+	gotFrom, gotTo, err := GetFirstAndLastDayOfMonth("2024-01-01")
+	if err != nil {
+		t.Fatalf("didn't expect an error but got one: %v", err)
+	}
 	wantFrom := "2024-01-01"
 	wantTo := "2024-01-31"
 

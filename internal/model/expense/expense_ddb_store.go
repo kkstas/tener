@@ -15,9 +15,14 @@ import (
 	"github.com/kkstas/tener/internal/helpers"
 )
 
+const (
+	maxExpensesInMonth = 1000
+)
+
 type DDBStore struct {
-	client    *dynamodb.Client
-	tableName string
+	client                 *dynamodb.Client
+	tableName              string
+	expenseCountMonthLimit int
 }
 
 func getKey(vaultID, sk string) map[string]types.AttributeValue {
@@ -33,9 +38,14 @@ func getKey(vaultID, sk string) map[string]types.AttributeValue {
 }
 
 func NewDDBStore(tableName string, client *dynamodb.Client) *DDBStore {
+	return NewDDBStoreWithExpenseMonthLimit(tableName, client, maxExpensesInMonth)
+}
+
+func NewDDBStoreWithExpenseMonthLimit(tableName string, client *dynamodb.Client, expenseCountMonthLimit int) *DDBStore {
 	return &DDBStore{
-		tableName: tableName,
-		client:    client,
+		tableName:              tableName,
+		client:                 client,
+		expenseCountMonthLimit: expenseCountMonthLimit,
 	}
 }
 
@@ -66,6 +76,11 @@ func (es *DDBStore) marshal(
 }
 
 func (es *DDBStore) Create(ctx context.Context, expenseFC Expense, userID, vaultID string) (Expense, error) {
+	err := es.validateExpenseLimit(ctx, expenseFC.Date, vaultID)
+	if err != nil {
+		return Expense{}, err
+	}
+
 	newExpense, item, err := es.marshal(
 		buildPK(vaultID),
 		expenseFC.SK,
@@ -127,6 +142,11 @@ func (es *DDBStore) Update(ctx context.Context, expenseFU Expense, vaultID strin
 	foundExpense, err := es.FindOne(ctx, expenseFU.SK, vaultID)
 	if err != nil {
 		return fmt.Errorf("failed to find expense for update: %w", err)
+	}
+
+	err = es.validateExpenseLimit(ctx, expenseFU.Date, vaultID)
+	if err != nil {
+		return err
 	}
 
 	expenseFU.CreatedAt = foundExpense.CreatedAt
@@ -300,7 +320,10 @@ func (es *DDBStore) updateMonthlySum(ctx context.Context, vaultID, date, categor
 }
 
 func (es *DDBStore) calcMonthlySum(ctx context.Context, activeVault, category, dateStr string) (float64, error) {
-	from, to := helpers.GetFirstAndLastDayOfMonth(dateStr)
+	from, to, err := helpers.GetFirstAndLastDayOfMonth(dateStr)
+	if err != nil {
+		return 0, err
+	}
 	thisMonthCategoryExpenses, err := es.Query(ctx, from, to, []string{category}, activeVault)
 	if err != nil {
 		return 0, err
@@ -435,4 +458,51 @@ func (es *DDBStore) query(ctx context.Context, expr expression.Expression) ([]Ex
 	})
 
 	return expenses, nil
+}
+
+func (es *DDBStore) validateExpenseLimit(ctx context.Context, dateStr, vaultID string) error {
+	count, err := es.countExpensesInMonth(ctx, dateStr, vaultID)
+	if err != nil {
+		return fmt.Errorf("failed to fetch expense count for month in date %s in vault %s", dateStr, vaultID)
+	}
+	if count >= es.expenseCountMonthLimit {
+		return &MaxMonthExpenseCountExceededError{Month: dateStr, Vault: vaultID}
+	}
+	return nil
+}
+
+func (es *DDBStore) countExpensesInMonth(ctx context.Context, dateStr, vaultID string) (int, error) {
+	from, to, err := helpers.GetFirstAndLastDayOfMonth(dateStr)
+	if err != nil {
+		return 0, fmt.Errorf("failed to parse from and to date range from dateStr %s: %w", dateStr, err)
+	}
+
+	dayAfterTo, err := helpers.NextDay(to)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get next day for date '%s': %w", to, err)
+	}
+
+	keyCond := expression.
+		Key("PK").Equal(expression.Value(buildPK(vaultID))).
+		And(expression.Key("SK").Between(expression.Value(from), expression.Value(dayAfterTo)))
+
+	expr, err := expression.NewBuilder().WithKeyCondition(keyCond).Build()
+	if err != nil {
+		return 0, fmt.Errorf("failed to build expression for query %w", err)
+	}
+
+	queryInput := dynamodb.QueryInput{
+		TableName:                 &es.tableName,
+		ExpressionAttributeNames:  expr.Names(),
+		ExpressionAttributeValues: expr.Values(),
+		KeyConditionExpression:    expr.KeyCondition(),
+		Select:                    "COUNT",
+	}
+
+	output, err := es.client.Query(ctx, &queryInput)
+	if err != nil {
+		return 0, fmt.Errorf("failed to query expense count: %w", err)
+	}
+
+	return int(output.Count), nil
 }

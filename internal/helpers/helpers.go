@@ -65,11 +65,10 @@ func setTimeToMidnight(t time.Time, loc *time.Location) time.Time {
 	)
 }
 
-func GetFirstAndLastDayOfMonth(dateStr string) (from, to string) {
+func GetFirstAndLastDayOfMonth(dateStr string) (from, to string, err error) {
 	date, err := time.Parse("2006-01-02", dateStr)
 	if err != nil {
-		fmt.Println("Error parsing date:", err)
-		return
+		return "", "", fmt.Errorf("failed to parse date %s: %w", dateStr, err)
 	}
 
 	firstDay := time.Date(date.Year(), date.Month(), 1, 0, 0, 0, 0, date.Location())
@@ -77,7 +76,7 @@ func GetFirstAndLastDayOfMonth(dateStr string) (from, to string) {
 
 	from = firstDay.Format("2006-01-02")
 	to = lastDay.Format("2006-01-02")
-	return from, to
+	return from, to, nil
 }
 
 func GetFirstDayOfCurrentMonth() string {
