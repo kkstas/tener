@@ -8,8 +8,8 @@ import (
 
 func TestDateStringDaysAgo(t *testing.T) {
 	t.Run("returns today", func(t *testing.T) {
-		now := time.Now()
 		loc, _ := time.LoadLocation("Europe/Warsaw")
+		now := time.Now().In(loc)
 		want, _, _ := strings.Cut(time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).Format(time.RFC3339Nano), "T")
 
 		got := DaysAgo(0)

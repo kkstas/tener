@@ -41,7 +41,7 @@ func DaysBetween(from, to string) (int, error) {
 // Returns YYYY-MM-DD date from given amount of days ago
 func DaysAgo(days int) string {
 	loc, _ := time.LoadLocation("Europe/Warsaw")
-	now := setTimeToMidnight(time.Now(), loc)
+	now := setTimeToMidnight(time.Now().In(loc), loc)
 	pastDate := now.Add(-(time.Duration(days) * 24 * time.Hour))
 	date, _, _ := strings.Cut(pastDate.Format(time.RFC3339), "T")
 	return date
