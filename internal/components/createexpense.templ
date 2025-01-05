@@ -75,6 +75,22 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 							setActiveAccordion(id);
 						"
 					>
+						<div class="grid items-center grid-cols-3 gap-4">
+							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="create-expense-amount-input">Amount</label>
+							<input
+								class="flex w-full h-8 col-span-2 px-3 py-2 dark:text-zinc-200 text-sm bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+								x-bind:class="formErrors.amount && 'border-red-500'"
+								id="create-expense-amount-input"
+								name="amount"
+								type="text"
+								placeholder="0.00 PLN"
+								inputmode="decimal"
+								pattern="^\d+([.,]\d{1,2})?$"
+								title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
+								required
+							/>
+							<template x-for="err in formErrors.amount"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p></template>
+						</div>
 						<div class="grid items-center grid-cols-3 gap-4 pt-1">
 							<label for="create-expense-name-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Name</label>
 							<input
@@ -110,22 +126,6 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 								<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-700 dark:text-zinc-400"><svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"></path></svg></div>
 							</div>
 							<template x-for="err in formErrors.category"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p> </template>
-						</div>
-						<div class="grid items-center grid-cols-3 gap-4">
-							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="create-expense-amount-input">Amount</label>
-							<input
-								class="flex w-full h-8 col-span-2 px-3 py-2 dark:text-zinc-200 text-sm bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
-								x-bind:class="formErrors.amount && 'border-red-500'"
-								id="create-expense-amount-input"
-								name="amount"
-								type="text"
-								placeholder="0.00 PLN"
-								inputmode="decimal"
-								pattern="^\d+([.,]\d{1,2})?$"
-								title="Please enter a valid price (e.g., '24', '24.99', '24,99')"
-								required
-							/>
-							<template x-for="err in formErrors.amount"><p x-text="err" class="flex w-full col-span-3 text-red-500 text-xs italic mb-3 mt-0 p-0"></p></template>
 						</div>
 						<div class="grid items-center grid-cols-3 gap-4">
 							<label for="create-expense-date-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Date</label>
