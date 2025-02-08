@@ -14,7 +14,7 @@ import (
 	"github.com/kkstas/tener/internal/model/user"
 )
 
-const TokenTTL = 7 * 24 * time.Hour
+const TokenTTL = 365 * 24 * time.Hour
 
 type Claims struct {
 	User user.User `json:"user"`

@@ -1,6 +1,6 @@
 module github.com/kkstas/tener
 
-go 1.23.4
+go 1.23.6
 
 require github.com/awslabs/aws-lambda-go-api-proxy v0.16.2
 

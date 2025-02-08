@@ -2,10 +2,10 @@ FROM golang:1.23-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache curl
-RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.10/tailwindcss-linux-x64 \
-        && chmod +x tailwindcss-linux-x64 \
-        && mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
+RUN apk add --no-cache curl ca-certificates && \
+    curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/v3.4.17/tailwindcss-linux-x64 && \
+    chmod +x tailwindcss-linux-x64 && \
+    mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
 
 COPY go.mod .
 
