@@ -78,7 +78,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 						<div class="grid items-center grid-cols-3 gap-4">
 							<label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70" for="create-expense-amount-input">Amount</label>
 							<input
-								class="flex w-full h-8 col-span-2 px-3 py-2 dark:text-zinc-200 text-sm bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 dark:text-zinc-200 text-base bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								x-bind:class="formErrors.amount && 'border-red-500'"
 								id="create-expense-amount-input"
 								name="amount"
@@ -95,7 +95,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 							<label for="create-expense-name-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Name</label>
 							<input
 								x-bind:class="formErrors.name && 'border-red-500'"
-								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-base bg-transparent dark:text-zinc-200 border dark:border-zinc-700 rounded-md file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								id="create-expense-name-input"
 								type="text"
 								name="name"
@@ -115,7 +115,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 									id="create-expense-category-input"
 									name="category"
 									x-bind:class="formErrors.category && 'border-red-500'"
-									class="shadow appearance-none border dark:text-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 rounded w-full py-2 px-3 leading-tight focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1"
+									class="shadow text-base appearance-none border dark:text-zinc-200 dark:border-zinc-700 dark:bg-zinc-800 rounded w-full px-3 leading-tight focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1"
 									required
 								>
 									<option hidden disabled selected value style="display: none"></option>
@@ -131,7 +131,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 							<label for="create-expense-date-input" class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Date</label>
 							<input
 								id="create-expense-date-input"
-								class="flex w-full h-8 col-span-2 px-3 py-2 text-sm dark:text-zinc-200 bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
+								class="flex w-full h-8 col-span-2 px-3 py-2 text-base dark:text-zinc-200 bg-transparent border dark:border-zinc-700 rounded-md border-input ring-offset-background file:border-0 file:bg-transparent file:text-base file:font-medium placeholder:text-muted-foreground focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1 disabled:cursor-not-allowed disabled:opacity-50"
 								x-bind:class="formErrors.date && 'border-red-500'"
 								type="date"
 								name="date"
@@ -144,7 +144,7 @@ templ CreateExpenseContainer(ctx context.Context, paymentMethods []string, categ
 							<div class="flex w-full h-8 col-span-2 relative">
 								<select
 									id="create-expense-payment-method-input"
-									class="shadow appearance-none border dark:border-zinc-700 dark:text-zinc-200 dark:bg-zinc-800 rounded w-full py-2 px-3 leading-tight focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1"
+									class="shadow text-base appearance-none border dark:border-zinc-700 dark:text-zinc-200 dark:bg-zinc-800 rounded w-full px-3 leading-tight focus:shadow-outline focus:outline-none focus:outline-zinc-800/10 dark:focus:outline-zinc-300/20 focus:outline-1"
 									x-bind:class="formErrors.paymentMethod && 'border-red-500'"
 									name="paymentMethod"
 									required
