@@ -15,7 +15,6 @@ import (
 
 const (
 	validDDBExpenseName      = "Some name"
-	validDDBExpenseDate      = "2024-09-07"
 	validDDBExpenseCategory  = "Some category"
 	validDDBExpenseCategory2 = "Other category"
 	validDDBExpenseAmount    = 24.99
@@ -43,8 +42,8 @@ func TestDDBCreate(t *testing.T) {
 
 		t.Run("creates new expense with correct data", func(t *testing.T) {
 			assertEqual(t, foundExpense.Name, validDDBExpenseName)
-			assertEqual(t, strings.HasPrefix(foundExpense.SK, validDDBExpenseDate), true)
-			assertEqual(t, foundExpense.Date, validDDBExpenseDate)
+			assertEqual(t, strings.HasPrefix(foundExpense.SK, helpers.DaysAgo(0)), true)
+			assertEqual(t, foundExpense.Date, helpers.DaysAgo(0))
 			assertEqual(t, foundExpense.Category, validDDBExpenseCategory)
 			assertEqual(t, foundExpense.Amount, validDDBExpenseAmount)
 			assertValidTime(t, time.RFC3339Nano, foundExpense.CreatedAt)
@@ -85,7 +84,7 @@ func TestDDBCreate(t *testing.T) {
 		store := expense.NewDDBStoreWithExpenseMonthLimit(tableName, client, expenseCountMonthLimit)
 
 		createExpense := func() error {
-			expenseFC, isValid, errMessages := expense.New(validDDBExpenseName, validDDBExpenseDate, validDDBExpenseCategory, validDDBExpenseAmount, expense.PaymentMethods[0])
+			expenseFC, isValid, errMessages := expense.New(validDDBExpenseName, helpers.DaysAgo(0), validDDBExpenseCategory, validDDBExpenseAmount, expense.PaymentMethods[0])
 			if !isValid {
 				t.Fatalf("didn't expect an error while validating expense but got one: %v", errMessages)
 			}
@@ -204,7 +203,7 @@ func TestDDBUpdate(t *testing.T) {
 
 		t.Run("assigns Date as first part of SK and keeps CreatedAt as second part when Date is updated", func(t *testing.T) {
 			expense := createDefaultDDBExpenseHelper(ctx, t, store)
-			newDate := "2024-09-09"
+			newDate := helpers.DaysAgo(15)
 			expense.Date = newDate
 			err = store.Update(ctx, expense, ddbStoreVaultID)
 			if err != nil {
@@ -257,8 +256,8 @@ func TestDDBUpdate(t *testing.T) {
 
 		t.Run("updates monthly sums for old and new month, if date month has been changed", func(t *testing.T) {
 			category := "randomcategory"
-			date1 := "2024-09-15"
-			date2 := "2024-10-15"
+			date1 := helpers.DaysAgo(1)
+			date2 := helpers.DaysAgo(40)
 
 			createDDBExpenseHelper(ctx, t,
 				store,
@@ -326,7 +325,7 @@ func TestDDBUpdate(t *testing.T) {
 			createDDBExpenseHelper(ctx, t,
 				store,
 				validDDBExpenseName,
-				validDDBExpenseDate,
+				helpers.DaysAgo(0),
 				category1,
 				10.00,
 				expense.PaymentMethods[0],
@@ -334,7 +333,7 @@ func TestDDBUpdate(t *testing.T) {
 			createDDBExpenseHelper(ctx, t,
 				store,
 				validDDBExpenseName,
-				validDDBExpenseDate,
+				helpers.DaysAgo(0),
 				category2,
 				10.00,
 				expense.PaymentMethods[0],
@@ -342,7 +341,7 @@ func TestDDBUpdate(t *testing.T) {
 			expenseFU := createDDBExpenseHelper(ctx, t,
 				store,
 				validDDBExpenseName,
-				validDDBExpenseDate,
+				helpers.DaysAgo(0),
 				category2,
 				10.00,
 				expense.PaymentMethods[0],
@@ -394,8 +393,8 @@ func TestDDBUpdate(t *testing.T) {
 		t.Run("updates monthly sums for old and new categories and for old and new months, if both category and month has been changed", func(t *testing.T) {
 			category1 := "category1"
 			category2 := "category2"
-			date1 := "2024-09-15"
-			date2 := "2024-10-15"
+			date1 := helpers.DaysAgo(40)
+			date2 := helpers.DaysAgo(1)
 
 			createDDBExpenseHelper(ctx, t,
 				store,
@@ -683,7 +682,7 @@ func createDefaultDDBExpenseHelper(ctx context.Context, t testing.TB, store *exp
 	return createDDBExpenseHelper(ctx, t,
 		store,
 		validDDBExpenseName,
-		validDDBExpenseDate,
+		helpers.DaysAgo(0),
 		validDDBExpenseCategory,
 		validDDBExpenseAmount,
 		expense.PaymentMethods[0],
