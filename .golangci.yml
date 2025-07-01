@@ -1,16 +1,33 @@
-# https://github.com/golangci/golangci-lint/blob/master/.golangci.reference.yml
+version: "2"
 linters:
   enable:
-    - revive
-    - nilerr
-    - gosec
-    - gochecksumtype
-    - exhaustruct
     - exhaustive
-
+    - exhaustruct
+    - gochecksumtype
+    - gosec
+    - nilerr
+    - revive
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 severity:
-  default-severity: warning
+  default: warning
   rules:
     - linters:
         - exhaustruct
       severity: info
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
