@@ -16,11 +16,11 @@ build-lambda:
 	zip lambda-handler.zip bootstrap
 
 push-lambda: build-lambda
-	aws lambda update-function-code --function-name ${DEV_FUNCTION_NAME} --zip-file fileb://lambda-handler.zip > /dev/null
+	aws lambda --profile ${AWS_PROFILE} update-function-code --function-name ${DEV_FUNCTION_NAME} --zip-file fileb://lambda-handler.zip > /dev/null
 	rm lambda-handler.zip
 	rm bootstrap
 
 prd-push-lambda: build-lambda
-	aws lambda update-function-code --function-name ${PRD_FUNCTION_NAME} --zip-file fileb://lambda-handler.zip > /dev/null
+	aws lambda --profile ${AWS_PROFILE} update-function-code --function-name ${PRD_FUNCTION_NAME} --zip-file fileb://lambda-handler.zip > /dev/null
 	rm lambda-handler.zip
 	rm bootstrap
