@@ -117,11 +117,27 @@ templ Nav(ctx context.Context, loggedIn bool, u user.User) {
 
 templ reloadIfStale() {
 	<script>
-		const lastReload = new Date().toISOString().split('T')[0];
-		window.addEventListener("focus", () => {
-			const today = new Date().toISOString().split('T')[0];
-			if (lastReload !== today) window.location.reload();
+		window.addEventListener("pageshow", () => {
+			checkAndReload()
 		})
+
+		const STORAGE_KEY = 'lastReloadTimestamp';
+		const STALE_THRESHOLD_MS = 10 * 60_000;
+
+		function checkAndReload() {
+			const lastReloadTimestamp = localStorage.getItem(STORAGE_KEY);
+			if (lastReloadTimestamp) {
+				const now = Date.now();
+				const timeSinceLastReload = now - parseInt(lastReloadTimestamp, 10);
+				if (timeSinceLastReload > STALE_THRESHOLD_MS) {
+					localStorage.setItem(STORAGE_KEY, now.toString());
+					window.location.reload();
+				} else {
+					// first visit
+					localStorage.setItem(STORAGE_KEY, now.toString());
+				}
+			}
+		}
 	</script>
 }
 
