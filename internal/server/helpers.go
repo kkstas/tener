@@ -17,6 +17,7 @@ import (
 
 func (app *Application) renderTempl(w http.ResponseWriter, r *http.Request, component templ.Component) error {
 	w.Header().Set("Content-Type", "text/html")
+	w.Header().Set("Cache-Control", "no-store")
 
 	if err := component.Render(r.Context(), w); err != nil {
 		return fmt.Errorf("failed to generate template: %w", err)
